@@ -33,11 +33,7 @@ MODEL = "claude-sonnet-4-6"  # Последняя версия
 # Максимум токенов для первого запроса (анализ идеи)
 MAX_TOKENS = 16000
 
-# Температура (0 = детерминированно, 1 = творчески)
-# Для анализа бизнес-идей — низкая температура (точнее)
-TEMPERATURE = 0.3
-
-# Параллельные агенты (количество оценщиков, которые работают одновременно)
-# Сейчас 1, потом будет 8
-NUM_EVALUATORS = 1
+# Lenses to run, by key (see evaluators/lenses.py for all eight).
+# Evaluators run sequentially for now, so each extra lens adds ~1 minute.
+ENABLED_LENSES = ("profitable_designer", "no_code_stack", "reality_auditor")
 

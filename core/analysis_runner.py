@@ -7,9 +7,9 @@ import logging
 from datetime import datetime
 from pathlib import Path
 
-from evaluators.profitable_designer import ProfitableAppDesigner
-from evaluators.no_code_stack import NoCodeStackMaster
-from evaluators.reality_auditor import RealityAuditor
+from config import ENABLED_LENSES
+from evaluators.evaluator import Evaluator
+from evaluators.lenses import select_lenses
 from core.idea_processor import IdeaProcessor
 from core.report_aggregator import ReportAggregator
 from core.token_summary import TokenSummary
@@ -35,6 +35,7 @@ class AnalysisRunner:
             processor (IdeaProcessor): Процессор для работы с идеями
         """
         self.processor = processor
+        self.lenses = select_lenses(ENABLED_LENSES)
         self.aggregator = ReportAggregator()
     
     def run(self, idea_name: str) -> bool:
@@ -84,7 +85,7 @@ class AnalysisRunner:
             return None
         
         logger.info(f"\n✓ Идея загружена ({len(idea_content)} символов)")
-        logger.info("⏳ Анализирую (3 оценщика)...\n")
+        logger.info(f"⏳ Analyzing with {len(self.lenses)} lenses...\n")
         
         return idea_content
     
@@ -98,11 +99,7 @@ class AnalysisRunner:
         Returns:
             list: Список результатов от evaluators
         """
-        evaluators = [
-            ProfitableAppDesigner(idea_content),
-            NoCodeStackMaster(idea_content),
-            RealityAuditor(idea_content)
-        ]
+        evaluators = [Evaluator(lens, idea_content) for lens in self.lenses]
         
         results = []
         for evaluator in evaluators:

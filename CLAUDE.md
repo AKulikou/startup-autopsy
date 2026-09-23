@@ -27,9 +27,10 @@ No test suite yet.
 ## Layout
 
 - `main.py` — CLI entry point, logging setup, idea selection
-- `config.py` — model, token limits, temperature
-- `evaluators/base.py` — `BaseEvaluator`: calls Claude, extracts verdict/confidence/summary
-- `evaluators/*.py` — one class per analytical prompt (system prompt + evaluation prompt)
+- `config.py` — API key check, model, token limit, enabled lenses
+- `evaluators/lenses.py` — the eight lenses as data (role, focus, questions) + shared `ANALYSIS_STANDARDS`
+- `evaluators/evaluator.py` — `Evaluator`: builds prompts from a lens, calls Claude with structured output
+- `evaluators/schemas.py` — `EvaluatorResult` Pydantic schema (verdict, confidence, assumptions, killer risk, next steps)
 - `core/analysis_runner.py` — orchestrates load → evaluate → save → synthesize → token stats
 - `core/report_aggregator.py` — builds the synthesis report
 - `core/idea_processor.py`, `file_manager.py`, `result_writer.py` — idea I/O and Markdown output
@@ -44,20 +45,24 @@ Eight prompts, each a distinct lens (must not overlap):
 
 | # | Evaluator | Lens | Status |
 |---|-----------|------|--------|
-| 1 | Profitable App Designer | Revenue model, recurring revenue, assumptions behind numbers | implemented |
-| 2 | No-Code Stack Master | 7-day no-code MVP, concrete stack, day-7 scope | implemented |
-| 3 | AI Tool Creator | AI differentiation, pricing rationale, first 10 customers | planned |
-| 4 | SaaS Revenue Builder | Pricing tiers, churn, 3/6/12-month optimistic vs conservative | planned |
-| 5 | Viral Product Designer | Network effects, conditions for organic growth | planned |
-| 6 | Launch Expert | First-week traction grounded in real audience size | planned |
-| 7 | Churn Eliminator | Onboarding, habit loops, when retention tactics fail | planned |
-| 8 | Reality Auditor | Killer risk, true timeline, go/no-go criteria | implemented |
+| 1 | Profitable App Designer | Revenue model, recurring revenue, assumptions behind numbers | enabled |
+| 2 | No-Code Stack Master | 7-day no-code MVP, concrete stack, day-7 scope | enabled |
+| 3 | AI Tool Creator | AI differentiation, pricing rationale, first 10 customers | defined |
+| 4 | SaaS Revenue Builder | Pricing tiers, churn, 3/6/12-month optimistic vs conservative | defined |
+| 5 | Viral Product Designer | Network effects, conditions for organic growth | defined |
+| 6 | Launch Expert | First-week traction grounded in real audience size | defined |
+| 7 | Churn Eliminator | Onboarding, habit loops, when retention tactics fail | defined |
+| 8 | Reality Auditor | Killer risk, true timeline, go/no-go criteria | enabled |
 
 Prompts are meant to be modified, combined, or replaced. **Synthesis and reporting
 code must not depend on specific evaluator names or on a fixed evaluator count.**
 
+All eight are defined in `evaluators/lenses.py`; `ENABLED_LENSES` in `config.py`
+selects which run. Lens prompts ask only lens-specific questions — the output
+format comes from the schema.
+
 Verdicts: `VIABLE`, `VIABLE_IF`, `NEEDS_VALIDATION`, `RISKY`, `NOT_VIABLE`.
-Confidence: 0–100.
+Confidence: `LOW` / `MEDIUM` / `HIGH` with a one-sentence reason.
 
 ## Analysis quality requirements
 
@@ -92,7 +97,8 @@ These define what a "correct" report is — apply them when editing prompts or s
 
 - `core/report_aggregator.py` contains keyword rules and next steps hardcoded for a
   single idea (fitness tracker) — to be replaced in Phase 3.
-- `BaseEvaluator.get_verdict()` matches verdict keywords anywhere in the text;
-  `get_confidence()` falls back to 0.75 silently.
+- Structured evaluator fields (assumptions, killer risk, next steps) are not yet
+  written to the per-evaluator report files.
+- `core/token_summary.py` prices all tokens at one flat rate; output tokens cost more.
 - Evaluators run sequentially.
 - Codebase comments are partly in Russian; migrate to English when touching a file.
