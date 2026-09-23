@@ -22,8 +22,6 @@ Be brutally honest. Separate enthusiasm from reality. Show numbers, not marketin
     def get_evaluation_prompt(self) -> str:
         return f"""Evaluate this for recurring revenue viability:
 
-{self.business_idea}
-
 1. WILLINGNESS TO PAY
    - What specific problem would users pay MONTHLY for?
    - Who pays? (Role, industry, income level — be specific)
@@ -47,9 +45,4 @@ Be brutally honest. Separate enthusiasm from reality. Show numbers, not marketin
 5. WHAT NEEDS VALIDATION FIRST?
    - One thing you'd prove before building
    - How would you test it?
-
-**AT THE END - REQUIRED:**
-SUMMARY: [One sentence verdict]
-VERDICT_RECOMMENDATION: [VIABLE / VIABLE_IF / NEEDS_VALIDATION / RISKY / NOT_VIABLE]
-CONFIDENCE_LEVEL: [0-100]
 """

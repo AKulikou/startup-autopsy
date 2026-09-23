@@ -22,8 +22,6 @@ Be specific about tools and honest about what's possible vs realistic in 7 days.
     def get_evaluation_prompt(self) -> str:
         return f"""Can this be built no-code in 7 days?
 
-{self.business_idea}
-
 1. TECH STACK (specific tools only)
    - Frontend: Webflow? Bubble? Static HTML?
    - Backend: Make.com? Zapier? n8n?
@@ -53,9 +51,4 @@ Be specific about tools and honest about what's possible vs realistic in 7 days.
    - When does this need professional developers?
 
 Be specific. Use tool names. Identify the biggest technical blocker.
-
-**AT THE END - REQUIRED:**
-SUMMARY: [One sentence verdict]
-VERDICT_RECOMMENDATION: [VIABLE / VIABLE_IF / NEEDS_VALIDATION / RISKY / NOT_VIABLE]
-CONFIDENCE_LEVEL: [0-100]
 """

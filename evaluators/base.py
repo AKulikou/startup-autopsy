@@ -3,10 +3,10 @@
 Каждый оценщик наследуется от этого класса и переопределяет методы.
 """
 
-import re
 from abc import ABC, abstractmethod
 from anthropic import Anthropic
-from config import ANTHROPIC_API_KEY, MODEL, MAX_TOKENS, VERDICT_COMPLETION_TOKENS
+from config import ANTHROPIC_API_KEY, MODEL, MAX_TOKENS
+from evaluators.schemas import EvaluatorResult
 
 
 class BaseEvaluator(ABC):
@@ -27,7 +27,6 @@ class BaseEvaluator(ABC):
             business_idea (str): Описание бизнес-идеи для анализа
         """
         self.business_idea = business_idea
-        self.last_analysis = None
         self.client = Anthropic(api_key=ANTHROPIC_API_KEY)
         self.model = MODEL
         self.max_tokens = MAX_TOKENS
@@ -65,197 +64,55 @@ class BaseEvaluator(ABC):
         """
         pass
     
-    def _has_verdict(self, text: str) -> bool:
-        """
-        Проверяет, содержит ли текст вердикт и уверенность.
-        
-        Args:
-            text (str): Текст анализа
-        
-        Returns:
-            bool: True если найдены оба VERDICT_RECOMMENDATION и CONFIDENCE_LEVEL
-        """
-        has_verdict = "VERDICT_RECOMMENDATION:" in text
-        has_confidence = "CONFIDENCE_LEVEL:" in text
-        return has_verdict and has_confidence
-    
     def evaluate(self) -> dict:
         """
-        Основной метод анализа. Делает второй запрос если вердикт обрезан.
-        
-        Returns:
-            dict: Результат анализа с вердиктом, уверенностью и токенами
+        Run the evaluation and return a result dict.
+
+        Returns a dict with "status": "success" and the structured fields,
+        or "status": "error" with an error message. Never raises.
         """
         try:
-            # Инициализируем раздельно для каждого запроса
-            req1_input_tokens = 0
-            req1_output_tokens = 0
-            req2_input_tokens = 0
-            req2_output_tokens = 0
-            verdict_request_used = False
-
-            # ===== ПЕРВЫЙ ЗАПРОС =====
-            response1 = self.client.messages.create(
+            response = self.client.messages.parse(
                 model=self.model,
                 max_tokens=self.max_tokens,
                 system=self.get_system_prompt(),
-                messages=[
-                    {
-                        "role": "user",
-                        "content": f"{self.get_evaluation_prompt()}\n\nBusiness Idea:\n{self.business_idea}"
-                    }
-                ]
+                messages=[{
+                    "role": "user",
+                    "content": f"{self.get_evaluation_prompt()}\n\nBusiness Idea:\n{self.business_idea}",
+                }],
+                output_format=EvaluatorResult,
             )
 
-            analysis = response1.content[0].text
-            req1_input_tokens = response1.usage.input_tokens
-            req1_output_tokens = response1.usage.output_tokens
-            self.last_analysis = analysis
-
-            # ===== ВТОРОЙ ЗАПРОС (если нужен) =====
-            if not self._has_verdict(analysis):
-                response2 = self.client.messages.create(
-                    model=self.model,
-                    max_tokens=VERDICT_COMPLETION_TOKENS,
-                    system="You are a business analyst. Complete the analysis by adding VERDICT_RECOMMENDATION and CONFIDENCE_LEVEL if missing. Keep the analysis unchanged, just append the missing fields.",
-                    messages=[
-                        {
-                            "role": "user",
-                            "content": f"""Complete this analysis by adding at the very end:
-
-VERDICT_RECOMMENDATION: [VIABLE / VIABLE_IF / NEEDS_VALIDATION / RISKY / NOT_VIABLE]
-CONFIDENCE_LEVEL: [0-100]
-
-Original analysis:
-{analysis}"""
-                        }
-                    ]
+            # Check why generation stopped before trusting the output
+            if response.stop_reason == "max_tokens":
+                raise RuntimeError(
+                    f"Response truncated at max_tokens={self.max_tokens}; "
+                    "increase MAX_TOKENS in config.py"
                 )
-                
-                verdict_text = response2.content[0].text
-                analysis = analysis + "\n\n" + verdict_text
-                verdict_request_used = True
-                
-                req2_input_tokens = response2.usage.input_tokens
-                req2_output_tokens = response2.usage.output_tokens
-                
-                self.last_analysis = analysis
+            if response.stop_reason == "refusal":
+                raise RuntimeError("Model refused to evaluate this idea")
 
-            # ===== ВЫЧИСЛЯЕМ ОБЩИЕ ТОКЕНЫ =====
-            total_input_tokens = req1_input_tokens + req2_input_tokens
-            total_output_tokens = req1_output_tokens + req2_output_tokens
-            total_tokens = total_input_tokens + total_output_tokens
+            result = response.parsed_output
+            input_tokens = response.usage.input_tokens
+            output_tokens = response.usage.output_tokens
 
-            # ===== ВОЗВРАЩАЕМ РЕЗУЛЬТАТ =====
             return {
                 "evaluator": self.__class__.__name__,
                 "evaluator_display": self.get_evaluator_name(),
                 "status": "success",
-                "analysis": analysis,
-                "summary": self.extract_summary(analysis),
-                "verdict": self.get_verdict(),
-                "confidence": self.get_confidence(),
-                # Общие суммы
-                "tokens_used": total_tokens,
-                "input_tokens": total_input_tokens,
-                "output_tokens": total_output_tokens,
-                "verdict_request_used": verdict_request_used,
-                # Разбор по запросам
-                "req1_input_tokens": req1_input_tokens,
-                "req1_output_tokens": req1_output_tokens,
-                "req2_input_tokens": req2_input_tokens,
-                "req2_output_tokens": req2_output_tokens,
-            }            
+                **result.model_dump(mode="json"),
+                "tokens_used": input_tokens + output_tokens,
+                "input_tokens": input_tokens,
+                "output_tokens": output_tokens,
+            }
+
         except Exception as e:
             return {
                 "evaluator": self.__class__.__name__,
                 "evaluator_display": self.get_evaluator_name(),
                 "status": "error",
-                "error": str(e)
+                "error": str(e),
             }
-    
-    def extract_summary(self, analysis: str) -> str:
-        """
-        Извлекает summary из анализа Claude.
-        Ищет строку "SUMMARY:" и берёт текст до вердикта.
-        
-        Args:
-            analysis (str): Полный текст анализа
-            
-        Returns:
-            str: Summary текст (полностью, без обрезаний)
-        """
-        if "SUMMARY:" in analysis:
-            summary_start = analysis.find("SUMMARY:") + len("SUMMARY:")
-            summary_text = analysis[summary_start:].strip()
-            
-            # Берём до следующего маркера
-            end_markers = ["VERDICT_RECOMMENDATION:", "CONFIDENCE_LEVEL:"]
-            end_pos = len(summary_text)
-            
-            for marker in end_markers:
-                pos = summary_text.find(marker)
-                if pos != -1:
-                    end_pos = min(end_pos, pos)
-            
-            return summary_text[:end_pos].strip()
-        
-        # Fallback: первое полное предложение
-        lines = analysis.split("\n")
-        for line in lines:
-            line = line.strip()
-            if line and not line.startswith("#") and not line.startswith("---"):
-                if "." in line:
-                    return line.split(".")[0] + "."
-                return line
-        
-        return "No summary available"
-    
-    def get_verdict(self) -> str:
-        """
-        Парсит вердикт из последнего анализа.
-        
-        Returns:
-            str: VIABLE / VIABLE_IF / NEEDS_VALIDATION / RISKY / NOT_VIABLE / UNCERTAIN
-        """
-        if not self.last_analysis:
-            return "UNCERTAIN"
-        
-        if "NOT_VIABLE" in self.last_analysis:
-            return "NOT_VIABLE"
-        if "VIABLE_IF" in self.last_analysis:
-            return "VIABLE_IF"
-        if "NEEDS_VALIDATION" in self.last_analysis:
-            return "NEEDS_VALIDATION"
-        if "RISKY" in self.last_analysis:
-            return "RISKY"
-        if "VIABLE" in self.last_analysis:
-            return "VIABLE"
-        
-        return "UNCERTAIN"
-    
-    def get_confidence(self) -> float:
-        """
-        Парсит уверенность из анализа.
-        Ищет "CONFIDENCE_LEVEL: ХХ"
-        
-        Returns:
-            float: Уверенность 0.0-1.0
-        """
-        if not self.last_analysis or "CONFIDENCE_LEVEL:" not in self.last_analysis:
-            return 0.75
-        
-        try:
-            for line in self.last_analysis.split('\n'):
-                if 'CONFIDENCE_LEVEL:' in line:
-                    numbers = re.findall(r'\d+', line)
-                    if numbers:
-                        conf_value = int(numbers[0])
-                        return conf_value / 100 if conf_value > 1 else conf_value
-        except Exception:
-            pass
-        
-        return 0.75
     
     @property
     def full_prompt(self) -> str:

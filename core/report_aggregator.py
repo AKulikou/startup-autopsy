@@ -83,7 +83,7 @@ STARTUP AUTOPSY — SYNTHESIS REPORT
             evaluator = result.get("evaluator_display", "Unknown")
             summary = result.get("summary", "No summary available")
             verdict = result.get("verdict", "")
-            confidence = f"{result.get('confidence', 0)*100:.0f}%"
+            confidence = result.get("confidence", "")
             
             # Обрезаем summary если слишком длинный (>200 символов)
             if len(summary) > 200:
@@ -103,7 +103,7 @@ STARTUP AUTOPSY — SYNTHESIS REPORT
         for result in results:
             evaluator = result.get("evaluator_display", "Unknown")
             verdict = result.get("verdict", "N/A")
-            confidence = f"{result.get('confidence', 0)*100:.0f}%"
+            confidence = result.get("confidence", "")
             tokens = result.get("tokens_used", 0)
             table += f"| {evaluator} | {verdict} | {confidence} | {tokens} |\n"
         
@@ -186,7 +186,7 @@ STARTUP AUTOPSY — SYNTHESIS REPORT
         # Сортируем по вердикту
         differences.append("**Verdict split across evaluators:**\n")
         for evaluator, verdict, confidence in sorted(verdicts, key=lambda x: x[2], reverse=True):
-            differences.append(f"- {evaluator}: **{verdict}** ({confidence*100:.0f}% confidence)")
+            differences.append(f"- {evaluator}: **{verdict}** ({confidence})")
         
         differences.append("\n**Why they disagree:**")
         
@@ -216,15 +216,6 @@ STARTUP AUTOPSY — SYNTHESIS REPORT
                 differences.append(
                     f"- **Profitable Designer** sees unit economics problem: CAC > LTV by month 3"
                 )
-        
-        # Анализируем разброс confidence
-        confidences = [v[2] for v in verdicts]
-        conf_range = max(confidences) - min(confidences)
-        if conf_range > 0.3:
-            differences.append(
-                f"\n**High confidence variance** ({min(confidences)*100:.0f}%-{max(confidences)*100:.0f}%): "
-                "Evaluators have differing certainty levels about their verdicts"
-            )
         
         return "\n".join(differences)
     

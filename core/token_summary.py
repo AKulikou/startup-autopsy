@@ -34,8 +34,8 @@ class TokenSummary:
         logger.info("")
         
         # Таблица с детальным разбором
-        logger.info(f"{'Evaluator':<30} | {'Request 1':<20} | {'Request 2':<20} | {'Total':<20} | {'Cost':<10}")
-        logger.info(f"{'':<30} | {'(In / Out)':<20} | {'(In / Out)':<20} | {'(In / Out)':<20} | {'(USD)':<10}")
+        logger.info(f"{'Evaluator':<30} | {'Total':<20} | {'Cost':<10}")
+        logger.info(f"{'':<30} | {'(In / Out)':<20} | {'(USD)':<10}")
         logger.info("-"*140)
         
         total_input_all = 0
@@ -46,14 +46,6 @@ class TokenSummary:
             tokens = result.get("tokens_used", 0)
             input_tokens = result.get("input_tokens", 0)
             output_tokens = result.get("output_tokens", 0)
-            verdict_request_used = result.get("verdict_request_used", False)
-            
-            # ← ДОБАВИТЬ: достаём реальные цифры из результата
-            req1_in = result.get("req1_input_tokens", 0)
-            req1_out = result.get("req1_output_tokens", 0)
-            req2_in = result.get("req2_input_tokens", 0)
-            req2_out = result.get("req2_output_tokens", 0)
-            
             total_input_all += input_tokens
             total_output_all += output_tokens
             
@@ -62,20 +54,11 @@ class TokenSummary:
             
             evaluator_name = result.get("evaluator_display", "Unknown")
             
-            # ← Форматируем Request 1 с реальными значениями
-            req1_info = f"{req1_in} / {req1_out}"
-            
-            # ← Форматируем Request 2 (или "—" если не было)
-            if verdict_request_used and req2_in > 0:
-                req2_info = f"{req2_in} / {req2_out}"
-            else:
-                req2_info = "—"
-            
             # ← Общие токены
             total_str = f"{input_tokens} / {output_tokens}"
             
             logger.info(
-                f"{evaluator_name:<30} | {req1_info:<20} | {req2_info:<20} | {total_str:<20} | ${cost:<9.4f}"
+                f"{evaluator_name:<30} | {total_str:<20} | ${cost:<9.4f}"
             )
         
         # Итоговая строка
@@ -83,12 +66,10 @@ class TokenSummary:
         total_tokens = total_input_all + total_output_all
         total_cost_final = TokenSummary._calculate_cost(total_tokens)
         total_str = f"{total_input_all} / {total_output_all}"
-        logger.info(f"{'TOTAL':<30} | {'':<20} | {'':<20} | {total_str:<20} | ${total_cost_final:<9.4f}")
+        logger.info(f"{'TOTAL':<30} | {total_str:<20} | ${total_cost_final:<9.4f}")
         logger.info("")
         
         logger.info("Details:")
-        logger.info("  Request 1 = Initial analysis request")
-        logger.info("  Request 2 = Verdict completion (if needed)")
         logger.info("  (In / Out) = (Input tokens / Output tokens)")
         logger.info("  — = Request not used")
         logger.info("="*140 + "\n")

@@ -22,8 +22,6 @@ Identify what assumptions are shaky and what kills the project. Be brutally real
     def get_evaluation_prompt(self) -> str:
         return f"""Reality check on this business idea:
 
-{self.business_idea}
-
 1. CORE ASSUMPTION
    - What MUST be true for this to work?
    - How do you validate it in week 1?
@@ -50,9 +48,4 @@ Identify what assumptions are shaky and what kills the project. Be brutally real
    - What makes you pull the plug?
 
 Be ruthless. Show your math. Identify the single killer risk.
-
-**AT THE END - REQUIRED:**
-SUMMARY: [One sentence verdict]
-VERDICT_RECOMMENDATION: [VIABLE / VIABLE_IF / NEEDS_VALIDATION / RISKY / NOT_VIABLE]
-CONFIDENCE_LEVEL: [0-100]
 """
