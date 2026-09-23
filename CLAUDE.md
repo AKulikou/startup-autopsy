@@ -37,6 +37,9 @@ No test suite yet.
 
 ## Evaluator framework
 
+Full specification: [docs/prompt_framework.md](docs/prompt_framework.md) — read it
+before adding or changing an evaluator or the synthesis.
+
 Eight prompts, each a distinct lens (must not overlap):
 
 | # | Evaluator | Lens | Status |
