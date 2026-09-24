@@ -1,5 +1,6 @@
-Фитнес-трекер, который автоматически пополняет подписку спортзала в зависимости 
-от вашего веса. Если вес растёт — автоматическое списание $10, если снижается — 
-возврат $5. Штраф за неделю без взвешивания ($3). Интеграция с Strava, Apple Health, 
-социальная таблица лидеров, NFT сертификаты за похудение. Подписка $9.99/месяц, 
-комиссия 15% от штрафных транзакций, партнёрства со спортзалами.
+A fitness tracker that automatically tops up your gym subscription depending
+on your weight. If your weight goes up, $10 is charged automatically; if it goes
+down, you get $5 back. A week without weighing in costs $3. Integration with
+Strava and Apple Health, a social leaderboard, NFT certificates for weight loss.
+Subscription $9.99/month, 15% commission on penalty transactions, partnerships
+with gyms.

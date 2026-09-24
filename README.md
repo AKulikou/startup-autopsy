@@ -1,301 +1,198 @@
 # Startup Autopsy
 
-**Honest AI-powered business idea validation** — Multiple analytical perspectives, no marketing speak.
+Brutally honest evaluation of business ideas from several independent analytical
+perspectives, powered by Claude.
 
-An MCP server that evaluates business ideas using 8 strategic prompts, providing brutally honest feedback on viability, risks, and hidden assumptions.
+Startup Autopsy runs a business idea through a set of evaluators, called *lenses*.
+Each lens looks at the idea from one angle only (revenue, buildability, risk, and
+so on) and returns a structured verdict. The reports name the one risk most likely
+to kill the project, the assumptions the verdict depends on, and concrete next
+steps. "Do not pursue this" is a valid next step.
 
----
+The goal is to answer one question before you spend months building:
+**what would need to be true for this to work, and how cheaply can I find out?**
 
-## 📌 Overview
+## Example
 
-Instead of encouragement, Startup Autopsy gives you:
-- **Multiple perspectives**: Evaluate from 3+ analytical angles (Profit Designer, No-Code Stack, Reality Auditor)
-- **Honest assessment**: Separate what's possible from what's probable
-- **Assumption validation**: Identify which beliefs underpin your numbers
-- **Risk identification**: Find the single biggest threat to your project
-- **Actionable next steps**: "Do this first" vs. "Don't pursue this"
+Abridged excerpt from a real run on [`ideas/fitness_tracker_short.txt`](ideas/fitness_tracker_short.txt),
+an app that charges your card when your weight goes up:
 
-### Current Status
-**Phase 2 (MVP)** — Working with 3 evaluators, Markdown report generation, local CLI interface.
+> **Reality Auditor. Verdict: NOT_VIABLE (confidence HIGH)**
+>
+> **Killer risk:** Stripe and all major payment processors reject the variable
+> automatic charge mechanic as a gambling/wagering scheme, making the core
+> financial penalty loop impossible to implement without building a regulated
+> escrow product.
 
-**Next phases:** FastAPI web interface, async execution, 8-evaluator full framework.
+| Assumption | How to test | Failure signal |
+|---|---|---|
+| A major payment processor will approve automatic variable charges tied to body weight | Submit a merchant application to Stripe describing the exact use case | Stripe rejects it or requires an escrow model |
+| Users will trust a new app with card authorization for unpredictable charges | Landing page asking 200 visitors to pre-authorize a $10 variable charge | Fewer than 10 of 200 complete it |
 
----
+All three enabled lenses independently named the payment processor as the
+killer risk. The synthesis report shows that agreement side by side.
 
-## 🚀 Quick Start
+## How it works
 
-### Prerequisites
-- Python 3.10+
-- Anthropic API key (Claude access)
+```
+ideas/<idea>.txt
+      |
+      v
+  one Claude call per enabled lens, each with its own role and questions
+      |
+      v
+  structured result per lens (validated with a Pydantic schema):
+  verdict, confidence + reason, summary, killer risk,
+  key assumptions (how to test, failure signal), next steps, full analysis
+      |
+      +--> results/<idea>_<lens>_<timestamp>.md        one report per lens
+      +--> results/<idea>_SYNTHESIS_<timestamp>.md     all lenses compared
+```
 
-### Installation
+Evaluators use Claude structured outputs, so reports are built from typed fields
+rather than parsed from free text. A truncated or refused response is reported as
+an error, never filled in with defaults.
+
+### Verdicts
+
+| Verdict | Meaning |
+|---|---|
+| `VIABLE` | Evidence supports building now |
+| `VIABLE_IF` | Can work, but only if specific testable conditions hold |
+| `NEEDS_VALIDATION` | Too little evidence to judge; research must come first |
+| `RISKY` | No fundamental flaw, but serious risks need mitigation before investing |
+| `NOT_VIABLE` | A fundamental flaw that no research or iteration fixes |
+
+Confidence is `LOW`, `MEDIUM` or `HIGH`, always with a one-sentence reason.
+
+### Lenses
+
+Eight lenses are defined in [`evaluators/lenses.py`](evaluators/lenses.py);
+`ENABLED_LENSES` in [`config.py`](config.py) selects which ones run.
+
+| Lens | Answers the question | Enabled by default |
+|---|---|---|
+| Profitable App Designer | Would people pay for this every month, and how much revenue is realistic? | yes |
+| No-Code Stack Master | Can a sellable MVP be built with no-code tools in 7 days? | yes |
+| AI Tool Creator | Is the AI capability genuinely useful and differentiated? | |
+| SaaS Revenue Builder | Is there a realistic path to sustainable recurring revenue? | |
+| Viral Product Designer | Can this grow through users themselves, without paid acquisition? | |
+| Launch Expert | What can realistically be achieved in the first week after launch? | |
+| Churn Eliminator | Will users stay, and what keeps them from cancelling? | |
+| Reality Auditor | Before committing serious time: is this worth pursuing at all? | yes |
+
+The design rules behind the lenses (no overlap, shared analysis standards, output
+defined by the schema) are described in [`docs/prompt_framework.md`](docs/prompt_framework.md).
+
+## Quick start
+
+Requirements: Python 3.10+ and an [Anthropic API key](https://console.anthropic.com/).
 
 ```bash
-# Clone or navigate to project
+git clone <repository-url>
 cd startup-autopsy
 
-# Create virtual environment
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install dependencies
+source venv/bin/activate          # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 
-# Set up environment
-cp .env.example .env
-# Edit .env and add your ANTHROPIC_API_KEY
-```
-
-### Run Analysis
-
-```bash
+cp .env.example .env              # then set ANTHROPIC_API_KEY in .env
 python main.py
 ```
 
-The CLI will:
-1. Show available business ideas
-2. Run 3 evaluators on your choice
-3. Generate individual reports + synthesis
-4. Save to `results/` directory
+The CLI lists the ideas in `ideas/`. Pick one by number or name, and the reports
+are written to `results/`. Logs go to `logs/`.
 
----
+**Time and cost.** Lenses currently run one after another, about a minute each,
+so the default three take about 3 minutes. One run with three lenses on
+`claude-sonnet-4-6` costs roughly $0.10–0.20, depending on the length of the idea
+and of the answers.
 
-## 📁 Project Structure
+## Adding your own idea
 
-```
-startup-autopsy/
-├── logs/                          # Application logs (auto-created)
-│   └── startup_autopsy_*.log
-├── results/                       # Generated reports (Markdown)
-│   ├── idea_name_💰_*.md         # Individual evaluator reports
-│   └── idea_name_SYNTHESIS_*.md  # Aggregated analysis
-├── ideas/                         # Business ideas (text files)
-│   └── [idea_name].txt
-├── evaluators/                    # Evaluation modules
-│   ├── base.py                   # BaseEvaluator abstract class
-│   ├── profitable_designer.py    # Revenue & product viability
-│   ├── no_code_stack.py          # Technical feasibility (7-day MVP)
-│   └── reality_auditor.py        # Critical risk assessment
-├── core/                          # Core functionality
-│   ├── idea_processor.py         # Load/save ideas
-│   ├── result_writer.py          # Write reports to disk
-│   └── report_aggregator.py      # Synthesize results
-├── config.py                      # Configuration (model, tokens)
-├── main.py                        # Entry point
-├── requirements.txt               # Python dependencies
-├── .env                           # Environment variables (git-ignored)
-├── .gitignore                     # Git ignore rules
-└── README.md                      # This file
-```
+Create a text file in `ideas/`, for example `ideas/my_idea.txt`. Plain prose is
+fine; the more concrete the input, the more concrete the analysis. It helps to cover:
 
----
+- the problem and who exactly has it
+- the solution
+- the target customer, as specifically as you can
+- pricing and revenue model
+- your own numbers and assumptions: evaluators check them rather than accept them
 
-## 🔧 Configuration
+If something is missing, evaluators state what they had to assume instead.
 
-### `config.py`
-```python
-MODEL = "claude-opus-4-1-20250805"  # Claude model to use
-MAX_TOKENS = 2000                   # Max tokens per evaluation
-```
+### Demo ideas
 
-### `.env`
-```bash
-ANTHROPIC_API_KEY=sk-ant-...
-```
+The bundled ideas deliberately range from plausible to absurd, and several contain
+flawed numbers or hidden legal problems on purpose. They show what the evaluators catch.
 
----
+| Idea | What it exercises |
+|---|---|
+| `api_monitor` | A plausible developer tool; competition and willingness to pay |
+| `meeting_schedule` | A crowded market with free alternatives |
+| `automatic_cv_update` | Dependence on a third-party API the product cannot control |
+| `email_newsletter` | Optimistic growth numbers for a low-price subscription |
+| `fitness_tracker` | Payment and regulatory blockers in the core mechanic |
+| `alibaba_jewelry_flip` | Unrealistic margins; taking investor money is itself a legal problem |
+| `nft_puddle_photos` | A speculative market, a hype-driven idea, and inconsistent math |
 
-## 📊 How It Works
+`*_short` variants contain the same idea in a few sentences and are useful for
+quick, cheaper runs.
 
-### Evaluators (Current)
+## Configuration
 
-| Evaluator | Focus | Questions |
-|-----------|-------|-----------|
-| **💰 Profitable App Designer** | Revenue Model | Can people pay monthly? What's realistic pricing? Unit economics? |
-| **🔧 No-Code Stack Master** | Technical Feasibility | Build MVP in 7 days with no-code? What stack? What ships on day 7? |
-| **🎯 Reality Auditor** | Risk Assessment | What kills this in 30 days? Hidden assumptions? Blindspots? |
+[`config.py`](config.py):
 
-### Analysis Flow
+| Setting | Default | Purpose |
+|---|---|---|
+| `MODEL` | `claude-sonnet-4-6` | Claude model used by all lenses |
+| `MAX_TOKENS` | `16000` | Output limit per lens; a truncated answer is treated as an error |
+| `ENABLED_LENSES` | three lenses | Which lenses run, by key |
+
+The API key is read from `.env` (`ANTHROPIC_API_KEY`). The program stops at
+startup if the key is missing or malformed.
+
+## Project structure
 
 ```
-1. Load business idea
-   ↓
-2. Run 3 evaluators in parallel (Phase 3: async)
-   ├── Evaluator 1: Claude API call → Parse result
-   ├── Evaluator 2: Claude API call → Parse result
-   └── Evaluator 3: Claude API call → Parse result
-   ↓
-3. Save individual reports (Markdown)
-   ├── Report 1: results/idea_EVALUATOR1_timestamp.md
-   ├── Report 2: results/idea_EVALUATOR2_timestamp.md
-   └── Report 3: results/idea_EVALUATOR3_timestamp.md
-   ↓
-4. Aggregate & synthesize
-   └── Consensus, differences, comparison table
-   ↓
-5. Save synthesis report
-   └── results/idea_SYNTHESIS_timestamp.md
+main.py                    CLI: logging setup and idea selection
+config.py                  API key check, model, token limit, enabled lenses
+evaluators/
+  lenses.py                the eight lenses as data + shared analysis standards
+  evaluator.py             builds prompts from a lens and calls Claude
+  schemas.py               EvaluatorResult: the structured output schema
+core/
+  analysis_runner.py       orchestration: load, evaluate, save, synthesize
+  report_aggregator.py     synthesis report across lenses
+  result_writer.py         Markdown report files
+  idea_processor.py        idea loading and result saving facade
+  file_manager.py          reading idea files
+  token_summary.py         token usage table
+ideas/                     input ideas (.txt)
+docs/prompt_framework.md   evaluator framework specification
 ```
 
-### Verdict Categories
+`results/` and `logs/` are generated and git-ignored.
 
-- **VIABLE** — High confidence, ready to build
-- **VIABLE_IF** — Conditional on proving X
-- **NEEDS_VALIDATION** — Too early, needs user research first
-- **RISKY** — Major risks identified, needs mitigation
-- **NOT_VIABLE** — Fundamental flaw found
+## Status and roadmap
 
----
+Working now: eight defined lenses (three enabled by default), structured output,
+per-lens Markdown reports and a synthesis report.
 
-## 📝 Adding a Business Idea
+Known limitations:
 
-1. Create a text file in `ideas/` folder:
-   ```bash
-   ideas/your_idea_name.txt
-   ```
+- The synthesis only lays the lens results side by side. It does not yet reason
+  about why the lenses disagree.
+- Lenses run sequentially.
+- The cost shown at the end of a run uses one flat token rate and underestimates
+  the real cost, since output tokens are priced higher.
 
-2. Write your idea (1-3 paragraphs):
-   ```
-   Problem you're solving:
-   How you'll solve it:
-   Target customers:
-   Revenue model:
-   ```
+Next:
 
-3. Run analysis:
-   ```bash
-   python main.py
-   # Select your idea by number or name
-   ```
-
----
-
-## 📈 Reading Results
-
-### Individual Reports
-Each evaluator produces a full analysis in Markdown:
-- Assessment of the idea from their perspective
-- Specific assumptions and reasoning
-- Verdict + confidence level
-- Token usage (for cost tracking)
-
-### Synthesis Report
-Aggregated view showing:
-- **CONSENSUS** — What all evaluators agree on
-- **KEY DIFFERENCES** — Where opinions diverge
-- **EVALUATORS COMPARISON** — Side-by-side table (verdict, confidence, tokens)
-- **RECOMMENDED NEXT STEPS** — Actionable guidance
-
----
-
-## 🔄 Roadmap
-
-### Phase 2 (Current)
-- ✅ 3 evaluators (Profitable Designer, No-Code Stack, Reality Auditor)
-- ✅ Local CLI interface
-- ✅ Markdown report generation
-- ✅ Synthesis aggregation
-- ⏳ Verdict parsing (in progress)
-
-### Phase 3
-- Async execution (evaluate 3 evaluators in parallel, ~40s instead of ~120s)
-- Add remaining evaluators (AI Tool Creator, SaaS Revenue Builder, Viral Designer, Launch Expert, Churn Eliminator)
-- Better error handling
-
-### Phase 4
-- FastAPI web interface
-- Database for results
-- User authentication (if multi-user)
-- Export to PDF/JSON
-
----
-
-## 🛠 Development
-
-### Running Tests
-```bash
-# Check a specific idea
-python main.py
-# Select: 6 (fitness_tracker) or 8 (meeting_schedule)
-```
-
-### Debugging
-Logs are stored in `logs/` directory:
-```bash
-tail -f logs/startup_autopsy_*.log
-```
-
-### Adding a New Evaluator
-
-1. Create `evaluators/your_evaluator.py`:
-```python
-from .base import BaseEvaluator
-
-class YourEvaluator(BaseEvaluator):
-    def get_evaluator_name(self) -> str:
-        return "📊 Your Evaluator Name"
-    
-    def get_system_prompt(self) -> str:
-        # Your role/instructions
-        pass
-    
-    def get_evaluation_prompt(self) -> str:
-        # Your questions
-        pass
-```
-
-2. Add to `main.py`:
-```python
-evaluators = [
-    ProfitableAppDesigner(idea_content),
-    NoCodeStackMaster(idea_content),
-    RealityAuditor(idea_content),
-    YourEvaluator(idea_content),  # ← Add this
-]
-```
-
----
-
-## 📋 Requirements
-
-See `requirements.txt`:
-```
-anthropic>=0.30.0
-python-dotenv>=1.0.0
-```
-
----
-
-## 🤔 FAQ
-
-**Q: Why 3 evaluators and not 8?**
-A: MVP phase. Full framework has 8 strategic perspectives. Start with the 3 highest-leverage.
-
-**Q: Can I modify the prompts?**
-A: Yes. Edit `evaluators/*.py` → `get_evaluation_prompt()`. Tweak questions, output format, requirements.
-
-**Q: How much does this cost?**
-A: ~$0.10-0.20 per idea (3 evaluators × 2000 tokens @ Claude pricing). Log tokens in results.
-
-**Q: Why Markdown reports?**
-A: Version control friendly, readable in any editor, easy to diff, publish to web.
-
----
-
-## 📧 Contact
-
-Built as a learning project to understand MCP, Claude API, and business analysis framework.
-
-Questions? Feedback? Open an issue or check the transcript in `/mnt/transcripts/`.
-
----
-
-## 📜 License
-
-Personal project. Use at your own discretion.
-
----
-
-**Last Updated:** 2026-09-22  
-**Status:** Phase 2 (MVP with 3 evaluators)  
-**Next Milestone:** Async evaluation + Phase 3 evaluators
+1. Separate input and output token pricing in the cost summary.
+2. Claude-based synthesis that explains conflicts between lenses, including
+   conflicting numbers.
+3. Parallel evaluation; enabling the remaining lenses.
+4. An MCP server interface, so the analysis can be called as a tool from Claude
+   and other MCP clients.
+5. Optional: JSON/PDF export, persistence, web UI.

@@ -1,34 +1,34 @@
-Инструмент мониторинга — отслеживает лимиты API у разработчиков.
+API limit monitor: a tool that tracks developers' API usage limits.
 
-ПРОБЛЕМА:
-- Разработчики интегрируют 5-10 внешних API (Stripe, Twilio, OpenAI, etc.)
-- Каждый имеет разные лимиты (requests/hour, bandwidth, cost limits)
-- Когда лимит превышен — приложение ломается, но разработчик узнает слишком поздно
+PROBLEM:
+- Developers integrate 5-10 external APIs (Stripe, Twilio, OpenAI, etc.)
+- Each has different limits (requests/hour, bandwidth, cost limits)
+- When a limit is exceeded, the app breaks, and the developer finds out too late
 
-РЕШЕНИЕ:
-- Централизованный dashboard, где видны все API и их лимиты
-- Real-time alerts: "Вы использовали 80% лимита OpenAI API"
-- Автоматическое логирование в Slack/Discord
-- Прогнозирование: "В таком темпе вы превысите лимит за 2 часа"
+SOLUTION:
+- A central dashboard showing all APIs and their limits
+- Real-time alerts: "You have used 80% of your OpenAI API limit"
+- Automatic notifications to Slack/Discord
+- Forecasting: "At this rate you will hit the limit in 2 hours"
 
-МОНЕТИЗАЦИЯ:
-- $15/месяц (до 10 API)
-- $29/месяц (до 50 API + advanced analytics)
-- Free tier (1 API, базовые алерты)
+MONETIZATION:
+- $15/month (up to 10 APIs)
+- $29/month (up to 50 APIs + advanced analytics)
+- Free tier (1 API, basic alerts)
 
-ЦЕЛЕВАЯ АУДИТОРИЯ:
-- Indie hackers, startup founders (точнее: те, кто строит на чужих API)
-- Возраст: 25-40
-- Доход: достаточный, чтобы платить за tools
-- Боль: "API перегруз убил мой сервис в production"
+TARGET AUDIENCE:
+- Indie hackers and startup founders (specifically, those building on third-party APIs)
+- Age: 25-40
+- Income: enough to pay for tools
+- Pain: "An API overload killed my service in production"
 
 NO-CODE STACK:
-- Backend: Make.com + Airtable (хранилище лимитов)
+- Backend: Make.com + Airtable (limit storage)
 - Frontend: Webflow + Zapier
 - Alerts: Slack webhook
-- Stripe интеграция (платежи)
+- Stripe integration (payments)
 
-РЕАЛИСТИЧНО:
-- Можно запустить за неделю
-- Первых 10 платящих пользователей за месяц (через Indie Hackers, ProductHunt, Twitter)
-- Month 3: 50-100 пользователей = $750-1500/месяц
+REALISTIC EXPECTATIONS:
+- Can launch in a week
+- First 10 paying users within a month (via Indie Hackers, Product Hunt, Twitter)
+- Month 3: 50-100 users = $750-1,500/month

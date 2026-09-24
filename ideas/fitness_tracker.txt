@@ -1,42 +1,40 @@
-Фитнес-трекер, который автоматически пополняет вашу подписку спортзала 
-в зависимости от вашего веса.
+A fitness tracker that automatically tops up your gym subscription
+depending on your weight.
 
-ОПИСАНИЕ:
-Умное приложение + умные весы, которые отслеживают ваш вес.
+DESCRIPTION:
+A smart app plus smart scales that track your weight.
 
-ЛОГИКА:
-- Если ваш вес растёт → автоматическое списание $10 со своей карты
-- Если вес снижается → вам возвращается $5
-- Штраф за "лень": если не взвешивались неделю → $3 штраф (мотивация!)
-- Интеграция с Strava, Apple Health для отслеживания активности
+LOGIC:
+- If your weight goes up: an automatic $10 charge to your card
+- If your weight goes down: you get $5 back
+- "Laziness" penalty: no weigh-in for a week costs $3 (motivation!)
+- Integration with Strava and Apple Health to track activity
 
-КЛЮЧЕВЫЕ ФУНКЦИИ:
-- Дневная рассылка: "Вес вырос на 500г — у вас есть 3 часа, чтобы поработать, 
-  иначе будет списано $10"
-- Social sharing: рейтинг друзей по снижению веса
-- Micro-transactions: за каждый килограмм потери можно получить 
-  купон на спортивное снаряжение
-- Blockchain rewards: NFT сертификаты за похудение на 10 кг
+KEY FEATURES:
+- Daily message: "Your weight is up 500 g. You have 3 hours to work out,
+  otherwise $10 will be charged"
+- Social sharing: a leaderboard of friends ranked by weight loss
+- Micro-transactions: every kilogram lost can earn a coupon for sports gear
+- Blockchain rewards: NFT certificates for losing 10 kg
 
-МОНЕТИЗАЦИЯ:
-- Подписка: $9.99/месяц
-- Комиссия платежей: 15% от каждой "штрафной" транзакции
-- Партнёрства: комиссия от спортзалов (они платят за направленных пользователей)
-- Premium версия: $19.99/месяц (AI coach, персональный план питания)
+MONETIZATION:
+- Subscription: $9.99/month
+- Payment commission: 15% of every "penalty" transaction
+- Partnerships: commission from gyms (they pay for referred users)
+- Premium version: $19.99/month (AI coach, personal meal plan)
 
-ЦЕЛЕВАЯ АУДИТОРИЯ:
-- Люди, которые хотят похудеть
-- Люди, которые верят в "финансовые штрафы" как мотивацию
-- Люди, которые готовы дать приложению доступ к своему весу и банковскому счету
-- Возраст: 20-50
+TARGET AUDIENCE:
+- People who want to lose weight
+- People who believe in financial penalties as motivation
+- People willing to give an app access to their weight and bank account
+- Age: 20-50
 
-ПЛАН РОСТА:
-- Month 1: 500 пользователей
-- Month 3: 5000 пользователей = $50k/месяц (если каждый платит минимум + штрафы)
-- Year 1: 100k пользователей = профитабельный SaaS
+GROWTH PLAN:
+- Month 1: 500 users
+- Month 3: 5,000 users = $50k/month (if everyone pays the minimum plus penalties)
+- Year 1: 100k users = a profitable SaaS
 
-СТАРТОВЫЙ БЮДЖЕТ:
-- $50k на разработку приложения (iOS + Android)
-- $20k на интеграции со весами (Fitbit, Garmin, Withings API)
-- $15k на первый месяц marketing
-
+STARTUP BUDGET:
+- $50k for app development (iOS + Android)
+- $20k for smart scale integrations (Fitbit, Garmin, Withings APIs)
+- $15k for the first month of marketing

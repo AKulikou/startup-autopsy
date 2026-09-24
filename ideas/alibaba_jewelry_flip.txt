@@ -1,74 +1,74 @@
-ALIBABA JEWELRY FLIP — Инвестиционная платформа для ювелирного бизнеса
+ALIBABA JEWELRY FLIP: an investment platform for a jewelry resale business
 
-ПРОБЛЕМА:
-Молодые люди хотят вложить деньги, но боятся рынка ценных бумаг. Люди ищут быстрые инвестиции с высокой маржей. Украшения всегда были ценным товаром, но доступа к оптовым ценам нет.
+PROBLEM:
+Young people want to invest but are afraid of the stock market. People look for fast, high-margin investments. Jewelry has always been a valuable product, but ordinary people have no access to wholesale prices.
 
-РЕШЕНИЕ:
-Покупаем украшения оптом на Alibaba (золото, серебро, кристаллы, бижутерия) по €2-5 за штуку. Перепродаём через Instagram, TikTok и YouTube целевой аудитории женщин 18-35 лет за €50-200 в зависимости от дизайна. Маржа: 40x!
+SOLUTION:
+We buy jewelry wholesale on Alibaba (gold, silver, crystals, costume jewelry) at €2-5 per piece. We resell it through Instagram, TikTok and YouTube to women aged 18-35 for €50-200 depending on the design. Margin: 40x!
 
-КАК РАБОТАЕТ:
-1. Инвесторы вносят €1000-10000
-2. Мы закупаем товар на Alibaba (оптовая цена)
-3. Нанимаем 5-10 инфлюенсеров на фриланс (TikTok, Instagram)
-4. Инфлюенсеры показывают украшения в lifestyle контексте
-5. Люди покупают через реферальные ссылки (Shopify)
-6. Маржа: 40x = €2 закупка → €80 продажа
-7. Дивиденды инвесторам ежемесячно
+HOW IT WORKS:
+1. Investors contribute €1,000-10,000
+2. We buy stock on Alibaba at wholesale prices
+3. We hire 5-10 freelance influencers (TikTok, Instagram)
+4. Influencers show the jewelry in a lifestyle context
+5. People buy through referral links (Shopify)
+6. Margin: 40x = €2 purchase -> €80 sale
+7. Monthly dividends to investors
 
-ЦЕЛЕВАЯ АУДИТОРИЯ:
-- Женщины 18-35 лет, любящие украшения
-- Среднедневной доход €20-50, следящие за fashion трендами
-- Тик-ток и Instagram пользователи
-- "Моя подруга купила украшение на Alibaba, теперь я хочу красивые украшения!"
+TARGET AUDIENCE:
+- Women aged 18-35 who love jewelry
+- Average daily income of €20-50, following fashion trends
+- TikTok and Instagram users
+- "My friend bought jewelry on Alibaba, now I want beautiful jewelry too!"
 
-МОДЕЛЬ ДОХОДОВ:
-- Закупка: €2 за украшение
-- Продажа: €50-200 за украшение (среднее €75)
-- Маржа: €73 на украшение
-- Целевой объём: 1000 украшений в месяц (€73,000 в месяц)
-- Расходы: доставка, маркетинг, фриланс инфлюенсеры (~€10,000/мес)
-- Чистая прибыль: €63,000/месяц
+REVENUE MODEL:
+- Purchase price: €2 per piece
+- Sale price: €50-200 per piece (average €75)
+- Margin: €73 per piece
+- Target volume: 1,000 pieces a month (€73,000 a month)
+- Costs: shipping, marketing, freelance influencers (~€10,000/month)
+- Net profit: €63,000/month
 
-МЕСЯЦ 3:
-- Платящих инвесторов: 15-20
-- Ежемесячный доход: €73,000
-- Дивиденды инвесторам: €40,000 (55%)
-- Прибыль компании: €33,000
+MONTH 3:
+- Paying investors: 15-20
+- Monthly revenue: €73,000
+- Dividends to investors: €40,000 (55%)
+- Company profit: €33,000
 
-МЕСЯЦ 6:
-- Платящих инвесторов: 50+
-- Ежемесячный доход: €200,000+ (расширение в 3 страны)
-- Дивиденды: €100,000+
+MONTH 6:
+- Paying investors: 50+
+- Monthly revenue: €200,000+ (expansion into 3 countries)
+- Dividends: €100,000+
 
-СТАРТАП БЮДЖЕТ:
-- Первая закупка товара: €5,000
+STARTUP BUDGET:
+- First stock purchase: €5,000
 - Shopify + payment processing: €500
-- Маркетинг (реклама в TikTok/Insta): €10,000
-- Зарплата фриланс инфлюенсеров: €5,000
+- Marketing (TikTok/Instagram ads): €10,000
+- Freelance influencer fees: €5,000
 - Legal compliance: €2,000
-- ИТОГО: €22,500
+- TOTAL: €22,500
 
-КОНКУРЕНТНОЕ ПРЕИМУЩЕСТВО:
-- Мы первые кто масштабирует это через инвесторов
-- Другие просто перепродают, мы строим платформу
-- Инфлюенсеры - это наша сеть, не платим им до результата
-- Скорость закупки: закупили-продали за неделю
+COMPETITIVE ADVANTAGE:
+- We are the first to scale this through investors
+- Others just resell; we are building a platform
+- Influencers are our network; we don't pay them until they deliver results
+- Speed: bought and sold within a week
 
-КРИТИЧЕСКИЕ ПРЕДПОЛОЖЕНИЯ:
-- Маржа 40x - это не фейк, это реальные цены Alibaba
-- Инфлюенсеры охотно работают за комиссию (30% от продажи)
-- Люди платят €50+ за украшение если красиво показать
-- Доставка из Китая займёт 2-3 недели, это нормально
-- Таможня не будет брать 50% в пошлинах (если объявить как "бижутерия")
+CRITICAL ASSUMPTIONS:
+- The 40x margin is not fake; these are real Alibaba prices
+- Influencers are happy to work on commission (30% of each sale)
+- People pay €50+ for jewelry if it is presented beautifully
+- Shipping from China takes 2-3 weeks, which is fine
+- Customs will not charge 50% in duties (if declared as "costume jewelry")
 
-РИСКИ:
-- Alibaba может закрыть аккаунт (но у нас есть backup)
-- Instagram может забанить за спам (но мы используем инфлюенсеров, не спам)
-- Люди могут потребовать возврата (Shopify покрывает 30 дней)
-- Конкуренция от Etsy/Amazon (но мы с инфлюенсерами, они с алгоритмом)
+RISKS:
+- Alibaba may close the account (but we have a backup)
+- Instagram may ban us for spam (but we use influencers, not spam)
+- People may demand refunds (Shopify covers 30 days)
+- Competition from Etsy/Amazon (but we have influencers, they have an algorithm)
 
 VISION:
-Через 12 месяцев: €1M в месяц, 200+ инвесторов, работа в 10 странах. Через 2 года: IPO или покупка Luxury Fashion Group.
+In 12 months: €1M a month, 200+ investors, operations in 10 countries. In 2 years: an IPO or an acquisition by a luxury fashion group.
 
-ПОЧЕМУ ЭТО РАБОТАЕТ:
-Людям нравятся украшения. Люди доверяют инфлюенсерам больше чем магазинам. Alibaba - это самый дешёвый источник товара. Мы просто соединяем точки!
+WHY IT WORKS:
+People love jewelry. People trust influencers more than stores. Alibaba is the cheapest source of goods. We just connect the dots!

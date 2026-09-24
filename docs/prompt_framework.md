@@ -41,14 +41,14 @@ from every lens by the shared output schema, not by the lens prompt.
 
 | # | Lens | Key | Answers the question |
 |---|------|-----|----------------------|
-| 1 | 💰 Profitable App Designer | `profitable_designer` | Would people pay for this every month, and how much revenue is realistic? |
-| 2 | 🔧 No-Code Stack Master | `no_code_stack` | Can a sellable MVP be built with no-code tools in 7 days? |
-| 3 | 🤖 AI Tool Creator | `ai_tool_creator` | Is the AI capability genuinely useful and differentiated, and can it find paying customers? |
-| 4 | 📈 SaaS Revenue Builder | `saas_revenue_builder` | Is there a realistic path from MVP to sustainable recurring revenue? |
-| 5 | 🌱 Viral Product Designer | `viral_designer` | Can this grow through users themselves, without paid acquisition? |
-| 6 | 🚀 Launch Expert | `launch_expert` | What can realistically be achieved in the first week after launch? |
-| 7 | 🔁 Churn Eliminator | `churn_eliminator` | Will users stay, and what keeps them from cancelling? |
-| 8 | 🎯 Reality Auditor | `reality_auditor` | Before committing serious time: is this worth pursuing at all? |
+| 1 | Profitable App Designer | `profitable_designer` | Would people pay for this every month, and how much revenue is realistic? |
+| 2 | No-Code Stack Master | `no_code_stack` | Can a sellable MVP be built with no-code tools in 7 days? |
+| 3 | AI Tool Creator | `ai_tool_creator` | Is the AI capability genuinely useful and differentiated, and can it find paying customers? |
+| 4 | SaaS Revenue Builder | `saas_revenue_builder` | Is there a realistic path from MVP to sustainable recurring revenue? |
+| 5 | Viral Product Designer | `viral_designer` | Can this grow through users themselves, without paid acquisition? |
+| 6 | Launch Expert | `launch_expert` | What can realistically be achieved in the first week after launch? |
+| 7 | Churn Eliminator | `churn_eliminator` | Will users stay, and what keeps them from cancelling? |
+| 8 | Reality Auditor | `reality_auditor` | Before committing serious time: is this worth pursuing at all? |
 
 Lenses must not overlap. For example, tool selection belongs only to the
 No-Code Stack Master; the Profitable App Designer looks at automation only as an

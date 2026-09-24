@@ -1,99 +1,99 @@
-NFT PUDDLE PHOTOS — Платформа для минтинга и продажи фотографий луж как NFT
+NFT PUDDLE PHOTOS: a platform for minting and selling photos of puddles as NFTs
 
-ПРОБЛЕМА:
-Искусство традиционно недоступно - нужна галерея, нужны деньги, нужны связи. Фотографы не могут монетизировать свой контент. Коллекционеры ищут уникальные и доступные арт-объекты. Лужи - это натура, которая есть везде, но каждая уникальна.
+PROBLEM:
+Art is traditionally inaccessible: you need a gallery, money and connections. Photographers cannot monetize their content. Collectors look for unique and affordable art. Puddles are nature that exists everywhere, yet every puddle is unique.
 
-РЕШЕНИЕ:
-Создаём платформу где любой может сфотографировать интересную лужу, минтить это как NFT (с серийным номером, координатами GPS, временем съёмки), и продавать коллекционерам абстрактного искусства за €100-5000 за штуку.
+SOLUTION:
+A platform where anyone can photograph an interesting puddle, mint it as an NFT (with a serial number, GPS coordinates and capture time) and sell it to abstract art collectors for €100-5,000 each.
 
-КАК РАБОТАЕТ:
-1. Пользователь скачивает приложение PuddleArt
-2. Находит красивую лужу (вода, отражение, структура)
-3. Фотографирует с GPS и временем
-4. Загружает на платформу с названием (например: "Отражение закат, Амстердам, 2026-09-22 18:34")
-5. Минтит как NFT (используем Polygon для дешевых комиссий)
-6. Выставляет на продажу (€100-5000 в зависимости от "редкости")
-7. Коллекционеры абстрактного искусства покупают
+HOW IT WORKS:
+1. The user downloads the PuddleArt app
+2. Finds a beautiful puddle (water, reflection, texture)
+3. Takes a photo with GPS and time
+4. Uploads it to the platform with a title (for example: "Sunset reflection, Amsterdam, 2026-09-22 18:34")
+5. Mints it as an NFT (on Polygon, for low fees)
+6. Lists it for sale (€100-5,000 depending on "rarity")
+7. Abstract art collectors buy it
 
-ПОЧЕМУ ЛЮДИ БУДУТ ПОКУПАТЬ:
-- Каждая лужа уникальна (координаты + время = proof of uniqueness)
-- Это искусство в стиле dadaism / abstract photography
-- Коллекционеры ищут что-то новое, не Bored Apes
-- "Я владею лужей в центре Парижа, минтинг #47" - это звучит круто
-- Цена растёт если знаменитости покупают фотографии своих городов
+WHY PEOPLE WILL BUY:
+- Every puddle is unique (coordinates + time = proof of uniqueness)
+- It is art in the style of Dadaism / abstract photography
+- Collectors are looking for something new, not Bored Apes
+- "I own a puddle in central Paris, mint #47" sounds cool
+- Prices rise if celebrities buy photos of their own cities
 
-ЦЕЛЕВАЯ АУДИТОРИЯ:
-- Коллекционеры NFT (30,000+ во всём мире)
-- Люди которые покупают абстрактное искусство (интеллектуалы, богатые хипстеры)
-- Фотографы ищущие монетизации (100,000+ потенциальных продавцов)
-- Токен-инвесторы (люди что просто покупают NFT для инвестиций)
+TARGET AUDIENCE:
+- NFT collectors (30,000+ worldwide)
+- Buyers of abstract art (intellectuals, wealthy hipsters)
+- Photographers looking to monetize (100,000+ potential sellers)
+- Token investors (people who buy NFTs purely as an investment)
 
-МОДЕЛЬ ДОХОДОВ:
-- Комиссия платформы: 10% от каждой продажи
-- Пример: Фото продано за €1000 → мы берём €100
-- Premium фичи: €5/месяц за unlimited uploads (базовый лимит 5 в месяц)
-- Partnership с Opensea/Rarible: реферальная комиссия
+REVENUE MODEL:
+- Platform commission: 10% of every sale
+- Example: a photo sells for €1,000 -> we take €100
+- Premium features: €5/month for unlimited uploads (the base limit is 5 a month)
+- Partnership with OpenSea/Rarible: referral commission
 
-МЕСЯЦ 3:
-- Активные пользователи-фотографы: 1000
-- Минтов NFT в месяц: 5000
-- Средняя цена продажи: €300
-- Продано: 500 NFT (10% конверсия)
-- Доход платформы: €500 * €300 * 10% = €15,000/месяц
+MONTH 3:
+- Active photographers: 1,000
+- NFTs minted per month: 5,000
+- Average sale price: €300
+- Sold: 500 NFTs (10% conversion)
+- Platform revenue: €500 * €300 * 10% = €15,000/month
 
-МЕСЯЦ 6:
-- Активные пользователи: 10,000
-- Минтов: 50,000
-- Средняя цена: €500 (растёт когда платформа известна)
-- Продано: 5000 NFT
-- Доход: €250,000/месяц
+MONTH 6:
+- Active users: 10,000
+- Mints: 50,000
+- Average price: €500 (rising as the platform becomes known)
+- Sold: 5,000 NFTs
+- Revenue: €250,000/month
 
-СТАРТАП БЮДЖЕТ:
-- Разработка платформы + интеграция Web3: €30,000
-- Дизайн приложения (iOS/Android): €15,000
-- Маркетинг в крипто-сообщества: €10,000
-- Legal (регистрация NFT платформы): €5,000
-- Хостинг + инфра: €3,000
-- ИТОГО: €63,000
+STARTUP BUDGET:
+- Platform development + Web3 integration: €30,000
+- App design (iOS/Android): €15,000
+- Marketing in crypto communities: €10,000
+- Legal (NFT platform registration): €5,000
+- Hosting + infrastructure: €3,000
+- TOTAL: €63,000
 
-КОНКУРЕНТНОЕ ПРЕИМУЩЕСТВО:
-- Это первая платформа где луже имеют соответствие 1-к-1 с реальным местом (GPS + timestamp)
-- Дешевле чем Art Blocks (которые генерируют абстракт, а не реальные фото)
-- Доступнее чем Rarible (у нас нет требований к "качеству" искусства)
-- Социальная компонента: можешь видеть где минтили лужи, собирать из одного города
+COMPETITIVE ADVANTAGE:
+- The first platform where each puddle maps 1-to-1 to a real place (GPS + timestamp)
+- Cheaper than Art Blocks (which generates abstract art rather than real photos)
+- More accessible than Rarible (we have no "quality" requirements for art)
+- Social component: see where puddles were minted, collect a whole city
 
-ТЕХНИЧЕСКИЕ ДЕТАЛИ:
-- Блокчейн: Polygon (дешёвые комиссии)
-- Smart contract: ERC-721 (стандартный NFT)
-- IPFS для хранения: Pinata API
-- Фронтенд: React + Web3.js
-- Бэкэнд: Node.js + PostgreSQL для метаданных
+TECHNICAL DETAILS:
+- Blockchain: Polygon (low fees)
+- Smart contract: ERC-721 (standard NFT)
+- IPFS storage: Pinata API
+- Frontend: React + Web3.js
+- Backend: Node.js + PostgreSQL for metadata
 
-КРИТИЧЕСКИЕ ПРЕДПОЛОЖЕНИЯ:
-- Коллекционеры будут платить €100-5000 за фото лужи (это абстрактное искусство!)
-- 10% конверсия (минтили → продали) - это реально для NFT рынка
-- Люди будут регулярно фотографировать лужи (тренд может быть один месяц)
-- Polygon будет дешёвым способом минтить (сейчас да, но может измениться)
-- Коллекционеры не поймут что это "просто лужа"
+CRITICAL ASSUMPTIONS:
+- Collectors will pay €100-5,000 for a photo of a puddle (it is abstract art!)
+- 10% conversion (minted -> sold) is realistic for the NFT market
+- People will photograph puddles regularly (the trend may last only a month)
+- Polygon will stay a cheap way to mint (it is now, but that may change)
+- Collectors will not realize it is "just a puddle"
 
-РИСКИ:
-- NFT рынок может упасть (как в 2023)
-- Люди забудут про эту фишку через месяц
-- Авторское право: чья ответственность если в луже отражается чужая собственность?
-- "Это просто лужа" критика от арт-истеблишмента (но это фишка, а не баг!)
-- Платформа которая копирует нашу идею с лучшим маркетингом
+RISKS:
+- The NFT market may crash (as in 2023)
+- People may forget about the gimmick within a month
+- Copyright: who is responsible if someone else's property is reflected in a puddle?
+- "It's just a puddle" criticism from the art establishment (but that's a feature, not a bug!)
+- A copycat platform with better marketing
 
 VIRAL POTENTIAL:
-- Очень мемная идея ("я продал фото лужи за €1000!!!")
-- Twitter возьмёт это как мем
-- Криптовалютное сообщество любит абсурдные идеи
-- Может быть вирусным за неделю если правильный инфлюенсер купит
+- A very meme-worthy idea ("I sold a photo of a puddle for €1,000!!!")
+- Twitter will pick it up as a meme
+- The crypto community loves absurd ideas
+- Could go viral within a week if the right influencer buys one
 
 VISION:
-Платформа которая демократизирует искусство. Каждый может быть художником. Каждая лужа имеет ценность. Через год: 1M активных пользователей, €100M в объёме торговли. Через 2 года: IPO на Nasdaq как "Web3 Art Platform".
+A platform that democratizes art. Anyone can be an artist. Every puddle has value. In a year: 1M active users, €100M in trading volume. In 2 years: an IPO on Nasdaq as a "Web3 art platform".
 
-ПОЧЕМУ ЭТО РАБОТАЕТ:
-Потому что это абсурдно, но не невозможно. NFT-инвесторы покупают что угодно. Фотографы ищут способ заработать. Коллекционеры абстрактного ищут что-то новое. Мы просто даём им все три инструмента!
+WHY IT WORKS:
+Because it is absurd, but not impossible. NFT investors buy anything. Photographers are looking for ways to earn. Abstract art collectors are looking for something new. We simply give all three what they want!
 
-ЦИТАТА ОСНОВАТЕЛЯ:
-"Луж везде. Искусство может быть везде. Почему бы не соединить их?"
+FOUNDER'S QUOTE:
+"Puddles are everywhere. Art can be everywhere. Why not connect the two?"

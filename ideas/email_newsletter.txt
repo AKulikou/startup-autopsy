@@ -1,35 +1,35 @@
-Платформа-рассылка, которая еженедельно присылает вам лучшие email-newsletter.
+A newsletter that recommends the best email newsletters every week.
 
-ОПИСАНИЕ:
-Еженедельная рассылка (платная подписка $4.99/месяц), которая агрегирует 
-и рекомендует лучшие бесплатные и платные newsletter в интернете.
+DESCRIPTION:
+A weekly newsletter (paid subscription, $4.99/month) that curates and recommends
+the best free and paid newsletters on the internet.
 
-КЛЮЧЕВЫЕ ФУНКЦИИ:
-- Куратор вручную читает 100+ newsletter в неделю
-- Выбирает 5 лучших и отправляет вам в рассылке
-- Каждый newsletter может быть на разные темы: технология, финансы, мода, культура
-- Включены прямые ссылки на подписку (с реферальными кодами)
-- Premium версия: персональные рекомендации на основе ваших интересов
+KEY FEATURES:
+- A curator manually reads 100+ newsletters a week
+- Picks the 5 best and sends them to subscribers
+- Newsletters cover different topics: technology, finance, fashion, culture
+- Includes direct subscription links (with referral codes)
+- Premium version: personal recommendations based on your interests
 
-МОНЕТИЗАЦИЯ:
-- Подписка: $4.99/месяц (годовая скидка $49.99)
-- Реферальные комиссии от newsletter платформ (Substack, Beehiiv)
-- Sponsored newsletters (платят за рекомендацию)
-- Affiliate links к newsletter авторам
+MONETIZATION:
+- Subscription: $4.99/month (annual plan $49.99)
+- Referral commissions from newsletter platforms (Substack, Beehiiv)
+- Sponsored newsletters (authors pay to be recommended)
+- Affiliate links to newsletter authors
 
-ЦЕЛЕВАЯ АУДИТОРИЯ:
-- Люди, которые хотят найти хорошие newsletter
+TARGET AUDIENCE:
+- People who want to find good newsletters
 - Email enthusiasts
-- Люди, которые готовы платить за "фильтрацию информации"
-- Возраст: 25-45
+- People willing to pay for "information filtering"
+- Age: 25-45
 
-ПЛАН РОСТА:
-- Month 1: 100 подписчиков
-- Month 3: 1000 подписчиков = $5000/месяц
-- Month 6: 5000 подписчиков = $25000/месяц
-- Year 1: 20000 подписчиков = $100k/месяц
+GROWTH PLAN:
+- Month 1: 100 subscribers
+- Month 3: 1,000 subscribers = $5,000/month
+- Month 6: 5,000 subscribers = $25,000/month
+- Year 1: 20,000 subscribers = $100k/month
 
-СТАРТОВЫЙ БЮДЖЕТ:
-- $200 за домен и хостинг
-- $1000 на Substack (если не хотите разрабатывать свой сервер)
-- $500 на первый месяц marketing
+STARTUP BUDGET:
+- $200 for domain and hosting
+- $1,000 for Substack (to avoid building our own server)
+- $500 for the first month of marketing

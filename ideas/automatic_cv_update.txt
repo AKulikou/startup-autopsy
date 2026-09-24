@@ -1,36 +1,36 @@
-SaaS для автоматического обновления резюме на основе LinkedIn профиля.
+A SaaS that automatically keeps your resume up to date from your LinkedIn profile.
 
-ПРОБЛЕМА:
-- IT специалист каждый месяц что-то делает (projects, skills, achievements)
-- Резюме не обновляется месяцами
-- Когда нужно идти на interview — приходится вспоминать, что было год назад
-- Конкуренты с свежим резюме побеждают на рынке
+PROBLEM:
+- IT specialists do something new every month (projects, skills, achievements)
+- Their resume goes unupdated for months
+- Before an interview they have to remember what they did a year ago
+- Competitors with a fresh resume win in the job market
 
-РЕШЕНИЕ:
-- Подключаете LinkedIn профиль (OAuth)
-- Сервис автоматически вытягивает: новые скиллы, новые позиции, рекомендации
-- Раз в неделю отправляет письмо: "Вот что нового в вашем профиле, добавить в резюме?"
-- Генерирует улучшенное резюме в PDF (с ATS-оптимизацией)
-- Ведёт историю версий резюме
+SOLUTION:
+- Connect your LinkedIn profile (OAuth)
+- The service automatically pulls new skills, new positions and recommendations
+- Once a week it sends an email: "Here is what's new in your profile. Add it to your resume?"
+- Generates an improved resume as a PDF (ATS-optimized)
+- Keeps a version history of the resume
 
-МОНЕТИЗАЦИЯ:
-- $9.99/месяц (базовый план)
-- $19.99/месяц (+ cover letter generator, + interview tips)
-- Free tier (просмотр только, обновления 1x месяц)
+MONETIZATION:
+- $9.99/month (basic plan)
+- $19.99/month (+ cover letter generator, + interview tips)
+- Free tier (view only, updates once a month)
 
-ЦЕЛЕВАЯ АУДИТОРИЯ:
-- IT специалисты (разработчики, QA, DevOps, Data Engineers)
-- Возраст: 25-50
-- Боль: "Я не помню, как описать свой проект из 2023 года на интервью"
+TARGET AUDIENCE:
+- IT specialists (developers, QA, DevOps, data engineers)
+- Age: 25-50
+- Pain: "I can't remember how to describe my 2023 project in an interview"
 
 NO-CODE STACK:
-- Backend: Make.com (LinkedIn API интеграция)
+- Backend: Make.com (LinkedIn API integration)
 - PDF generator: Zapier + DocuSeal
 - Email: Mailchimp
-- Хранилище резюме: Google Drive / Dropbox API
+- Resume storage: Google Drive / Dropbox API
 
-РЕАЛИСТИЧНО:
-- MVP за неделю (базовая версия)
-- Целевая аудитория: 10,000+ IT специалистов только в Беларуси/Литве
-- Month 3: 100-200 пользователей = $1000-2000/месяц
-- High retention (люди юзят месяцы подряд)
+REALISTIC EXPECTATIONS:
+- MVP in a week (basic version)
+- Target audience: 10,000+ IT specialists in Belarus and Lithuania alone
+- Month 3: 100-200 users = $1,000-2,000/month
+- High retention (people use it for months in a row)

@@ -1,8 +1,8 @@
-Инструмент мониторинга — отслеживает лимиты API у разработчиков.
-Разработчики интегрируют 5-10 внешних API (Stripe, Twilio, OpenAI, etc.).
-Каждый имеет разные лимиты (requests/hour, bandwidth, cost limits).
-Когда лимит превышен — приложение ломается, но разработчик узнает слишком поздно.
-Решение: централизованный dashboard с real-time alerts.
-Автоматическое логирование в Slack/Discord.
-Прогнозирование: "В таком темпе вы превысите лимит за 2 часа".
-Монетизация: $15/месяц (до 10 API), $29/месяц (до 50 API).
+API limit monitor: a tool that tracks developers' API usage limits.
+Developers integrate 5-10 external APIs (Stripe, Twilio, OpenAI, etc.).
+Each has different limits (requests/hour, bandwidth, cost limits).
+When a limit is exceeded, the app breaks, and the developer finds out too late.
+Solution: a central dashboard with real-time alerts.
+Automatic notifications to Slack/Discord.
+Forecasting: "At this rate you will hit the limit in 2 hours".
+Monetization: $15/month (up to 10 APIs), $29/month (up to 50 APIs).

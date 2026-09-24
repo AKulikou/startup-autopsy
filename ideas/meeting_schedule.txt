@@ -1,34 +1,34 @@
-Инструмент для поиска лучшего времени встреч в распределённых командах.
+A tool that finds the best meeting times for distributed teams.
 
-ПРОБЛЕМА:
-- Компания имеет сотрудников в 5 часовых поясах (Вильнюс, Москва, Сан-Франциско, etc.)
-- Нужна встреча со всеми 10 людьми
-- Найти время, когда никто не работает в 23:00 — невозможно
-- Google Calendar интеграция работает плохо
+PROBLEM:
+- A company has employees in 5 time zones (Vilnius, Moscow, San Francisco, etc.)
+- A meeting with all 10 people is needed
+- Finding a time when nobody has to work at 11 p.m. is impossible
+- The Google Calendar integration works poorly
 
-РЕШЕНИЕ:
-- Загружаете список участников (из Google Contacts)
-- Сервис видит их часовые пояса
-- Ищет 5 лучших временных слотов (где минимум людей работают после 20:00)
-- Показывает: "Лучшее время: вторник 15:00 UTC (7 чел. в норме, 3 чел. вечер)"
-- Одна кнопка → создаёт событие в Outlook/Google Calendar всем
+SOLUTION:
+- Upload the list of participants (from Google Contacts)
+- The service detects their time zones
+- Finds the 5 best time slots (where the fewest people work after 8 p.m.)
+- Shows: "Best time: Tuesday 15:00 UTC (7 people in working hours, 3 in the evening)"
+- One button creates the event in Outlook/Google Calendar for everyone
 
-МОНЕТИЗАЦИЯ:
-- $8/месяц (до 5 встреч/месяц)
-- $19/месяц (до 50 встреч/месяц)
-- $39/месяц (для teams: до 500 встреч, admin controls)
+MONETIZATION:
+- $8/month (up to 5 meetings/month)
+- $19/month (up to 50 meetings/month)
+- $39/month (for teams: up to 500 meetings, admin controls)
 
-ЦЕЛЕВАЯ АУДИТОРИЯ:
-- Распределённые teams (10-200 человек)
+TARGET AUDIENCE:
+- Distributed teams (10-200 people)
 - Managers, coordinators, HR
-- Remote-first компании (StartUp, consulting firms)
+- Remote-first companies (startups, consulting firms)
 
 NO-CODE STACK:
 - Backend: Make.com (Google Calendar API)
-- Frontend: Bubble или Webflow
-- Integrations: Slack (напоминания о встречах)
+- Frontend: Bubble or Webflow
+- Integrations: Slack (meeting reminders)
 
-РЕАЛИСТИЧНО:
-- Очень быстро запустить (неделя)
-- Спрос: есть 1000+ распределённых компаний только в Европе
-- Month 3: 30-50 teams = $250-500/месяц
+REALISTIC EXPECTATIONS:
+- Very fast to launch (a week)
+- Demand: 1,000+ distributed companies in Europe alone
+- Month 3: 30-50 teams = $250-500/month
