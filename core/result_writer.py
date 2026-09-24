@@ -24,7 +24,7 @@ class ResultWriter:
 
         Example: "No-Code Stack Master" -> "no_code_stack_master"
         """
-        cleaned = re.sub(r'[^\w\s]', '', evaluator_name)
+        cleaned = re.sub(r'[^\w\s]', ' ', evaluator_name)
         cleaned = cleaned.lower().strip().replace(" ", "_")
         return re.sub(r'_+', '_', cleaned)
 

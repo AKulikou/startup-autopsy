@@ -55,7 +55,7 @@ class EvaluatorResult(BaseModel):
     )
     confidence_reason: str = Field(
         description="One sentence naming what the confidence depends on "
-        "(e.g. 'Medium: hinges on an unverified 5% trial-to-paid conversion rate')."
+        "without repeating the level (e.g. 'Hinges on an unverified 5% trial-to-paid conversion rate')."
     )
     key_assumptions: list[Assumption] = Field(
         description="The 2-4 assumptions the verdict depends on most, most critical first."
