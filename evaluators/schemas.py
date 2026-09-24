@@ -10,7 +10,7 @@ class Verdict(str, Enum):
     NEEDS_VALIDATION = "NEEDS_VALIDATION"
     RISKY = "RISKY"
     NOT_VIABLE = "NOT_VIABLE"
-    
+
 
 class Confidence(str, Enum):
     LOW = "LOW"

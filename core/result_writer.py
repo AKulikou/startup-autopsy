@@ -20,9 +20,9 @@ class ResultWriter:
 
     def _clean_evaluator_name(self, evaluator_name: str) -> str:
         """
-        Strip emoji and special characters and format the name for a filename.
+        Strip special characters and format the name for a filename.
 
-        Example: "💰 Profitable App Designer" → "profitable_app_designer"
+        Example: "No-Code Stack Master" -> "no_code_stack_master"
         """
         cleaned = re.sub(r'[^\w\s]', '', evaluator_name)
         cleaned = cleaned.lower().strip().replace(" ", "_")
@@ -107,6 +107,9 @@ class ResultWriter:
         """Make text safe for a Markdown table cell."""
         return text.replace("|", "\\|").replace("\n", " ")
 
-    def get_results_directory(self) -> Path:
-        """Return the absolute path of the results directory."""
-        return self.results_dir.resolve()
+    def save_synthesis(self, idea_name: str, synthesis: str) -> Path:
+        """Save the synthesis report and return its path."""
+        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        filepath = self.results_dir / f"{idea_name}_SYNTHESIS_{timestamp}.md"
+        filepath.write_text(synthesis, encoding="utf-8")
+        return filepath

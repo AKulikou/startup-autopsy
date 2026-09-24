@@ -1,111 +1,103 @@
 """
-Startup Autopsy — Main Entry Point (Phase 2)
+Startup Autopsy CLI: pick an idea from ideas/ and run the analysis.
 
-Запускает анализ бизнес-идей через 3 оценщика.
-Просто точка входа — вся логика в core/ классах.
-
-Структура проекта:
-- logs/       ← Логи приложения
-- results/    ← Markdown отчёты анализа
-- ideas/      ← Текстовые файлы с бизнес-идеями
-- evaluators/ ← Модули оценщиков
-- core/       ← Ядро приложения (логика)
+All analysis logic lives in core/ and evaluators/; this module handles only
+logging setup and interactive idea selection.
 """
 
 import logging
-from logging.handlers import RotatingFileHandler
 from datetime import datetime
+from logging.handlers import RotatingFileHandler
 from pathlib import Path
+from typing import Optional
 
-from core.idea_processor import IdeaProcessor
 from core.analysis_runner import AnalysisRunner
+from core.idea_processor import IdeaProcessor
 
-# Создаём папку logs/ если её нет
 LOGS_DIR = Path("logs")
-LOGS_DIR.mkdir(exist_ok=True)
+NOISY_LOGGERS = ("urllib3", "anthropic", "httpx", "httpcore")
 
-# Кастомный фильтр для отсеивания HTTP логов
+logger = logging.getLogger(__name__)
+
+
 class HTTPLogFilter(logging.Filter):
-    """Отсеивает HTTP логи из httpx/anthropic."""
-    def filter(self, record):
-        # Отбрасываем записи содержащие HTTP Request
-        if "HTTP Request:" in record.getMessage():
-            return False
-        return True
+    """Hides HTTP request lines from the console."""
 
-# Настройка логирования
-log_filename = LOGS_DIR / f"startup_autopsy_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.log"
+    def filter(self, record: logging.LogRecord) -> bool:
+        return "HTTP Request:" not in record.getMessage()
 
-formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 
-file_handler = RotatingFileHandler(
-    log_filename,
-    maxBytes=5*1024*1024,
-    backupCount=10,
-    encoding='utf-8'
-)
-file_handler.setFormatter(formatter)
+def setup_logging() -> Path:
+    """Log to a timestamped file and to the console. Returns the log file path."""
+    LOGS_DIR.mkdir(exist_ok=True)
+    log_file = LOGS_DIR / f"startup_autopsy_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.log"
 
-console_handler = logging.StreamHandler()
-console_handler.setFormatter(logging.Formatter('%(message)s'))
-console_handler.addFilter(HTTPLogFilter())  # ← ДОБАВЛЯЕМ ФИЛЬТР
+    file_handler = RotatingFileHandler(
+        log_file, maxBytes=5 * 1024 * 1024, backupCount=10, encoding="utf-8"
+    )
+    file_handler.setFormatter(
+        logging.Formatter("%(asctime)s - %(levelname)s - %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
+    )
 
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
-logger.addHandler(file_handler)
-logger.addHandler(console_handler)
+    console_handler = logging.StreamHandler()
+    console_handler.setFormatter(logging.Formatter("%(message)s"))
+    console_handler.addFilter(HTTPLogFilter())
 
-# Отключаем лишние логи
-logging.getLogger('urllib3').setLevel(logging.WARNING)
-logging.getLogger('anthropic').setLevel(logging.WARNING)
-logging.getLogger('httpx').setLevel(logging.WARNING)
-logging.getLogger('httpcore').setLevel(logging.WARNING)
-logging.getLogger('anthropic._http_client').setLevel(logging.WARNING)
+    root = logging.getLogger()
+    root.setLevel(logging.INFO)
+    root.addHandler(file_handler)
+    root.addHandler(console_handler)
 
-def select_idea(processor: IdeaProcessor) -> str:
-    """Интерактивный выбор идеи из доступных."""
+    for name in NOISY_LOGGERS:
+        logging.getLogger(name).setLevel(logging.WARNING)
+
+    return log_file
+
+
+def select_idea(processor: IdeaProcessor) -> Optional[str]:
+    """Ask the user to pick an idea by number or name. Returns None to exit."""
     ideas, path = processor.get_available_ideas()
-    
-    logger.info("\n" + "="*70)
-    logger.info("STARTUP AUTOPSY — Business Idea Validator (Phase 2)")
-    logger.info("="*70)
-    
+
+    logger.info("\n" + "=" * 70)
+    logger.info("STARTUP AUTOPSY — Business Idea Validator")
+    logger.info("=" * 70)
+
     if not ideas:
-        logger.info("\n❌ Идей не найдено.")
+        logger.info(f"\nNo ideas found in {path}")
         return None
-    
-    logger.info("\n📋 Доступные идеи:")
-    for i, idea in enumerate(ideas, 1):
+
+    logger.info("\nAvailable ideas:")
+    for i, idea in enumerate(ideas, start=1):
         logger.info(f"   {i}. {idea}")
-    
-    logger.info(f"\n📁 Путь: {path}")
-    logger.info("\n" + "-"*70)
-    logger.info("Номер (1, 2...) или имя файла (или Enter для выхода):\n")
-    
-    choice = input("➜ Выберите: ").strip()
-    
+
+    logger.info(f"\nDirectory: {path}")
+    logger.info("-" * 70)
+
+    choice = input("Enter a number or file name (Enter to exit): ").strip()
     if not choice:
         return None
-    
+
     if choice.isdigit():
         idx = int(choice) - 1
-        return ideas[idx] if 0 <= idx < len(ideas) else None
-    
-    return choice if choice in ideas else None
+        if 0 <= idx < len(ideas):
+            return ideas[idx]
+    elif choice in ideas:
+        return choice
+
+    logger.info(f"Invalid choice: {choice}")
+    return None
 
 
-def main():
-    """Главная функция — запуск приложения."""
-    logger.info(f"📝 Логи записываются в: {LOGS_DIR.absolute()}")
-    
+def main() -> None:
+    log_file = setup_logging()
+    logger.info(f"Logging to: {log_file.resolve()}")
+
     processor = IdeaProcessor()
     idea_name = select_idea(processor)
-    
     if idea_name:
-        runner = AnalysisRunner(processor)
-        runner.run(idea_name)
+        AnalysisRunner(processor).run(idea_name)
     else:
-        logger.info("⏹ Выход.")
+        logger.info("Exit.")
 
 
 if __name__ == "__main__":

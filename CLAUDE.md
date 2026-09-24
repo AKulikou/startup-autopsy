@@ -95,8 +95,8 @@ These define what a "correct" report is — apply them when editing prompts or s
 
 ## Known issues
 
-- `core/report_aggregator.py` contains keyword rules and next steps hardcoded for a
-  single idea (fitness tracker) — to be replaced in Phase 3.
+- `core/report_aggregator.py` only restates evaluator fields (verdicts, killer risks,
+  next steps); Claude-based synthesis that resolves conflicts is still Phase 3 work.
 - `core/token_summary.py` prices all tokens at one flat rate; output tokens cost more.
 - Evaluators run sequentially.
 - Codebase comments are partly in Russian; migrate to English when touching a file.

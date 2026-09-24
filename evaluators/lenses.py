@@ -36,13 +36,14 @@ Standards for your analysis:
 - Distinguish "the idea is flawed" from "the idea is not yet validated".
 - If the idea description lacks information you need, say what is missing and
   state the assumption you made instead of it.
+- Write in English, whatever the language of the idea description.
 """
 
 
 LENSES: tuple[Lens, ...] = (
     Lens(
         key="profitable_designer",
-        name="💰 Profitable App Designer",
+        name="Profitable App Designer",
         role="a SaaS product designer who has launched several profitable subscription products",
         focus="Would people pay for this every month, and how much revenue is realistic?",
         questions=(
@@ -56,7 +57,7 @@ LENSES: tuple[Lens, ...] = (
     ),
     Lens(
         key="no_code_stack",
-        name="🔧 No-Code Stack Master",
+        name="No-Code Stack Master",
         role="a no-code architect who ships working MVPs in 7 days",
         focus="Can a sellable MVP be built with no-code tools in 7 days?",
         questions=(
@@ -72,7 +73,7 @@ LENSES: tuple[Lens, ...] = (
     ),
     Lens(
         key="ai_tool_creator",
-        name="🤖 AI Tool Creator",
+        name="AI Tool Creator",
         role="a founder of AI-powered subscription tools",
         focus="Is the AI capability genuinely useful and differentiated, and can it find paying customers?",
         questions=(
@@ -86,7 +87,7 @@ LENSES: tuple[Lens, ...] = (
     ),
     Lens(
         key="saas_revenue_builder",
-        name="📈 SaaS Revenue Builder",
+        name="SaaS Revenue Builder",
         role="a SaaS growth lead who has taken products from MVP to sustainable revenue",
         focus="Is there a realistic path from MVP to sustainable recurring revenue?",
         questions=(
@@ -100,7 +101,7 @@ LENSES: tuple[Lens, ...] = (
     ),
     Lens(
         key="viral_designer",
-        name="🌱 Viral Product Designer",
+        name="Viral Product Designer",
         role="a product designer specialising in organic growth and network effects",
         focus="Can this grow through users themselves, without paid acquisition?",
         questions=(
@@ -115,7 +116,7 @@ LENSES: tuple[Lens, ...] = (
     ),
     Lens(
         key="launch_expert",
-        name="🚀 Launch Expert",
+        name="Launch Expert",
         role="a launch strategist who has run dozens of product launches",
         focus="What can realistically be achieved in the first week after launch?",
         questions=(
@@ -130,7 +131,7 @@ LENSES: tuple[Lens, ...] = (
     ),
     Lens(
         key="churn_eliminator",
-        name="🔁 Churn Eliminator",
+        name="Churn Eliminator",
         role="a retention specialist focused on subscription unit economics",
         focus="Will users stay, and what keeps them from cancelling?",
         questions=(
@@ -143,7 +144,7 @@ LENSES: tuple[Lens, ...] = (
     ),
     Lens(
         key="reality_auditor",
-        name="🎯 Reality Auditor",
+        name="Reality Auditor",
         role="an angel investor who has reviewed more than 500 startups",
         focus="Before committing serious time: is this worth pursuing at all?",
         questions=(
