@@ -32,6 +32,21 @@ an evaluator in `evaluators/`, keep it consistent with the principles described 
 | `RISKY` | No fundamental flaw, but serious risks need mitigation before investing |
 | `NOT_VIABLE` | Fundamental flaw that no amount of research or iteration fixes |
 
+Rules for choosing (sent to the model with the schema, see `VERDICT_RULES` in
+`evaluators/schemas.py`):
+
+- Judge the idea as described; a pivot belongs in the next steps, not in the verdict.
+- An illegal, policy-blocked or economically impossible core model is `NOT_VIABLE`
+  if removing it would leave a different business.
+- `RISKY` means every serious risk can be mitigated without changing the core model.
+- `NEEDS_VALIDATION` means the deciding question is still open; an established
+  blocker calls for `RISKY` or `NOT_VIABLE`.
+
+Confidence describes how sure the evaluator is that the verdict is right, not how
+good the idea is: `HIGH` rests on facts, regulations or arithmetic, `MEDIUM` on
+plausible but unverified assumptions, `LOW` on a judgement call with key
+information missing.
+
 ## The eight lenses
 
 The prompt text of every lens lives in `evaluators/lenses.py`; this section

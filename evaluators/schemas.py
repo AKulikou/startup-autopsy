@@ -41,6 +41,26 @@ VERDICT_TEXT: dict[Verdict, tuple[str, str]] = {
 }
 
 
+VERDICT_RULES = (
+    "How to choose: "
+    "Judge the idea as described, not an improved version of it; put pivots in next_steps. "
+    "If the core model is illegal, blocked by platform policy, or economically impossible, "
+    "and removing that part would leave a different business, choose NOT_VIABLE. "
+    "Choose RISKY only if every serious risk can be mitigated without changing the core model. "
+    "Choose NEEDS_VALIDATION only if the deciding question is still open and can be answered "
+    "by research (demand, willingness to pay); if you have already found a blocker you "
+    "consider established, choose RISKY or NOT_VIABLE instead. "
+    "The verdict must agree with the summary and the killer risk."
+)
+
+CONFIDENCE_RULES = (
+    "How sure you are that the verdict is the right call, not how good or bad the idea is. "
+    "HIGH: the verdict follows from established facts, regulations or arithmetic. "
+    "MEDIUM: it depends on plausible but unverified assumptions. "
+    "LOW: key information is missing and the verdict is largely a judgement call."
+)
+
+
 def verdict_label(verdict: str) -> str:
     """Short report label for a verdict code, e.g. 'VIABLE_IF' -> 'Viable if conditions hold'."""
     return VERDICT_TEXT[Verdict(verdict)][0]
@@ -82,10 +102,10 @@ class EvaluatorResult(BaseModel):
     verdict: Verdict = Field(
         description=" ".join(
             f"{verdict.value}: {meaning}." for verdict, (_, meaning) in VERDICT_TEXT.items()
-        )
+        ) + " " + VERDICT_RULES
     )
     confidence: Confidence = Field(
-        description="How strongly the evidence supports the verdict."
+        description=CONFIDENCE_RULES
     )
     confidence_reason: str = Field(
         description="One sentence naming what the confidence depends on "
