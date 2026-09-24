@@ -18,6 +18,44 @@ class Confidence(str, Enum):
     HIGH = "HIGH"
 
 
+# Human-readable form of each verdict for reports: (short label, meaning).
+# The meanings also define the verdicts for the model in EvaluatorResult.
+VERDICT_TEXT: dict[Verdict, tuple[str, str]] = {
+    Verdict.VIABLE: ("Viable", "evidence supports building now"),
+    Verdict.VIABLE_IF: (
+        "Viable if conditions hold",
+        "can work, but only if specific testable conditions hold",
+    ),
+    Verdict.NEEDS_VALIDATION: (
+        "Needs validation",
+        "too little evidence to judge; research must come first",
+    ),
+    Verdict.RISKY: (
+        "Risky",
+        "no fundamental flaw, but serious risks need mitigation before investing",
+    ),
+    Verdict.NOT_VIABLE: (
+        "Not viable",
+        "a fundamental flaw that no amount of research or iteration fixes",
+    ),
+}
+
+
+def verdict_label(verdict: str) -> str:
+    """Short report label for a verdict code, e.g. 'VIABLE_IF' -> 'Viable if conditions hold'."""
+    return VERDICT_TEXT[Verdict(verdict)][0]
+
+
+def verdict_meaning(verdict: str) -> str:
+    """One-line explanation of a verdict code."""
+    return VERDICT_TEXT[Verdict(verdict)][1]
+
+
+def confidence_label(confidence: str) -> str:
+    """Report label for a confidence code, e.g. 'HIGH' -> 'High'."""
+    return Confidence(confidence).value.capitalize()
+
+
 class Assumption(BaseModel):
     statement: str = Field(
         description="What must be true for the idea to work, stated specifically "
@@ -42,12 +80,8 @@ class EvaluatorResult(BaseModel):
         description="One or two sentences: the verdict and the main reason for it."
     )
     verdict: Verdict = Field(
-        description=(
-            "VIABLE: evidence supports building now. "
-            "VIABLE_IF: can work, but only if specific testable conditions hold. "
-            "NEEDS_VALIDATION: too little evidence to judge; research must come first. "
-            "RISKY: no fundamental flaw, but serious risks need mitigation before investing. "
-            "NOT_VIABLE: fundamental flaw that no amount of research or iteration fixes."
+        description=" ".join(
+            f"{verdict.value}: {meaning}." for verdict, (_, meaning) in VERDICT_TEXT.items()
         )
     )
     confidence: Confidence = Field(

@@ -7,6 +7,8 @@ without drawing its own conclusions. A Claude-based synthesis replaces it in Pha
 
 from collections import Counter
 
+from evaluators.schemas import confidence_label, verdict_label
+
 
 class ReportAggregator:
     """Combines the results of any number of evaluators into one Markdown report."""
@@ -47,7 +49,8 @@ class ReportAggregator:
     @staticmethod
     def _verdict_table(results: list[dict]) -> str:
         rows = "\n".join(
-            f"| {r['evaluator_display']} | {r['verdict']} | {r['confidence']} |"
+            f"| {r['evaluator_display']} | {verdict_label(r['verdict'])} "
+            f"| {confidence_label(r['confidence'])} |"
             for r in results
         )
         return "| Evaluator | Verdict | Confidence |\n|---|---|---|\n" + rows
@@ -59,9 +62,11 @@ class ReportAggregator:
 
         counts = Counter(r["verdict"] for r in results)
         if len(counts) == 1:
-            return f"All {len(results)} evaluators agree: **{next(iter(counts))}**."
+            return f"All {len(results)} evaluators agree: **{verdict_label(next(iter(counts)))}**."
 
-        split = ", ".join(f"{verdict} × {count}" for verdict, count in counts.most_common())
+        split = ", ".join(
+            f"{verdict_label(verdict)} × {count}" for verdict, count in counts.most_common()
+        )
         return (
             f"Evaluators disagree ({split}). "
             "Compare their summaries and killer risks below to see why."
@@ -71,7 +76,7 @@ class ReportAggregator:
     def _summaries(results: list[dict]) -> str:
         return "\n\n".join(
             f"**{r['evaluator_display']}** — {r['summary']}\n\n"
-            f"*Confidence {r['confidence']}: {r['confidence_reason']}*"
+            f"*Confidence {confidence_label(r['confidence'])}: {r['confidence_reason']}*"
             for r in results
         )
 

@@ -13,6 +13,8 @@ import re
 from pathlib import Path
 from datetime import datetime
 
+from evaluators.schemas import confidence_label, verdict_label, verdict_meaning
+
 
 class ResultWriter:
     """Writes evaluator results to Markdown files."""
@@ -79,11 +81,13 @@ class ResultWriter:
 
 ---
 
-## Verdict: {result['verdict']}
+## Verdict: {verdict_label(result['verdict'])}
+
+*{verdict_meaning(result['verdict']).capitalize()}.*
 
 {result['summary']}
 
-**Confidence:** {result['confidence']} — {result['confidence_reason']}
+**Confidence:** {confidence_label(result['confidence'])} — {result['confidence_reason']}
 
 ## Killer Risk
 
