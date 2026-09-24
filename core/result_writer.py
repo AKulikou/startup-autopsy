@@ -1,5 +1,12 @@
 """
-Writes per-evaluator analysis results to Markdown files.
+Writes analysis results to Markdown files, one directory per run:
+
+    results/2026-09-24_18-48-18_fitness_tracker/
+        00_synthesis.md
+        no_code_stack_master.md
+        reality_auditor.md
+
+The timestamp comes first so that runs sort chronologically by name.
 """
 
 import re
@@ -28,35 +35,32 @@ class ResultWriter:
         cleaned = cleaned.lower().strip().replace(" ", "_")
         return re.sub(r'_+', '_', cleaned)
 
-    def get_filename(self, idea_name: str, evaluator_name: str = None) -> str:
-        """
-        Build the result filename: IDEA_NAME[_EVALUATOR]_YYYY-MM-DD_HH-MM-SS.md
+    def create_run_dir(self, idea_name: str, started_at: datetime) -> Path:
+        """Create and return the directory for one analysis run."""
+        run_dir = self.results_dir / f"{started_at.strftime('%Y-%m-%d_%H-%M-%S')}_{idea_name}"
+        run_dir.mkdir(parents=True, exist_ok=False)
+        return run_dir
 
-        Example: "api_monitor_profitable_app_designer_2026-09-22_15-22-50.md"
+    def save_result(self, run_dir: Path, idea_name: str, started_at: datetime, result: dict) -> Path:
         """
-        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        if evaluator_name:
-            return f"{idea_name}_{self._clean_evaluator_name(evaluator_name)}_{timestamp}.md"
-        return f"{idea_name}_{timestamp}.md"
-
-    def save_result(self, idea_name: str, result: dict) -> Path:
-        """
-        Save a successful evaluator result to a Markdown file.
+        Save a successful evaluator result to a Markdown file in the run directory.
 
         Args:
+            run_dir (Path): Directory from create_run_dir()
             idea_name (str): Idea name
+            started_at (datetime): When the run started
             result (dict): Successful result dict from Evaluator.evaluate()
 
         Returns:
             Path: Path to the saved file
         """
-        filepath = self.results_dir / self.get_filename(idea_name, result["evaluator_display"])
-        filepath.write_text(self._format_markdown(idea_name, result), encoding="utf-8")
+        filepath = run_dir / f"{self._clean_evaluator_name(result['evaluator_display'])}.md"
+        filepath.write_text(self._format_markdown(idea_name, started_at, result), encoding="utf-8")
         return filepath
 
-    def _format_markdown(self, idea_name: str, result: dict) -> str:
+    def _format_markdown(self, idea_name: str, started_at: datetime, result: dict) -> str:
         """Render the structured fields first, then the full analysis."""
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        timestamp = started_at.strftime("%Y-%m-%d %H:%M:%S")
 
         assumption_rows = "\n".join(
             f"| {self._cell(a['statement'])} | {self._cell(a['how_to_test'])} "
@@ -69,9 +73,9 @@ class ResultWriter:
 
         return f"""# Startup Autopsy — {result['evaluator_display']}
 
-**Idea:** {idea_name}
-**Analyzed:** {timestamp}
-**Tokens used:** {result['tokens_used']} (input {result['input_tokens']}, output {result['output_tokens']})
+- **Idea:** {idea_name}
+- **Analyzed:** {timestamp}
+- **Tokens used:** {result['tokens_used']} (input {result['input_tokens']}, output {result['output_tokens']})
 
 ---
 
@@ -107,9 +111,8 @@ class ResultWriter:
         """Make text safe for a Markdown table cell."""
         return text.replace("|", "\\|").replace("\n", " ")
 
-    def save_synthesis(self, idea_name: str, synthesis: str) -> Path:
-        """Save the synthesis report and return its path."""
-        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        filepath = self.results_dir / f"{idea_name}_SYNTHESIS_{timestamp}.md"
+    def save_synthesis(self, run_dir: Path, synthesis: str) -> Path:
+        """Save the synthesis report; the 00_ prefix keeps it first in the directory."""
+        filepath = run_dir / "00_synthesis.md"
         filepath.write_text(synthesis, encoding="utf-8")
         return filepath

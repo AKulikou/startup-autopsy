@@ -3,6 +3,8 @@ Runs the full analysis of one business idea: evaluate, save, synthesize.
 """
 
 import logging
+from datetime import datetime
+from pathlib import Path
 from typing import Optional
 
 from config import ENABLED_LENSES
@@ -30,13 +32,17 @@ class AnalysisRunner:
         Returns:
             bool: True if at least one evaluator succeeded
         """
+        started_at = datetime.now()
         idea_content = self._load_idea(idea_name)
         if not idea_content:
             return False
 
         results = self._run_evaluators(idea_content)
-        self._save_reports(results, idea_name)
-        self._save_synthesis(results, idea_name)
+
+        run_dir = self.processor.create_run_dir(idea_name, started_at)
+        logger.info(f"\nSaving reports to: {run_dir}")
+        self._save_reports(results, run_dir, idea_name, started_at)
+        self._save_synthesis(results, run_dir)
         TokenSummary.print_summary(results)
 
         return any(r["status"] == "success" for r in results)
@@ -60,16 +66,16 @@ class AnalysisRunner:
                 logger.error(f"{result['evaluator_display']} failed: {result['error']}")
         return results
 
-    def _save_reports(self, results: list[dict], idea_name: str) -> None:
-        logger.info("\nSaving evaluator reports...")
+    def _save_reports(
+        self, results: list[dict], run_dir: Path, idea_name: str, started_at: datetime
+    ) -> None:
         for result in results:
             if result["status"] == "success":
-                path = self.processor.save_analysis(idea_name, result)
+                path = self.processor.save_analysis(run_dir, idea_name, started_at, result)
                 logger.info(f"  - {result['evaluator_display']}: {path.name}")
 
-    def _save_synthesis(self, results: list[dict], idea_name: str) -> None:
-        logger.info("\nBuilding synthesis report...")
+    def _save_synthesis(self, results: list[dict], run_dir: Path) -> None:
         synthesis = self.aggregator.aggregate(results)
         logger.info("\n" + synthesis)
-        path = self.processor.save_synthesis(idea_name, synthesis)
+        path = self.processor.save_synthesis(run_dir, synthesis)
         logger.info(f"Synthesis saved: {path.name}\n")

@@ -45,8 +45,10 @@ ideas/<idea>.txt
   verdict, confidence + reason, summary, killer risk,
   key assumptions (how to test, failure signal), next steps, full analysis
       |
-      +--> results/<idea>_<lens>_<timestamp>.md        one report per lens
-      +--> results/<idea>_SYNTHESIS_<timestamp>.md     all lenses compared
+      v
+  results/<timestamp>_<idea>/        one directory per run, sorted by time
+      00_synthesis.md                all lenses compared
+      <lens>.md                      one report per lens
 ```
 
 Evaluators use Claude structured outputs, so reports are built from typed fields

@@ -3,6 +3,7 @@ Facade over idea input and result output.
 """
 
 import logging
+from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
@@ -31,10 +32,14 @@ class IdeaProcessor:
             logger.error(f"Cannot load idea '{idea_name}': {e}")
             return None
 
-    def save_analysis(self, idea_name: str, result: dict) -> Path:
-        """Save one evaluator's successful result and return the file path."""
-        return self.result_writer.save_result(idea_name, result)
+    def create_run_dir(self, idea_name: str, started_at: datetime) -> Path:
+        """Create the output directory for one analysis run."""
+        return self.result_writer.create_run_dir(idea_name, started_at)
 
-    def save_synthesis(self, idea_name: str, synthesis: str) -> Path:
+    def save_analysis(self, run_dir: Path, idea_name: str, started_at: datetime, result: dict) -> Path:
+        """Save one evaluator's successful result and return the file path."""
+        return self.result_writer.save_result(run_dir, idea_name, started_at, result)
+
+    def save_synthesis(self, run_dir: Path, synthesis: str) -> Path:
         """Save the synthesis report and return the file path."""
-        return self.result_writer.save_synthesis(idea_name, synthesis)
+        return self.result_writer.save_synthesis(run_dir, synthesis)
