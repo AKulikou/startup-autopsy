@@ -48,20 +48,18 @@ class IdeaProcessor:
             print(f"❌ Ошибка: {e}")
             return None
     
-    def save_analysis(self, idea_name: str, analysis: str, tokens_used: int, evaluator_name: str = None) -> Path:
+    def save_analysis(self, idea_name: str, result: dict) -> Path:
         """
-        Сохраняет результат анализа.
-        
+        Save one evaluator's result.
+
         Args:
-            idea_name (str): Имя идеи
-            analysis (str): Текст анализа
-            tokens_used (int): Токены
-            evaluator_name (str): Имя оценщика (опционально)
-        
+            idea_name (str): Idea name
+            result (dict): Successful result dict from Evaluator.evaluate()
+
         Returns:
-            Path: Путь к файлу результата
+            Path: Path to the result file
         """
-        return self.result_writer.save_result(idea_name, analysis, tokens_used, evaluator_name)
+        return self.result_writer.save_result(idea_name, result)
     
     def get_results_path(self) -> Path:
         """Возвращает путь к папке результатов."""

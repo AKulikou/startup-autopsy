@@ -114,22 +114,17 @@ class AnalysisRunner:
     
     def _save_reports(self, results: list, idea_name: str) -> None:
         """
-        Сохраняет полные отчёты каждого оценщика.
-        
+        Save the full report of each successful evaluator.
+
         Args:
-            results (list): Список результатов
-            idea_name (str): Имя идеи
+            results (list): Evaluator result dicts
+            idea_name (str): Idea name
         """
-        logger.info("\n💾 Сохраняю полные отчёты...")
-        
+        logger.info("\n💾 Saving full reports...")
+
         for result in results:
             if result["status"] == "success":
-                result_path = self.processor.save_analysis(
-                    idea_name,
-                    result["analysis"],
-                    result["tokens_used"],
-                    result["evaluator_display"]
-                )
+                result_path = self.processor.save_analysis(idea_name, result)
                 logger.info(f"  • {result['evaluator_display']}: {result_path.name}")
     
     def _generate_synthesis(self, results: list, idea_name: str) -> None:
