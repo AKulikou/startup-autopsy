@@ -9,7 +9,6 @@ import logging
 from datetime import datetime
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
-from typing import Optional
 
 from core.analysis_runner import AnalysisRunner
 from core.idea_processor import IdeaProcessor
@@ -55,7 +54,7 @@ def setup_logging() -> Path:
     return log_file
 
 
-def select_idea(processor: IdeaProcessor) -> Optional[str]:
+def select_idea(processor: IdeaProcessor) -> str | None:
     """Ask the user to pick an idea by number or name. Returns None to exit."""
     ideas, path = processor.get_available_ideas()
 

@@ -25,7 +25,9 @@ def test_short_meaningful_text_goes_on_to_the_input_check():
 
 
 def test_straight_quotes_become_typographic_and_keep_their_meaning():
-    text, replaced = prepare_idea('Declared as "costume jewelry" to avoid duties, see "80% used" and a stray " here')
+    text, replaced = prepare_idea(
+        'Declared as "costume jewelry" to avoid duties, see "80% used" and a stray " here'
+    )
     assert '"' not in text
     assert "“costume jewelry”" in text
     assert "“80% used”" in text

@@ -6,7 +6,6 @@ model), so every call is priced with the model that served it.
 """
 
 import logging
-from typing import Optional
 
 from config import MODEL, MODEL_PRICING_PER_MTOK
 
@@ -14,8 +13,8 @@ logger = logging.getLogger(__name__)
 
 
 def estimate_cost(
-    input_tokens: int, output_tokens: int, model: Optional[str] = None
-) -> Optional[float]:
+    input_tokens: int, output_tokens: int, model: str | None = None
+) -> float | None:
     """
     Estimated cost in USD for the given model (default: the analysis MODEL),
     or None if the model's pricing is not configured.
@@ -27,7 +26,7 @@ def estimate_cost(
     return (input_tokens * input_price + output_tokens * output_price) / 1_000_000
 
 
-def format_cost(cost: Optional[float]) -> str:
+def format_cost(cost: float | None) -> str:
     return "cost n/a" if cost is None else f"est. cost ${cost:.4f}"
 
 

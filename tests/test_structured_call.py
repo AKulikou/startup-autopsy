@@ -1,4 +1,5 @@
 import pytest
+from conftest import FakeClaude, lens_result, response
 
 from core.structured_call import (
     InvalidResultError,
@@ -8,8 +9,6 @@ from core.structured_call import (
 )
 from evaluators.evaluator import validate_result
 from evaluators.schemas import EvaluatorResult
-
-from conftest import FakeClaude, lens_result, response
 
 # The malformed answer a real run returned: analysis cut at a double quote,
 # the other fields filled with fragments.

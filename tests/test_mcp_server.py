@@ -3,13 +3,12 @@
 import asyncio
 
 import pytest
+from conftest import gate_result, response
 
 import mcp_server
 from core.idea_processor import IdeaProcessor
 from evaluators.schemas import EvaluatorResult
 from gate.schemas import GateResult
-
-from conftest import gate_result, response
 
 IDEA = "Weekly meal-prep delivery for office workers in Vilnius, 60 EUR a week, ordered online."
 

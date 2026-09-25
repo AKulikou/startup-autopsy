@@ -239,6 +239,7 @@ timeout needs it raised.
 ```bash
 pip install -r requirements-dev.txt
 pytest                                     # unit tests: no API calls, under a second
+ruff check .                               # lint, targeting Python 3.10
 python -m eval.run_eval gate --reps 3      # eval of the input check (~$0.25)
 python -m eval.run_eval pipeline --reps 2  # eval of the whole pipeline (~$14)
 ```

@@ -8,8 +8,9 @@ rejects is retried once, then reported as an error instead of reaching a report.
 """
 
 import logging
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Callable, Generic, TypeVar
+from typing import Generic, TypeVar
 
 from anthropic import Anthropic
 from pydantic import BaseModel

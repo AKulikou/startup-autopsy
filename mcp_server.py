@@ -14,7 +14,7 @@ import re
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Literal, Optional
+from typing import Literal
 
 import anyio
 from mcp.server.mcpserver import MCPServer
@@ -51,19 +51,19 @@ class IdeaCheck(BaseModel):
     reason: str
     missing_information: list[str] = []
     injection_suspected: bool = False
-    hint: Optional[str] = Field(None, description="What to add, when the idea cannot be analyzed.")
+    hint: str | None = Field(None, description="What to add, when the idea cannot be analyzed.")
 
 
 class IdeaAnalysis(BaseModel):
     analyzed: bool
     check: IdeaCheck
-    verdict: Optional[str] = Field(None, description="Overall verdict in plain words.")
-    verdict_code: Optional[str] = None
-    confidence: Optional[str] = None
-    summary: Optional[str] = None
-    report_markdown: Optional[str] = Field(None, description="The full report.md.")
-    report_path: Optional[str] = None
-    error: Optional[str] = None
+    verdict: str | None = Field(None, description="Overall verdict in plain words.")
+    verdict_code: str | None = None
+    confidence: str | None = None
+    summary: str | None = None
+    report_markdown: str | None = Field(None, description="The full report.md.")
+    report_path: str | None = None
+    error: str | None = None
 
 
 def _local_rejection(error: InvalidIdeaError) -> IdeaCheck:

@@ -4,7 +4,6 @@ reasons first, the lens results as an appendix with links to their full reports.
 """
 
 from datetime import datetime
-from typing import Optional
 
 from config import MODEL
 from core.result_writer import lens_report_path, table_cell
@@ -16,7 +15,7 @@ def build_report(
     started_at: datetime,
     synthesis: dict,
     lens_results: list[dict],
-    input_note: Optional[str] = None,
+    input_note: str | None = None,
 ) -> str:
     """
     Render the final report. If the synthesis failed, say so and show only the

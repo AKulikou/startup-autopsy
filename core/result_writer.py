@@ -11,8 +11,8 @@ The timestamp comes first so that runs sort chronologically by name.
 """
 
 import re
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 
 from evaluators.schemas import confidence_label, verdict_label, verdict_meaning
 

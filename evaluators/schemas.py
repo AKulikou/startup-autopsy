@@ -1,6 +1,7 @@
 """Structured output schemas for evaluator responses."""
 
 from enum import Enum
+
 from pydantic import BaseModel, Field
 
 

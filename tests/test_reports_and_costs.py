@@ -1,6 +1,7 @@
 from datetime import datetime
 
 import pytest
+from conftest import lens_result, synthesis_result
 
 from core import token_summary
 from core.report_builder import build_report
@@ -8,8 +9,6 @@ from core.result_writer import lens_report_path
 from evaluators.schemas import confidence_label, verdict_label, verdict_meaning
 from gate.schemas import gate_decision_label
 from synthesis.synthesizer import consistency_warnings
-
-from conftest import lens_result, synthesis_result
 
 
 def lens_row(name, **overrides):

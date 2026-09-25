@@ -9,22 +9,22 @@ event (INFO); the reports themselves are written only to Markdown files.
 
 import logging
 import time
+from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from pathlib import Path
-from typing import Callable, Optional
 
 from config import ENABLED_LENSES, MODEL, REPORT_TRANSLATION, TRANSLATE_LENS_REPORTS, TRANSLATION_MODEL
+from core.idea_input import InvalidIdeaError, prepare_idea
+from core.idea_processor import IdeaProcessor
+from core.report_builder import build_report
+from core.token_summary import estimate_cost, format_cost, log_token_summary
+from core.translator import translate_markdown
 from evaluators.evaluator import Evaluator
 from evaluators.lenses import select_lenses
 from evaluators.schemas import confidence_label, verdict_label
 from gate.idea_gate import GATE_LABEL, NEXT_STEP_HINT, IdeaGate
 from gate.schemas import GateDecision, gate_decision_label
-from core.idea_input import InvalidIdeaError, prepare_idea
-from core.idea_processor import IdeaProcessor
-from core.report_builder import build_report
-from core.translator import translate_markdown
-from core.token_summary import estimate_cost, format_cost, log_token_summary
 from synthesis.synthesizer import SYNTHESIS_LABEL, Synthesizer
 
 logger = logging.getLogger(__name__)
@@ -36,7 +36,7 @@ class AnalysisRunner:
     def __init__(
         self,
         processor: IdeaProcessor,
-        confirm_vague_idea: Optional[Callable[[dict], bool]] = None,
+        confirm_vague_idea: Callable[[dict], bool] | None = None,
     ):
         """
         Args:
@@ -108,7 +108,7 @@ class AnalysisRunner:
         return {"analyzed": True, "gate": gate, "input_note": input_note,
                 "lenses": lenses, "synthesis": synthesis}
 
-    def _load_idea(self, idea_name: str) -> Optional[str]:
+    def _load_idea(self, idea_name: str) -> str | None:
         raw_content = self.processor.load_idea(idea_name)
         if raw_content is None:
             return None  # load_idea has logged the reason
@@ -167,7 +167,7 @@ class AnalysisRunner:
         return True
 
     @staticmethod
-    def _input_note(gate: dict) -> Optional[str]:
+    def _input_note(gate: dict) -> str | None:
         """A note for the synthesis and the report when the input was flagged."""
         if gate["status"] != "success":
             return None
@@ -185,10 +185,10 @@ class AnalysisRunner:
             )
         return " ".join(notes) or None
 
-    def _run_evaluators(self, idea_content: str, input_note: Optional[str]) -> list[dict]:
+    def _run_evaluators(self, idea_content: str, input_note: str | None) -> list[dict]:
         total = len(self.lenses)
         prefixes = [f"[{index}/{total}] {lens.name}" for index, lens in enumerate(self.lenses, start=1)]
-        results: list[Optional[dict]] = [None] * total
+        results: list[dict | None] = [None] * total
 
         started = time.monotonic()
         # One thread per lens: all enabled lenses start at once.
@@ -270,7 +270,7 @@ class AnalysisRunner:
         return outcomes
 
     def _run_synthesis(
-        self, idea_content: str, results: list[dict], input_note: Optional[str]
+        self, idea_content: str, results: list[dict], input_note: str | None
     ) -> dict:
         succeeded = sum(r["status"] == "success" for r in results)
         if not succeeded:

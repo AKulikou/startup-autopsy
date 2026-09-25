@@ -9,15 +9,15 @@ from types import SimpleNamespace
 # config.py refuses to import without a plausible key; tests never use it.
 os.environ.setdefault("ANTHROPIC_API_KEY", "sk-ant-test-key-not-used")
 
-import pytest  # noqa: E402
+import pytest
 
-from evaluators import evaluator as evaluator_module  # noqa: E402
-from evaluators.schemas import EvaluatorResult  # noqa: E402
-from gate import idea_gate as gate_module  # noqa: E402
-from gate.schemas import GateResult  # noqa: E402
-from core import translator as translator_module  # noqa: E402
-from synthesis import synthesizer as synthesizer_module  # noqa: E402
-from synthesis.schemas import SynthesisResult  # noqa: E402
+from core import translator as translator_module
+from evaluators import evaluator as evaluator_module
+from evaluators.schemas import EvaluatorResult
+from gate import idea_gate as gate_module
+from gate.schemas import GateResult
+from synthesis import synthesizer as synthesizer_module
+from synthesis.schemas import SynthesisResult
 
 
 def lens_result(**overrides) -> EvaluatorResult:

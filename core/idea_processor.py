@@ -5,7 +5,6 @@ Facade over idea input and result output.
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
 from .file_manager import FileManager
 from .result_writer import ResultWriter
@@ -24,7 +23,7 @@ class IdeaProcessor:
         """Return the available idea names and the directory they were found in."""
         return self.file_manager.list_ideas(), self.file_manager.get_full_path()
 
-    def load_idea(self, idea_name: str) -> Optional[str]:
+    def load_idea(self, idea_name: str) -> str | None:
         """Return the idea text, or None if it cannot be read (the error is logged)."""
         try:
             return self.file_manager.read_idea(idea_name)

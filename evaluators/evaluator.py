@@ -7,9 +7,8 @@ ANALYSIS_STANDARDS supply the tone; the EvaluatorResult schema defines the outpu
 
 import logging
 import time
-from typing import Optional
 
-from config import MODEL, MAX_TOKENS
+from config import MAX_TOKENS, MODEL
 from core.claude_client import get_client
 from core.structured_call import billed_tokens, length_problems, request_structured
 from evaluators.lenses import ANALYSIS_STANDARDS, Lens
@@ -49,7 +48,7 @@ def validate_result(result: EvaluatorResult) -> list[str]:
 class Evaluator:
     """Evaluates a business idea through a single lens."""
 
-    def __init__(self, lens: Lens, business_idea: str, input_note: Optional[str] = None):
+    def __init__(self, lens: Lens, business_idea: str, input_note: str | None = None):
         self.lens = lens
         self.business_idea = business_idea
         self.input_note = input_note

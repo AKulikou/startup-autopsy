@@ -8,7 +8,6 @@ analysis) and decides on the whole business, following SYNTHESIS_PRINCIPLES.
 
 import logging
 import time
-from typing import Optional
 
 from config import MAX_TOKENS, MODEL
 from core.claude_client import get_client
@@ -123,7 +122,7 @@ class Synthesizer:
     """Combines the results of any number of lenses into one overall verdict."""
 
     def __init__(
-        self, business_idea: str, lens_results: list[dict], input_note: Optional[str] = None
+        self, business_idea: str, lens_results: list[dict], input_note: str | None = None
     ):
         self.business_idea = business_idea
         self.lens_results = lens_results

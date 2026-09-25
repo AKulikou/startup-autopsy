@@ -28,7 +28,8 @@ import math
 import sys
 import threading
 import time
-from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeout
+from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import TimeoutError as FutureTimeout
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -186,11 +187,14 @@ def append_jsonl(path: Path, row: dict) -> None:
         f.write(json.dumps(row, ensure_ascii=False) + "\n")
 
 
+def read_jsonl(path: Path) -> list[dict]:
+    if not path.exists():
+        return []
+    return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line]
+
+
 def done_keys(results_path: Path) -> set[tuple[str, int]]:
-    if not results_path.exists():
-        return set()
-    rows = [json.loads(line) for line in results_path.read_text(encoding="utf-8").splitlines() if line]
-    return {(r["prompt_id"], r["rep"]) for r in rows}
+    return {(r["prompt_id"], r["rep"]) for r in read_jsonl(results_path)}
 
 
 def run_one(flow: str, case: dict, rep: int, out: Path) -> str:
@@ -254,10 +258,8 @@ def print_calibration(rows: list[dict]) -> None:
 
 
 def summarize(flow: str, out: Path) -> None:
-    rows = [json.loads(l) for l in (out / "results.jsonl").read_text(encoding="utf-8").splitlines() if l]
-    errors_path = out / "errors.jsonl"
-    errors = [json.loads(l) for l in errors_path.read_text(encoding="utf-8").splitlines() if l] \
-        if errors_path.exists() else []
+    rows = read_jsonl(out / "results.jsonl")
+    errors = read_jsonl(out / "errors.jsonl")
     print(f"\n{flow}: {len(rows)} scored rows, {len(errors)} errors")
     for metric in METRICS[flow]:
         values = [r["grade"][metric["id"]] for r in rows]
@@ -279,7 +281,9 @@ def summarize(flow: str, out: Path) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     parser.add_argument("flow", choices=sorted(RUNNERS))
     parser.add_argument("--reps", type=int, default=1)
     parser.add_argument("--variant", default="baseline")

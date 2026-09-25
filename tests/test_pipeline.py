@@ -3,14 +3,14 @@
 import re
 import time
 
+from conftest import gate_result, lens_result, response
+
 from config import ENABLED_LENSES
 from core.analysis_runner import AnalysisRunner
 from evaluators.lenses import select_lenses
 from evaluators.schemas import EvaluatorResult
 from gate.schemas import GateResult
 from synthesis.schemas import SynthesisResult
-
-from conftest import gate_result, lens_result, response
 
 LENS_NAMES = [lens.name for lens in select_lenses(ENABLED_LENSES)]
 
@@ -69,7 +69,7 @@ def test_lenses_run_in_parallel_and_reach_the_synthesis_in_config_order(fake_cla
     delays = {name: 0.05 * (len(LENS_NAMES) - i) for i, name in enumerate(LENS_NAMES)}
 
     def slow_lens(kwargs):
-        lens = next(l for l in select_lenses(ENABLED_LENSES) if l.role in kwargs["system"])
+        lens = next(lens for lens in select_lenses(ENABLED_LENSES) if lens.role in kwargs["system"])
         time.sleep(delays[lens.name])
         return response(lens_result())
 
@@ -79,7 +79,8 @@ def test_lenses_run_in_parallel_and_reach_the_synthesis_in_config_order(fake_cla
     elapsed = time.monotonic() - started
 
     assert elapsed < sum(delays.values()) * 0.8  # parallel, not sequential
-    order = re.findall(r'<lens name="([^"]+)"', fake_claude.calls(SynthesisResult)[0]["messages"][0]["content"])
+    synthesis_prompt = fake_claude.calls(SynthesisResult)[0]["messages"][0]["content"]
+    order = re.findall(r'<lens name="([^"]+)"', synthesis_prompt)
     assert order == LENS_NAMES
     assert [r["evaluator_display"] for r in analysis["lenses"]] == LENS_NAMES
 

@@ -1,13 +1,12 @@
 """Optional report translation: off by default, never touches the English reports."""
 
 import pytest
+from conftest import text_response
 
 from core import analysis_runner
 from core.analysis_runner import AnalysisRunner
 from core.idea_processor import IdeaProcessor
 from core.translator import translate_markdown
-
-from conftest import text_response
 
 IDEA = "Weekly meal-prep delivery for office workers in Vilnius, 60 EUR a week, ordered online."
 
