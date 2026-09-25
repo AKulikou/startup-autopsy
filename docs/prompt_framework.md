@@ -38,8 +38,9 @@ Rules for choosing (sent to the model with the schema, see `VERDICT_RULES` in
 - **A verdict answers the lens's own question**, not whether the whole business
   succeeds. The overall verdict belongs to the synthesis. A lens that notices a
   serious problem outside its scope lists it in `out_of_lens_red_flags` without
-  letting it change its verdict. (The Reality Auditor's question is the whole idea,
-  so its verdict is effectively an overall one.)
+  letting it change its verdict. No lens judges the whole idea: when the Reality
+  Auditor did, the synthesis followed its verdict in every run, even when the other
+  lenses stayed the same and only the Reality Auditor's verdict changed.
 - Judge the idea as described; a pivot belongs in the next steps, not in the verdict.
 - Something within the lens that makes the idea unworkable as described (illegal,
   policy-blocked, economically impossible) is `NOT_VIABLE`.
@@ -71,7 +72,7 @@ from every lens by the shared output schema, not by the lens prompt.
 | 5 | Viral Product Designer | `viral_designer` | Can this grow through users themselves, without paid acquisition? |
 | 6 | Launch Expert | `launch_expert` | What can realistically be achieved in the first week after launch? |
 | 7 | Churn Eliminator | `churn_eliminator` | Will users stay, and what keeps them from cancelling? |
-| 8 | Reality Auditor | `reality_auditor` | Before committing serious time: is this worth pursuing at all? |
+| 8 | Reality Auditor | `reality_auditor` | Are the founder's assumptions, competitive position and timeline realistic, and what early evidence should decide whether to continue? |
 
 Lenses must not overlap. For example, tool selection belongs only to the
 No-Code Stack Master; the Profitable App Designer looks at automation only as an

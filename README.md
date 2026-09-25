@@ -92,7 +92,7 @@ Eight lenses are defined in [`evaluators/lenses.py`](evaluators/lenses.py);
 | Viral Product Designer | Can this grow through users themselves, without paid acquisition? | |
 | Launch Expert | What can realistically be achieved in the first week after launch? | yes |
 | Churn Eliminator | Will users stay, and what keeps them from cancelling? | yes |
-| Reality Auditor | Before committing serious time: is this worth pursuing at all? | yes |
+| Reality Auditor | Are the founder's assumptions, competitive position and timeline realistic, and what early evidence should decide whether to continue? | yes |
 
 The design rules behind the lenses (no overlap, shared analysis standards, output
 defined by the schema) are described in [`docs/prompt_framework.md`](docs/prompt_framework.md).
