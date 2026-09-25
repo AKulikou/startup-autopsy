@@ -95,7 +95,9 @@ structured fields and the full analysis — and decides the overall verdict. Its
 principles (`SYNTHESIS_PRINCIPLES`): weakest link rather than majority vote;
 substance over labels (a lens verdict that contradicts its own reasoning is recorded
 as a conflict); independent corroboration raises weight, an unsupported claim is an
-assumption to test; flawed versus unvalidated; lower confidence when lenses disagree
+assumption to test; a blocker counts as fatal only if it lies in the business
+itself, not in a replaceable implementation choice (stack, channel, supplier);
+flawed versus unvalidated; lower confidence when lenses disagree
 or some failed. It must name the deciding factors and the lenses behind each, so the
 verdict can be checked. Code only warns about obvious inconsistencies (for example an
 overall "viable" when a lens found the idea not viable); it never overrides the verdict.
