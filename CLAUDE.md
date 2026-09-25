@@ -99,4 +99,3 @@ These define what a "correct" report is — apply them when editing prompts or s
   next steps); Claude-based synthesis that resolves conflicts is still Phase 3 work.
 - `core/token_summary.py` prices all tokens at one flat rate; output tokens cost more.
 - Evaluators run sequentially.
-- Codebase comments are partly in Russian; migrate to English when touching a file.
