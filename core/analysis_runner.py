@@ -14,7 +14,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
-from config import ENABLED_LENSES, MAX_PARALLEL_LENSES, MODEL
+from config import ENABLED_LENSES, MODEL
 from evaluators.evaluator import Evaluator
 from evaluators.lenses import select_lenses
 from evaluators.schemas import confidence_label, verdict_label
@@ -84,7 +84,8 @@ class AnalysisRunner:
         results: list[Optional[dict]] = [None] * total
 
         started = time.monotonic()
-        with ThreadPoolExecutor(max_workers=min(MAX_PARALLEL_LENSES, total)) as pool:
+        # One thread per lens: all enabled lenses start at once.
+        with ThreadPoolExecutor(max_workers=total) as pool:
             futures = {}
             for index, lens in enumerate(self.lenses):
                 logger.info(f"{prefixes[index]} ... started")
