@@ -7,6 +7,7 @@ ANALYSIS_STANDARDS supply the tone; the EvaluatorResult schema defines the outpu
 
 import logging
 import time
+from typing import Optional
 
 from config import MODEL, MAX_TOKENS
 from core.claude_client import get_client
@@ -48,9 +49,10 @@ def validate_result(result: EvaluatorResult) -> list[str]:
 class Evaluator:
     """Evaluates a business idea through a single lens."""
 
-    def __init__(self, lens: Lens, business_idea: str):
+    def __init__(self, lens: Lens, business_idea: str, input_note: Optional[str] = None):
         self.lens = lens
         self.business_idea = business_idea
+        self.input_note = input_note
         self.client = get_client()
         self.model = MODEL
         self.max_tokens = MAX_TOKENS
@@ -72,6 +74,13 @@ class Evaluator:
             f"Address these questions in your analysis:\n\n{questions}"
         )
 
+    def get_user_prompt(self) -> str:
+        note = f"\n\n<input_check>\n{self.input_note}\n</input_check>" if self.input_note else ""
+        return (
+            f"{self.get_evaluation_prompt()}\n\n"
+            f"<business_idea>\n{self.business_idea}\n</business_idea>{note}"
+        )
+
     def evaluate(self) -> dict:
         """
         Run the evaluation and return a result dict.
@@ -87,7 +96,7 @@ class Evaluator:
                 model=self.model,
                 max_tokens=self.max_tokens,
                 system=self.get_system_prompt(),
-                user=f"{self.get_evaluation_prompt()}\n\nBusiness Idea:\n{self.business_idea}",
+                user=self.get_user_prompt(),
                 output_format=EvaluatorResult,
                 validate=validate_result,
             )
@@ -117,6 +126,5 @@ class Evaluator:
         """Full prompt, for debugging."""
         return (
             f"=== SYSTEM PROMPT ===\n{self.get_system_prompt()}\n\n"
-            f"=== EVALUATION PROMPT ===\n{self.get_evaluation_prompt()}\n\n"
-            f"=== BUSINESS IDEA ===\n{self.business_idea}\n"
+            f"=== USER PROMPT ===\n{self.get_user_prompt()}\n"
         )

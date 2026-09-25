@@ -65,7 +65,7 @@ class AnalysisRunner:
             return False
         input_note = self._input_note(gate)
 
-        results = self._run_evaluators(idea_content)
+        results = self._run_evaluators(idea_content, input_note)
         synthesis = self._run_synthesis(idea_content, results, input_note)
 
         run_dir = self.processor.create_run_dir(idea_name, started_at)
@@ -153,7 +153,7 @@ class AnalysisRunner:
             )
         return " ".join(notes) or None
 
-    def _run_evaluators(self, idea_content: str) -> list[dict]:
+    def _run_evaluators(self, idea_content: str, input_note: Optional[str]) -> list[dict]:
         total = len(self.lenses)
         prefixes = [f"[{index}/{total}] {lens.name}" for index, lens in enumerate(self.lenses, start=1)]
         results: list[Optional[dict]] = [None] * total
@@ -164,7 +164,7 @@ class AnalysisRunner:
             futures = {}
             for index, lens in enumerate(self.lenses):
                 logger.info(f"{prefixes[index]} ... started")
-                futures[pool.submit(Evaluator(lens, idea_content).evaluate)] = index
+                futures[pool.submit(Evaluator(lens, idea_content, input_note).evaluate)] = index
             for finished, future in enumerate(as_completed(futures), start=1):
                 index = futures[future]
                 results[index] = future.result()  # evaluate() never raises
