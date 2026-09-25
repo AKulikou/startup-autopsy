@@ -27,6 +27,12 @@ if not ANTHROPIC_API_KEY or not ANTHROPIC_API_KEY.startswith(API_KEY_PREFIX):
 
 MODEL = "claude-sonnet-4-6"
 
+# USD per million tokens: (input, output). Used only for the cost estimate
+# printed after a run; check https://www.anthropic.com/pricing when changing MODEL.
+MODEL_PRICING_PER_MTOK: dict[str, tuple[float, float]] = {
+    "claude-sonnet-4-6": (3.00, 15.00),
+}
+
 # Per-evaluator output limit; a truncated response is treated as an error.
 MAX_TOKENS = 16000
 

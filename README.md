@@ -148,6 +148,7 @@ quick, cheaper runs.
 | Setting | Default | Purpose |
 |---|---|---|
 | `MODEL` | `claude-sonnet-4-6` | Claude model used by all lenses |
+| `MODEL_PRICING_PER_MTOK` | Sonnet 4.6 rates | Input/output prices for the cost estimate after a run; add an entry when changing `MODEL` |
 | `MAX_TOKENS` | `16000` | Output limit per lens; a truncated answer is treated as an error |
 | `ENABLED_LENSES` | three lenses | Which lenses run, by key |
 
@@ -186,15 +187,12 @@ Known limitations:
 - The synthesis only lays the lens results side by side. It does not yet reason
   about why the lenses disagree.
 - Lenses run sequentially.
-- The cost shown at the end of a run uses one flat token rate and underestimates
-  the real cost, since output tokens are priced higher.
 
 Next:
 
-1. Separate input and output token pricing in the cost summary.
-2. Claude-based synthesis that explains conflicts between lenses, including
+1. Claude-based synthesis that explains conflicts between lenses, including
    conflicting numbers.
-3. Parallel evaluation; enabling the remaining lenses.
-4. An MCP server interface, so the analysis can be called as a tool from Claude
+2. Parallel evaluation; enabling the remaining lenses.
+3. An MCP server interface, so the analysis can be called as a tool from Claude
    and other MCP clients.
-5. Optional: JSON/PDF export, persistence, web UI.
+4. Optional: JSON/PDF export, persistence, web UI.
