@@ -38,6 +38,10 @@ killer risk; the synthesis treats such independent agreement as strong evidence.
 ideas/<idea>.txt
       |
       v
+  input check: local (empty or letterless text is rejected), then one short
+  Claude call: not a business idea / too vague (you may analyze anyway) / analyzable
+      |
+      v
   one Claude call per enabled lens, each with its own role and questions
       |
       v
@@ -176,6 +180,9 @@ evaluators/
   lenses.py                all lenses as data + shared analysis standards
   evaluator.py             builds prompts from a lens and calls Claude
   schemas.py               EvaluatorResult: the structured output schema
+gate/
+  idea_gate.py             input check: is this an analyzable business idea?
+  schemas.py               GateResult: the input check output schema
 synthesis/
   synthesizer.py           overall verdict from all lens results
   schemas.py               SynthesisResult: the synthesis output schema
@@ -203,16 +210,13 @@ with the lens reports as an appendix.
 Known limitations:
 
 - The synthesis is new and not yet measured against an eval set.
-- Only a local input check exists; vague or non-business ideas still run through
-  all lenses.
 
 Next:
 
 1. An eval set: ideas with expected verdicts and automated consistency checks,
    run several times per prompt change.
-2. A Claude-based input check that asks for details on vague ideas, rejects
-   non-business input and selects the lenses that apply to the idea.
-3. Enabling the remaining lenses, including domain lenses chosen per idea.
-4. An MCP server interface, so the analysis can be called as a tool from Claude
+2. Lens selection per idea by the input check, and domain lenses (legal, AI,
+   software architecture) enabled only where they apply.
+3. An MCP server interface, so the analysis can be called as a tool from Claude
    and other MCP clients.
-5. Optional: JSON/PDF export, persistence, web UI.
+4. Optional: JSON/PDF export, persistence, web UI.

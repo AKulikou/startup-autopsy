@@ -1,5 +1,5 @@
 """
-Runs the full analysis of one business idea: lenses, synthesis, reports.
+Runs the full analysis of one business idea: input check, lenses, synthesis, reports.
 
 The lenses run in parallel threads (they are independent API calls), so their
 "done" lines arrive in completion order. Results are still passed to the
@@ -12,12 +12,14 @@ import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
+from typing import Callable, Optional
 
 from config import ENABLED_LENSES, MODEL
 from evaluators.evaluator import Evaluator
 from evaluators.lenses import select_lenses
 from evaluators.schemas import confidence_label, verdict_label
+from gate.idea_gate import GATE_LABEL, NEXT_STEP_HINT, IdeaGate
+from gate.schemas import GateDecision
 from core.idea_input import InvalidIdeaError, prepare_idea
 from core.idea_processor import IdeaProcessor
 from core.report_builder import build_report
@@ -30,9 +32,20 @@ logger = logging.getLogger(__name__)
 class AnalysisRunner:
     """Orchestrates evaluation of an idea by all enabled lenses."""
 
-    def __init__(self, processor: IdeaProcessor):
+    def __init__(
+        self,
+        processor: IdeaProcessor,
+        confirm_vague_idea: Optional[Callable[[dict], bool]] = None,
+    ):
+        """
+        Args:
+            processor: Idea input and result output
+            confirm_vague_idea: Asked whether to analyze an idea the input check found
+                too vague; without it such ideas are not analyzed. The CLI asks the user.
+        """
         self.processor = processor
         self.lenses = select_lenses(ENABLED_LENSES)
+        self.confirm_vague_idea = confirm_vague_idea
 
     def run(self, idea_name: str) -> bool:
         """
@@ -46,16 +59,22 @@ class AnalysisRunner:
         if not idea_content:
             return False
 
+        gate = self._run_gate(idea_content)
+        if not self._gate_allows(gate):
+            log_token_summary([gate])
+            return False
+        input_note = self._input_note(gate)
+
         results = self._run_evaluators(idea_content)
-        synthesis = self._run_synthesis(idea_content, results)
+        synthesis = self._run_synthesis(idea_content, results, input_note)
 
         run_dir = self.processor.create_run_dir(idea_name, started_at)
         self._save_reports(results, run_dir, idea_name, started_at)
         report_path = self.processor.save_report(
-            run_dir, build_report(idea_name, started_at, synthesis, results)
+            run_dir, build_report(idea_name, started_at, synthesis, results, input_note)
         )
         logger.info(f"Report: {report_path}")
-        log_token_summary(results + [synthesis])
+        log_token_summary([gate] + results + [synthesis])
 
         return synthesis["status"] == "success"
 
@@ -77,6 +96,61 @@ class AnalysisRunner:
             f"{len(self.lenses)} lenses, model {MODEL}"
         )
         return idea_content
+
+    def _run_gate(self, idea_content: str) -> dict:
+        gate = IdeaGate(idea_content).check()
+        duration = f"{gate['duration_s']:.0f}s"
+        if gate["status"] == "success":
+            logger.info(f"[{GATE_LABEL}] ... done in {duration}: {gate['decision']}")
+        return gate
+
+    def _gate_allows(self, gate: dict) -> bool:
+        """Decide whether the analysis runs, and tell the user why if it does not."""
+        if gate["status"] != "success":
+            logger.warning(
+                f"[{GATE_LABEL}] ... FAILED: {gate['error']}; continuing without the input check"
+            )
+            return True
+
+        if gate["injection_suspected"]:
+            logger.warning(
+                f"[{GATE_LABEL}] the idea text seems to contain instructions for an AI; "
+                "the analysis treats them as part of the idea, not as instructions"
+            )
+
+        decision = GateDecision(gate["decision"])
+        if decision == GateDecision.NOT_AN_IDEA:
+            logger.error(f"Not a business idea: {gate['reason']}")
+            logger.error(NEXT_STEP_HINT)
+            return False
+        if decision == GateDecision.TOO_VAGUE:
+            logger.warning(f"Too vague to analyze: {gate['reason']}")
+            logger.warning(f"Missing: {'; '.join(gate['missing_information'])}")
+            if self.confirm_vague_idea and self.confirm_vague_idea(gate):
+                logger.info("Analyzing anyway at the user's request")
+                return True
+            logger.info("Not analyzed. " + NEXT_STEP_HINT)
+            return False
+        return True
+
+    @staticmethod
+    def _input_note(gate: dict) -> Optional[str]:
+        """A note for the synthesis and the report when the input was flagged."""
+        if gate["status"] != "success":
+            return None
+        notes = []
+        if gate["decision"] == GateDecision.TOO_VAGUE.value:
+            notes.append(
+                f"The input check rated this idea too vague ({gate['reason'].rstrip('.')}; missing: "
+                f"{', '.join(gate['missing_information'])}). It was analyzed anyway at the "
+                "founder's request, so the conclusions rest on assumptions the lenses made."
+            )
+        if gate["injection_suspected"]:
+            notes.append(
+                "The idea text appears to contain instructions addressed to an AI; "
+                "they were treated as part of the idea, not followed."
+            )
+        return " ".join(notes) or None
 
     def _run_evaluators(self, idea_content: str) -> list[dict]:
         total = len(self.lenses)
@@ -124,7 +198,9 @@ class AnalysisRunner:
                 path = self.processor.save_analysis(run_dir, idea_name, started_at, result)
                 logger.debug(f"Saved {result['evaluator_display']} report: {path}")
 
-    def _run_synthesis(self, idea_content: str, results: list[dict]) -> dict:
+    def _run_synthesis(
+        self, idea_content: str, results: list[dict], input_note: Optional[str]
+    ) -> dict:
         succeeded = sum(r["status"] == "success" for r in results)
         if not succeeded:
             error = "no lens succeeded, nothing to synthesize"
@@ -132,7 +208,7 @@ class AnalysisRunner:
             return {"evaluator_display": SYNTHESIS_LABEL, "status": "error", "error": error}
 
         logger.info(f"[{SYNTHESIS_LABEL}] ... started ({succeeded} of {len(results)} lenses)")
-        synthesis = Synthesizer(idea_content, results).synthesize()
+        synthesis = Synthesizer(idea_content, results, input_note).synthesize()
         duration = f"{synthesis['duration_s']:.0f}s"
         if synthesis["status"] == "success":
             cost = estimate_cost(synthesis["input_tokens"], synthesis["output_tokens"])

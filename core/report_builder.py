@@ -4,13 +4,20 @@ reasons first, the lens results as an appendix with links to their full reports.
 """
 
 from datetime import datetime
+from typing import Optional
 
 from config import MODEL
 from core.result_writer import lens_report_path, table_cell
 from evaluators.schemas import confidence_label, verdict_label, verdict_meaning
 
 
-def build_report(idea_name: str, started_at: datetime, synthesis: dict, lens_results: list[dict]) -> str:
+def build_report(
+    idea_name: str,
+    started_at: datetime,
+    synthesis: dict,
+    lens_results: list[dict],
+    input_note: Optional[str] = None,
+) -> str:
     """
     Render the final report. If the synthesis failed, say so and show only the
     lens results instead of inventing an overall verdict.
@@ -22,6 +29,8 @@ def build_report(idea_name: str, started_at: datetime, synthesis: dict, lens_res
         f"- **Model:** {MODEL}\n"
         f"- **Lenses:** {succeeded} of {len(lens_results)} succeeded"
     )
+    if input_note:
+        header += f"\n\n> **Input check:** {input_note}"
 
     if synthesis["status"] != "success":
         body = (

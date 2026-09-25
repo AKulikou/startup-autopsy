@@ -83,6 +83,11 @@ def select_idea(processor: IdeaProcessor) -> Optional[str]:
     return None
 
 
+def ask_analyze_anyway(gate: dict) -> bool:
+    """Let the user run the analysis on an idea the input check found too vague."""
+    return input("Analyze anyway? [y/N] ").strip().lower() in ("y", "yes")
+
+
 def main() -> None:
     log_file = setup_logging()
     logger.debug(f"Log file: {log_file.resolve()}")
@@ -93,7 +98,7 @@ def main() -> None:
         print("Exit.")
         return
 
-    AnalysisRunner(processor).run(idea_name)
+    AnalysisRunner(processor, confirm_vague_idea=ask_analyze_anyway).run(idea_name)
     print(f"Log: {log_file}")
 
 

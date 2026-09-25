@@ -8,6 +8,7 @@ analysis) and decides on the whole business, following SYNTHESIS_PRINCIPLES.
 
 import logging
 import time
+from typing import Optional
 
 from config import MAX_TOKENS, MODEL
 from core.claude_client import get_client
@@ -48,7 +49,8 @@ How to decide:
 - Judge the idea as described. A promising pivot belongs in the next steps, not in
   the verdict.
 - Lower the confidence when lenses disagree on facts or numbers, when the verdict rests
-  on unconfirmed claims, or when some lenses failed and their perspective is missing.
+  on unconfirmed claims, when some lenses failed and their perspective is missing, or
+  when an input check note says the idea description is thin.
 
 Standards:
 - Be brutally honest. No marketing language, no encouragement for its own sake.
@@ -117,9 +119,12 @@ def consistency_warnings(synthesis: dict, lens_results: list[dict]) -> list[str]
 class Synthesizer:
     """Combines the results of any number of lenses into one overall verdict."""
 
-    def __init__(self, business_idea: str, lens_results: list[dict]):
+    def __init__(
+        self, business_idea: str, lens_results: list[dict], input_note: Optional[str] = None
+    ):
         self.business_idea = business_idea
         self.lens_results = lens_results
+        self.input_note = input_note
         self.client = get_client()
         self.model = MODEL
         self.max_tokens = MAX_TOKENS
@@ -127,8 +132,10 @@ class Synthesizer:
     def get_user_prompt(self) -> str:
         succeeded = sum(r["status"] == "success" for r in self.lens_results)
         lenses = "\n\n".join(self._format_lens(r) for r in self.lens_results)
+        note = f"<input_check>\n{self.input_note}\n</input_check>\n\n" if self.input_note else ""
         return (
             f"<business_idea>\n{self.business_idea}\n</business_idea>\n\n"
+            f"{note}"
             f"Lens results ({succeeded} of {len(self.lens_results)} lenses succeeded):\n\n"
             f"{lenses}\n\n"
             "Decide the overall verdict on this business idea."

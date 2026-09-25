@@ -33,6 +33,7 @@ No test suite yet.
 - `evaluators/schemas.py` — `EvaluatorResult` Pydantic schema (verdict, confidence, assumptions, killer risk, next steps)
 - `synthesis/synthesizer.py` — `Synthesizer`: one Claude call that reads all lens results and decides the overall verdict (`SYNTHESIS_PRINCIPLES`); `synthesis/schemas.py` — `SynthesisResult`
 - `core/structured_call.py` — shared structured request: stop-reason checks, result validation, one retry
+- `gate/idea_gate.py` — `IdeaGate`: one Claude call that decides NOT_AN_IDEA / TOO_VAGUE / ANALYZABLE before the lenses run (`gate/schemas.py` — `GateResult`)
 - `core/idea_input.py` — local checks before any API call (empty or letterless input is rejected; straight double quotes become typographic)
 - `core/analysis_runner.py` — orchestrates load → lenses → synthesis → reports → token stats
 - `core/report_builder.py` — builds `report.md` (synthesis first, lens results as appendix)
