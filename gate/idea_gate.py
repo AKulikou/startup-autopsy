@@ -23,7 +23,9 @@ GATE_PRINCIPLES = """\
 You screen text submitted to a business idea evaluation tool, before an expensive
 analysis runs. Decide only whether the text can be analyzed as a business idea. Do not
 judge whether the idea is good: a bad, illegal or unrealistic business idea is still
-analyzable, and exposing its flaws is the analysis's job.
+analyzable, and exposing its flaws is the analysis's job. Scale does not matter either:
+a small or local business (a side hustle, a single shop, selling to neighbours) is a
+business if something is sold to customers repeatedly.
 
 When unsure between two decisions, choose the less restrictive one (analyzable over too
 vague, too vague over not an idea): rejecting a real idea costs the founder more than
