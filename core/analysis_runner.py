@@ -59,24 +59,42 @@ class AnalysisRunner:
         if not idea_content:
             return False
 
-        gate = self._run_gate(idea_content)
-        if not self._gate_allows(gate):
-            log_token_summary([gate])
+        analysis = self.analyze(idea_content)
+        if not analysis["analyzed"]:
+            log_token_summary([analysis["gate"]])
             return False
-        input_note = self._input_note(gate)
-
-        results = self._run_evaluators(idea_content, input_note)
-        synthesis = self._run_synthesis(idea_content, results, input_note)
+        results, synthesis = analysis["lenses"], analysis["synthesis"]
 
         run_dir = self.processor.create_run_dir(idea_name, started_at)
         self._save_reports(results, run_dir, idea_name, started_at)
         report_path = self.processor.save_report(
-            run_dir, build_report(idea_name, started_at, synthesis, results, input_note)
+            run_dir,
+            build_report(idea_name, started_at, synthesis, results, analysis["input_note"]),
         )
         logger.info(f"Report: {report_path}")
-        log_token_summary([gate] + results + [synthesis])
+        log_token_summary([analysis["gate"]] + results + [synthesis])
 
         return synthesis["status"] == "success"
+
+    def analyze(self, idea_content: str) -> dict:
+        """
+        Analyze a prepared idea text without writing any files: input check,
+        lenses, synthesis. Used by run(), by the eval runner, and later by an
+        MCP server.
+
+        Returns:
+            {"analyzed": bool, "gate": dict, "input_note": str | None,
+             "lenses": list[dict], "synthesis": dict | None}
+        """
+        gate = self._run_gate(idea_content)
+        if not self._gate_allows(gate):
+            return {"analyzed": False, "gate": gate, "input_note": None,
+                    "lenses": [], "synthesis": None}
+        input_note = self._input_note(gate)
+        lenses = self._run_evaluators(idea_content, input_note)
+        synthesis = self._run_synthesis(idea_content, lenses, input_note)
+        return {"analyzed": True, "gate": gate, "input_note": input_note,
+                "lenses": lenses, "synthesis": synthesis}
 
     def _load_idea(self, idea_name: str) -> Optional[str]:
         raw_content = self.processor.load_idea(idea_name)
