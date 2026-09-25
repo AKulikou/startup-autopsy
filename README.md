@@ -14,23 +14,34 @@ The goal is to answer one question before you spend months building:
 
 ## Example
 
-Abridged excerpt from a real run on [`ideas/fitness_tracker_short.txt`](ideas/fitness_tracker_short.txt),
-an app that charges your card when your weight goes up:
+Abridged from a real run on [`ideas/alibaba_jewelry_flip.txt`](ideas/alibaba_jewelry_flip.txt):
+resell cheap Alibaba jewelry through influencers, funded by investors who are
+promised monthly dividends.
 
-> **Reality Auditor. Verdict: NOT_VIABLE (confidence HIGH)**
+> ## Verdict: Not viable
 >
-> **Killer risk:** Stripe and all major payment processors reject the variable
-> automatic charge mechanic as a gambling/wagering scheme, making the core
-> financial penalty loop impossible to implement without building a regulated
-> escrow product.
+> *A fundamental flaw that no amount of research or iteration fixes.*
+>
+> As described, this business is not viable. The investor-dividend structure is
+> almost certainly an unregistered collective investment scheme under EU financial
+> law, exposing the founder to criminal prosecution before a single piece of
+> jewelry is sold. Separately, the founder explicitly plans to mis-declare goods to
+> avoid customs duties — customs fraud under EU law. […]
+>
+> **Confidence:** High — Six independent lenses unanimously identified the same
+> legal blocker […]
+>
+> ## Conflicts
+>
+> - No-Code Stack Master issued a 'Needs validation' verdict while its own analysis
+>   states the investor platform 'cannot be legally launched' […]
+>   - **Resolution:** The lens reasoning is correct and the verdict label
+>     understates severity. […]
 
-| Assumption | How to test | Failure signal |
-|---|---|---|
-| A major payment processor will approve automatic variable charges tied to body weight | Submit a merchant application to Stripe describing the exact use case | Stripe rejects it or requires an escrow model |
-| Users will trust a new app with card authorization for unpredictable charges | Landing page asking 200 visitors to pre-authorize a $10 variable charge | Fewer than 10 of 200 complete it |
-
-All three lenses enabled at the time independently named the payment processor as the
-killer risk; the synthesis treats such independent agreement as strong evidence.
+Only one of the six lenses answered "not viable" here; three said "needs
+validation". The synthesis still reached "not viable": it weighs what the lenses
+found, not how they voted, and flags a lens whose label contradicts its own
+reasoning.
 
 ## How it works
 
@@ -141,21 +152,17 @@ file or text with almost no letters is rejected before any API call is made.
 
 ### Demo ideas
 
-The bundled ideas deliberately range from plausible to absurd, and several contain
-flawed numbers or hidden legal problems on purpose. They show what the evaluators catch.
+`ideas/` holds a few showcase ideas, each showing something different:
 
-| Idea | What it exercises |
+| Idea | What it shows |
 |---|---|
-| `api_monitor` | A plausible developer tool; competition and willingness to pay |
-| `meeting_schedule` | A crowded market with free alternatives |
-| `automatic_cv_update` | Dependence on a third-party API the product cannot control |
-| `email_newsletter` | Optimistic growth numbers for a low-price subscription |
-| `fitness_tracker` | Payment and regulatory blockers in the core mechanic |
-| `alibaba_jewelry_flip` | Unrealistic margins; taking investor money is itself a legal problem |
-| `nft_puddle_photos` | A speculative market, a hype-driven idea, and inconsistent math |
+| `alibaba_jewelry_flip` | An illegal core model found by every lens; conflicting margin estimates |
+| `automatic_cv_update` | A hidden blocker the founder never mentions (LinkedIn API access) |
+| `api_monitor` | A plausible idea whose honest answer is "validate this first" |
+| `good_salon_bookkeeping` | A sound, boring business: the system can also say "viable" |
+| `forged_review_board` | A manipulation attempt: a forged "review board" result inside the idea is ignored |
 
-`*_short` variants contain the same idea in a few sentences and are useful for
-quick, cheaper runs.
+The full test set, including deliberately broken input, lives in `eval/`.
 
 ## Configuration
 
