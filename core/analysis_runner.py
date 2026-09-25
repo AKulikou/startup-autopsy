@@ -79,6 +79,7 @@ class AnalysisRunner:
                 logger.info(
                     f"{prefix} ... done in {duration}: {verdict_label(result['verdict'])} "
                     f"({confidence_label(result['confidence'])}), "
+                    f"{len(result['out_of_lens_red_flags'])} red flags, "
                     f"{result['input_tokens']}/{result['output_tokens']} tokens, {format_cost(cost)}"
                 )
             else:

@@ -31,10 +31,13 @@ class ReportAggregator:
 
         sections = [
             "# Startup Autopsy — Synthesis Report",
-            f"## Verdicts\n\n{self._verdict_table(successful)}",
-            f"## Verdict Agreement\n\n{self._verdict_agreement(successful)}",
+            "*Each lens verdict answers only that lens's question. This interim report does "
+            "not yet combine them into an overall verdict.*",
+            f"## Lens Verdicts\n\n{self._verdict_table(successful)}",
+            f"## Verdict Spread\n\n{self._verdict_agreement(successful)}",
+            f"## Red Flags Raised Outside Lenses\n\n{self._red_flags(successful)}",
             f"## Evaluator Summaries\n\n{self._summaries(successful)}",
-            f"## Killer Risks\n\n{self._killer_risks(successful)}",
+            f"## Killer Risks by Lens\n\n{self._killer_risks(successful)}",
             f"## Next Steps by Evaluator\n\n{self._next_steps(successful)}",
         ]
         if failed:
@@ -68,9 +71,18 @@ class ReportAggregator:
             f"{verdict_label(verdict)} × {count}" for verdict, count in counts.most_common()
         )
         return (
-            f"Evaluators disagree ({split}). "
-            "Compare their summaries and killer risks below to see why."
+            f"Lens verdicts differ ({split}). Lenses answer different questions, so a split "
+            "is expected; the red flags and killer risks below show what drives it."
         )
+
+    @staticmethod
+    def _red_flags(results: list[dict]) -> str:
+        lines = [
+            f"- **{r['evaluator_display']}:** {flag}"
+            for r in results
+            for flag in r["out_of_lens_red_flags"]
+        ]
+        return "\n".join(lines) or "No lens reported problems outside its scope."
 
     @staticmethod
     def _summaries(results: list[dict]) -> str:

@@ -72,6 +72,7 @@ class ResultWriter:
         next_steps = "\n".join(
             f"{i}. {step}" for i, step in enumerate(result["next_steps"], start=1)
         )
+        red_flags = "\n".join(f"- {flag}" for flag in result["out_of_lens_red_flags"]) or "None reported."
 
         return f"""# Startup Autopsy — {result['evaluator_display']}
 
@@ -81,7 +82,7 @@ class ResultWriter:
 
 ---
 
-## Verdict: {verdict_label(result['verdict'])}
+## Lens Verdict: {verdict_label(result['verdict'])}
 
 *{verdict_meaning(result['verdict']).capitalize()}.*
 
@@ -89,9 +90,13 @@ class ResultWriter:
 
 **Confidence:** {confidence_label(result['confidence'])} — {result['confidence_reason']}
 
-## Killer Risk
+## Killer Risk Within This Lens
 
 {result['killer_risk']}
+
+## Red Flags Outside This Lens
+
+{red_flags}
 
 ## Key Assumptions
 

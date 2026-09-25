@@ -62,6 +62,8 @@ selects which run. Lens prompts ask only lens-specific questions — the output
 format comes from the schema.
 
 Verdicts: `VIABLE`, `VIABLE_IF`, `NEEDS_VALIDATION`, `RISKY`, `NOT_VIABLE`.
+A lens verdict answers only that lens's question; problems outside the lens go to
+`out_of_lens_red_flags`. The overall verdict is the synthesis's job.
 Confidence: `LOW` / `MEDIUM` / `HIGH` with a one-sentence reason.
 
 ## Analysis quality requirements

@@ -42,8 +42,9 @@ ideas/<idea>.txt
       |
       v
   structured result per lens (validated with a Pydantic schema):
-  verdict, confidence + reason, summary, killer risk,
-  key assumptions (how to test, failure signal), next steps, full analysis
+  lens verdict, confidence + reason, summary, killer risk within the lens,
+  key assumptions (how to test, failure signal), next steps,
+  red flags outside the lens, full analysis
       |
       v
   results/<timestamp>_<idea>/        one directory per run, sorted by time
@@ -51,9 +52,14 @@ ideas/<idea>.txt
       <lens>.md                      one report per lens
 ```
 
+Each lens verdict answers only that lens's question ("can an MVP be built in
+7 days?", "will people pay monthly?"). Problems a lens notices outside its scope
+are reported as red flags, and the overall verdict is left to the synthesis.
+
 Evaluators use Claude structured outputs, so reports are built from typed fields
-rather than parsed from free text. A truncated or refused response is reported as
-an error, never filled in with defaults.
+rather than parsed from free text. A malformed response is retried once; a
+truncated, refused or repeatedly malformed one is reported as an error, never
+filled in with defaults.
 
 ### Verdicts
 

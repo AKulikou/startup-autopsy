@@ -42,14 +42,18 @@ VERDICT_TEXT: dict[Verdict, tuple[str, str]] = {
 
 
 VERDICT_RULES = (
+    "Scope: the verdict answers your lens's question only. The overall verdict on the "
+    "business is made later by combining all lenses, so problems outside your lens go into "
+    "out_of_lens_red_flags and do not change your verdict. "
     "How to choose: "
     "Judge the idea as described, not an improved version of it; put pivots in next_steps. "
-    "If the core model is illegal, blocked by platform policy, or economically impossible, "
-    "and removing that part would leave a different business, choose NOT_VIABLE. "
-    "Choose RISKY only if every serious risk can be mitigated without changing the core model. "
-    "Choose NEEDS_VALIDATION only if the deciding question is still open and can be answered "
-    "by research (demand, willingness to pay); if you have already found a blocker you "
-    "consider established, choose RISKY or NOT_VIABLE instead. "
+    "If something within your lens makes the idea unworkable as described (for example it is "
+    "illegal, blocked by platform policy, or economically impossible), choose NOT_VIABLE. "
+    "Choose RISKY only if every serious risk within your lens can be mitigated without changing "
+    "the core model. "
+    "Choose NEEDS_VALIDATION only if the deciding question within your lens is still open and "
+    "can be answered by research (demand, willingness to pay); if you have already found a "
+    "blocker you consider established, choose RISKY or NOT_VIABLE instead. "
     "The verdict must agree with the summary and the killer risk."
 )
 
@@ -97,7 +101,7 @@ class EvaluatorResult(BaseModel):
         "Show the reasoning and the math behind every estimate."
     )
     summary: str = Field(
-        description="One or two sentences: the verdict and the main reason for it."
+        description="One or two sentences: your lens verdict and the main reason for it."
     )
     verdict: Verdict = Field(
         description=" ".join(
@@ -115,11 +119,16 @@ class EvaluatorResult(BaseModel):
         description="The 2-4 assumptions the verdict depends on most, most critical first."
     )
     killer_risk: str = Field(
-        description="The single risk most likely to kill the project, stated specifically "
-        "(not 'competition' but 'Calendly offers the same feature for free')."
+        description="Within your lens, the single risk most likely to kill the project, stated "
+        "specifically (not 'competition' but 'Calendly offers the same feature for free')."
     )
     next_steps: list[str] = Field(
         description="2-4 concrete actions in priority order, each doable within two weeks. "
         "If the verdict is NOT_VIABLE, the first step must be 'Do not pursue' with the reason."
+    )
+    out_of_lens_red_flags: list[str] = Field(
+        description="Serious problems you noticed that belong to other perspectives (legal, "
+        "market, technical, financial) and could kill the project, one specific sentence each. "
+        "Do not analyse them and do not repeat your killer risk. Empty if you noticed none."
     )
 

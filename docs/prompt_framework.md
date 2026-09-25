@@ -35,12 +35,20 @@ an evaluator in `evaluators/`, keep it consistent with the principles described 
 Rules for choosing (sent to the model with the schema, see `VERDICT_RULES` in
 `evaluators/schemas.py`):
 
+- **A verdict answers the lens's own question**, not whether the whole business
+  succeeds. The overall verdict belongs to the synthesis. A lens that notices a
+  serious problem outside its scope lists it in `out_of_lens_red_flags` without
+  letting it change its verdict. (The Reality Auditor's question is the whole idea,
+  so its verdict is effectively an overall one.)
 - Judge the idea as described; a pivot belongs in the next steps, not in the verdict.
-- An illegal, policy-blocked or economically impossible core model is `NOT_VIABLE`
-  if removing it would leave a different business.
-- `RISKY` means every serious risk can be mitigated without changing the core model.
+- Something within the lens that makes the idea unworkable as described (illegal,
+  policy-blocked, economically impossible) is `NOT_VIABLE`.
+- `RISKY` means every serious risk within the lens can be mitigated without
+  changing the core model.
 - `NEEDS_VALIDATION` means the deciding question is still open; an established
   blocker calls for `RISKY` or `NOT_VIABLE`.
+- The killer risk is also scoped to the lens, so that verdict, summary and killer
+  risk agree.
 
 Confidence describes how sure the evaluator is that the verdict is right, not how
 good the idea is: `HIGH` rests on facts, regulations or arithmetic, `MEDIUM` on
@@ -84,7 +92,9 @@ fails at startup.
 
 Evaluator results are aggregated into one report that shows:
 
-- each perspective with its verdict and confidence;
+- each perspective with its lens verdict and confidence;
+- red flags that lenses raised outside their own scope (several lenses flagging the
+  same problem independently is strong evidence);
 - where evaluators agree, and where they conflict — including conflicting numbers
   (e.g. different conversion or audience assumptions);
 - the assumptions the whole idea depends on and how to test them;
