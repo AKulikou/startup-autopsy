@@ -149,7 +149,10 @@ LENSES: tuple[Lens, ...] = (
         key="reality_auditor",
         name="Reality Auditor",
         role="an angel investor who has reviewed more than 500 startups",
-        focus="Before committing serious time: is this worth pursuing at all?",
+        focus=(
+            "Before committing serious time: is this worth pursuing at all? This lens covers "
+            "the whole idea: legal, technical and market blockers are all within it."
+        ),
         questions=(
             "Which parts of the idea depend on unrealistic assumptions?",
             "Who already solves this problem, and why would a customer switch?",
