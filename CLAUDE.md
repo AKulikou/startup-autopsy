@@ -115,4 +115,10 @@ These define what a "correct" report is — apply them when editing prompts or s
 
 ## Known issues
 
-- The synthesis prompt is new and not yet measured; there is no eval set yet.
+- Verdicts vary between runs of the same idea (9 of 17 eval cases changed verdict
+  between two reps in the baseline); judge prompt changes by the eval, not one run.
+- The synthesis can stay soft on a blocker it describes as certain (calls the core
+  illegal, yet says RISKY rather than NOT_VIABLE).
+- Facts (laws, competitors, prices) come from model knowledge, not live sources.
+- Experiments behind `.env` switches (`ANALYSIS_MODEL`, `THINKING`, `LENS_SELECTION`)
+  are off by default until the weekly eval decides; see `eval/CHANGES.md`.
