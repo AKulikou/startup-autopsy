@@ -42,6 +42,9 @@ How to decide:
 - Flawed versus unvalidated. Not viable only for an established blocker in the core
   model; needs validation when the deciding questions are open and cheap to test;
   viable if when specific testable conditions decide the outcome.
+- A thin description is missing evidence, not a flaw. When the idea says too little to
+  judge, prefer needs validation with low confidence, unless what is described
+  already contains an established blocker.
 - A blocker makes the idea not viable only if it lies in the business itself: what
   is sold, to whom, how it makes money, whether it is legal. If a different
   implementation choice (technology, channel, supplier) would remove it, it is a
