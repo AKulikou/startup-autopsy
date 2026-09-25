@@ -227,6 +227,32 @@ def wilson(passes: int, n: int) -> tuple[float, float]:
     return max(0.0, centre - half), min(1.0, centre + half)
 
 
+def print_calibration(rows: list[dict]) -> None:
+    """
+    Does the synthesis's self-reported confidence mean anything? Per level: how
+    often the verdict is in the expected range, and how often another rep of the
+    same idea gave the same verdict. A useful HIGH is both more often right and
+    more often stable than MEDIUM and LOW.
+    """
+    verdicts_by_case: dict[str, list[str]] = {}
+    for r in rows:
+        verdicts_by_case.setdefault(r["prompt_id"], []).append(r["meta"]["verdict"])
+
+    print("  calibration (synthesis confidence):")
+    for level in ("HIGH", "MEDIUM", "LOW"):
+        level_rows = [r for r in rows if r["meta"]["confidence"] == level]
+        if not level_rows:
+            continue
+        right = sum(r["grade"]["in_range"] for r in level_rows)
+        comparable = [r for r in level_rows if len(verdicts_by_case[r["prompt_id"]]) > 1]
+        stable = sum(
+            verdicts_by_case[r["prompt_id"]].count(r["meta"]["verdict"]) > 1 for r in comparable
+        )
+        stability = f"{stable}/{len(comparable)}" if comparable else "n/a (1 rep)"
+        print(f"    {level:<7} n={len(level_rows):<3} in range {right}/{len(level_rows)}, "
+              f"same verdict in another rep {stability}")
+
+
 def summarize(flow: str, out: Path) -> None:
     rows = [json.loads(l) for l in (out / "results.jsonl").read_text(encoding="utf-8").splitlines() if l]
     errors_path = out / "errors.jsonl"
@@ -243,6 +269,8 @@ def summarize(flow: str, out: Path) -> None:
         lo, hi = wilson(passes, n)
         print(f"  {metric['label']:<13} {passes}/{n} = {passes / n if n else 0:.0%}  "
               f"(95% CI {lo:.0%}-{hi:.0%})")
+    if flow == "pipeline":
+        print_calibration(rows)
     cost = sum(r["cost_usd"] or 0 for r in rows) + sum(e.get("cost_usd") or 0 for e in errors)
     print(f"  cost          ${cost:.2f} (including failed attempts)")
     failing = [r for r in rows if not r["grade"][METRICS[flow][0]["id"]]]
