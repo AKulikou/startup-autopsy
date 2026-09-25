@@ -61,18 +61,22 @@ Each prompt is a distinct lens (lenses must not overlap):
 |---|-----------|------|--------|
 | 1 | Profitable App Designer | Revenue model, recurring revenue, assumptions behind numbers | enabled |
 | 2 | No-Code Stack Master | 7-day no-code MVP, concrete stack, day-7 scope | enabled |
-| 3 | AI Tool Creator | AI differentiation, pricing rationale, first 10 customers | defined |
+| 3 | AI Tool Creator | AI differentiation, pricing rationale, first 10 customers | domain |
 | 4 | SaaS Revenue Builder | Pricing tiers, churn, 3/6/12-month optimistic vs conservative | defined |
 | 5 | Viral Product Designer | Network effects, conditions for organic growth | enabled |
 | 6 | Launch Expert | First-week traction grounded in real audience size | enabled |
 | 7 | Churn Eliminator | Onboarding, habit loops, when retention tactics fail | enabled |
 | 8 | Reality Auditor | Killer risk, true timeline, go/no-go criteria | enabled |
+| 9 | Legal Counsel | Legality of the model, licences, compliance cost, questions for a lawyer | domain |
+| 10 | Software Architect | Hardest technical capability, dependencies, cost per customer, production team | domain |
 
 Prompts are meant to be modified, combined, or replaced. **Synthesis and reporting
 code must not depend on specific evaluator names or on a fixed evaluator count.**
 
 All lenses are defined in `evaluators/lenses.py`; `ENABLED_LENSES` in `config.py`
-selects which run. Lens prompts ask only lens-specific questions — the output
+selects which run. `domain` lenses (`DOMAIN_LENSES`) run only with `LENS_SELECTION`
+on and where their `applies_to` condition fits; their knowledge is an Agent Skill in
+`lens_knowledge/<name>/`, added to the lens prompt by `evaluators/knowledge.py`. Lens prompts ask only lens-specific questions — the output
 format comes from the schema.
 
 Verdicts: `VIABLE`, `VIABLE_IF`, `NEEDS_VALIDATION`, `RISKY`, `NOT_VIABLE`.

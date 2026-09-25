@@ -77,3 +77,12 @@ TRANSLATE_LENS_REPORTS = os.getenv("TRANSLATE_LENS_REPORTS", "").strip().lower()
 # a condition always run. Set LENS_SELECTION=on in .env; an experiment until the
 # eval decides.
 LENS_SELECTION = os.getenv("LENS_SELECTION", "").strip().lower() in ("1", "true", "yes", "on")
+
+# Domain lenses fit only some ideas, so they run only with LENS_SELECTION on and
+# only where the lens fit check finds their condition holds. They follow
+# ENABLED_LENSES in the order the synthesis reads them.
+DOMAIN_LENSES = (
+    "ai_tool_creator",
+    "legal_counsel",
+    "software_architect",
+)

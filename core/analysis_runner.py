@@ -15,6 +15,7 @@ from datetime import datetime
 from pathlib import Path
 
 from config import (
+    DOMAIN_LENSES,
     ENABLED_LENSES,
     LENS_SELECTION,
     MODEL,
@@ -54,7 +55,7 @@ class AnalysisRunner:
                 too vague; without it such ideas are not analyzed. The CLI asks the user.
         """
         self.processor = processor
-        self.lenses = select_lenses(ENABLED_LENSES)
+        self.lenses = select_lenses(ENABLED_LENSES + (DOMAIN_LENSES if LENS_SELECTION else ()))
         self.confirm_vague_idea = confirm_vague_idea
 
     def run(self, idea_name: str) -> bool:

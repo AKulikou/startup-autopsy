@@ -73,10 +73,22 @@ from every lens by the shared output schema, not by the lens prompt.
 | 6 | Launch Expert | `launch_expert` | What can realistically be achieved in the first week after launch? |
 | 7 | Churn Eliminator | `churn_eliminator` | Will users stay, and what keeps them from cancelling? |
 | 8 | Reality Auditor | `reality_auditor` | Are the founder's assumptions, competitive position and timeline realistic, and what early evidence should decide whether to continue? |
+| 9 | Legal Counsel | `legal_counsel` | Can this business legally operate as described, and which legal requirements decide its cost or survival? |
+| 10 | Software Architect | `software_architect` | What does it take to run this software reliably beyond the first version, and which technical risk could sink it? |
 
 Lenses must not overlap. For example, tool selection belongs only to the
 No-Code Stack Master; the Profitable App Designer looks at automation only as an
-operating-cost question.
+operating-cost question. The Software Architect starts where the No-Code Stack
+Master stops: not the first sellable version, but running the product reliably
+at a cost below its price. The Legal Counsel owns legality; other lenses record a
+legal problem only as a red flag.
+
+Lenses 3, 9 and 10 are domain lenses: they run only with lens selection on and
+where they fit (see Lens applicability). Each has a knowledge pack in
+`lens_knowledge/<name>/`, written as an Agent Skill (`SKILL.md` with `name` and
+`description` frontmatter, optional `references/`). The pipeline strips the
+frontmatter and adds the instructions and references to the lens's system prompt;
+the same folder installs unchanged as a skill in Claude Code or claude.ai.
 
 ### How a prompt is assembled
 

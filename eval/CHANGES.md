@@ -12,6 +12,29 @@ code version can be measured in several variants.
 Entry format: date, commit, what changed, expected effect, how it was checked
 so far, and the eval result once there is one.
 
+## 2026-09-25 — domain lenses with knowledge packs (with lens selection only)
+
+- **Change:** `DOMAIN_LENSES` (AI Tool Creator, new Legal Counsel, new Software
+  Architect) run only with `LENS_SELECTION=on`, where the lens fit check finds
+  their condition holds. Each has a knowledge pack in `lens_knowledge/<name>/`
+  (an Agent Skill) added to its system prompt. Default runs are unchanged.
+- **Expected:** the ticket resale miss fixed by a lens that owns legality;
+  illegal cores (Alibaba, fitness penalties) caught by a lens, not only by red
+  flags. Cost per case up by roughly 0.05–0.10 USD per domain lens that runs.
+- **Checked:**
+  - First conditions were too broad: lens fit added Legal Counsel to 17 of 17
+    pipeline ideas (any personal data counted) and Software Architect to 12.
+    Narrowed ("paperwork every business has does not count", "a standard app
+    does not count"): Legal 12/17, Architect 9/17, on plausible ideas.
+  - `--variant domain_smoke`, ticket resale and Alibaba, 2 reps each: 4/4 in
+    range. Ticket resale: RISKY/HIGH twice (baseline: NEEDS_VALIDATION twice,
+    out of range), Legal Counsel leads the first deciding factor. Alibaba:
+    NOT_VIABLE/HIGH twice, as in baseline. 0.49–0.57 USD per case (baseline
+    about 0.42). Remaining softness: the ticket resale summary calls the core
+    'a statutory offence' that 'collapses the revenue model' yet the verdict is
+    RISKY, not NOT_VIABLE.
+- **Eval:** part of the `lens_selection` variant.
+
 ## 2026-09-25 — lens selection per idea (off by default)
 
 - **Change:** lenses can carry an applicability condition (`Lens.applies_to`):

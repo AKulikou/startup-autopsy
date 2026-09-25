@@ -11,6 +11,7 @@ import time
 from config import MAX_TOKENS, MODEL, THINKING
 from core.claude_client import get_client
 from core.structured_call import billed_tokens, length_problems, request_structured
+from evaluators.knowledge import load_knowledge
 from evaluators.lenses import ANALYSIS_STANDARDS, Lens
 from evaluators.schemas import EvaluatorResult
 
@@ -57,11 +58,17 @@ class Evaluator:
         self.max_tokens = MAX_TOKENS
 
     def get_system_prompt(self) -> str:
-        return (
+        prompt = (
             f"You are {self.lens.role}.\n\n"
             f"{ANALYSIS_STANDARDS}\n"
             f"Your lens: {self.lens.focus}"
         )
+        if self.lens.knowledge:
+            prompt += (
+                "\n\nDomain knowledge for your lens:\n\n"
+                f"<domain_knowledge>\n{load_knowledge(self.lens.knowledge)}\n</domain_knowledge>"
+            )
+        return prompt
 
     def get_evaluation_prompt(self) -> str:
         questions = "\n".join(

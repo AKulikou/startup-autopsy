@@ -21,6 +21,9 @@ class Lens:
     # With LENS_SELECTION on, the input check skips a lens whose condition fails,
     # because a lens asked an ill-fitting question produces confident noise.
     applies_to: str | None = None
+    # Folder in lens_knowledge/ with domain knowledge for the lens, in Agent Skill
+    # format (SKILL.md + references/); added to the lens's system prompt.
+    knowledge: str | None = None
 
 
 ANALYSIS_STANDARDS = """\
@@ -107,6 +110,7 @@ LENSES: tuple[Lens, ...] = (
             "the product's value depends on AI: language models, machine learning or "
             "generative AI doing work for the customer."
         ),
+        knowledge="ai-tool-creator",
     ),
     Lens(
         key="saas_revenue_builder",
@@ -192,6 +196,70 @@ LENSES: tuple[Lens, ...] = (
             "What evidence in the first weeks would justify continuing, and what would "
             "justify stopping?",
         ),
+    ),
+
+    # Domain lenses: they fit only some ideas and run only with LENS_SELECTION.
+    Lens(
+        key="legal_counsel",
+        name="Legal Counsel",
+        role="a business lawyer who advises early-stage founders on regulatory risk",
+        focus=(
+            "Can this business legally operate as described, and which legal requirements "
+            "decide its cost or survival?"
+        ),
+        questions=(
+            "Which parts of the business model fall under specific regulation (licensing, "
+            "consumer protection, financial, data protection, product safety, customs, "
+            "platform rules), and in which jurisdiction? State the jurisdiction you assume.",
+            "Is any part of the core model prohibited or only allowed with a licence the "
+            "founder does not have? Separate 'illegal as described' from 'legal with "
+            "compliance work'.",
+            "What does compliance cost in money and time before the first sale, and does "
+            "it change the economics?",
+            "Which legal facts must a qualified lawyer confirm before the founder spends "
+            "money, and what is the cheapest way to get that answer?",
+        ),
+        applies_to=(
+            "the core of the business model is itself a regulated activity: holding or "
+            "investing other people's money, lending, charging customers automatically, "
+            "health or medical claims, sensitive data (health, biometric, children's), "
+            "age-restricted, counterfeit or safety-regulated goods, reselling tickets or "
+            "branded goods, importing goods for sale, workers paid per task, or selling "
+            "content and trademarks owned by others. Paperwork every business has "
+            "(registration, tax, a privacy policy and terms for an ordinary online "
+            "service with user accounts) does not count."
+        ),
+        knowledge="legal-counsel",
+    ),
+    Lens(
+        key="software_architect",
+        name="Software Architect",
+        role="a software architect who has built and operated production SaaS systems",
+        focus=(
+            "What does it take to run this software reliably beyond the first version, "
+            "and which technical risk could sink it?"
+        ),
+        questions=(
+            "Which technical capabilities does the product's promise depend on (third-party "
+            "APIs, real-time processing, data volume, uptime, security), and which of them "
+            "is the hardest?",
+            "Which external dependency could break the product or its margin (API access, "
+            "rate limits, pricing, platform policy), and what is the fallback?",
+            "What does running it cost per customer per month (infrastructure, third-party "
+            "APIs, AI calls), and how does that scale with usage? Show the math.",
+            "What engineering team and time does a production-quality version need after "
+            "the MVP, not the ideal case?",
+        ),
+        applies_to=(
+            "the product's core promise depends on hard technical work: continuous "
+            "monitoring or real-time processing, large data volumes, uptime or accuracy "
+            "guarantees customers rely on, deep integration with systems the founder does "
+            "not control (banks, marketplaces, social networks, calendars or email at "
+            "scale), security-sensitive data, or connected hardware. A standard web or "
+            "mobile app with accounts, a database, payments and common services (card "
+            "payments, sign-in, sending email) does not count."
+        ),
+        knowledge="software-architect",
     ),
 )
 

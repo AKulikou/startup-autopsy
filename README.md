@@ -102,12 +102,21 @@ The lenses are defined in [`evaluators/lenses.py`](evaluators/lenses.py);
 |---|---|---|
 | Profitable App Designer | Would people pay for this every month, and how much revenue is realistic? | yes |
 | No-Code Stack Master | Can a sellable MVP be built with no-code tools in 7 days? | yes |
-| AI Tool Creator | Is the AI capability genuinely useful and differentiated? | |
+| AI Tool Creator | Is the AI capability genuinely useful and differentiated? | domain: AI products |
 | SaaS Revenue Builder | Is there a realistic path to sustainable recurring revenue? | |
 | Viral Product Designer | Can this grow through users themselves, without paid acquisition? | yes |
 | Launch Expert | What can realistically be achieved in the first week after launch? | yes |
 | Churn Eliminator | Will users stay, and what keeps them from cancelling? | yes |
 | Reality Auditor | Are the founder's assumptions, competitive position and timeline realistic, and what early evidence should decide whether to continue? | yes |
+| Legal Counsel | Can this business legally operate as described, and which legal requirements decide its cost or survival? | domain: regulated areas |
+| Software Architect | What does it take to run this software reliably beyond the first version, and which technical risk could sink it? | domain: technically demanding software |
+
+Domain lenses run only with `LENS_SELECTION=on`, and only on ideas they fit (see
+Experiments below). Their expert knowledge lives in
+[`lens_knowledge/`](lens_knowledge/) as Agent Skills: the pipeline adds each
+skill to its lens's prompt, and the same folder can be installed as a
+standalone skill in Claude Code. The legal lens is a screen for blockers, not
+legal advice.
 
 The design rules behind the lenses (no overlap, shared analysis standards, output
 defined by the schema) are described in [`docs/prompt_framework.md`](docs/prompt_framework.md).
@@ -192,16 +201,18 @@ until the weekly eval shows they help (see [eval/CHANGES.md](eval/CHANGES.md)):
 `ANALYSIS_MODEL` (another analysis model, e.g. `claude-sonnet-5`),
 `THINKING=adaptive` (the lenses and the synthesis think before answering), and
 `LENS_SELECTION=on` (one small call, about $0.006, skips lenses whose question
-does not fit the idea, such as the viral lens for a local bakery; the report
-lists what was skipped and why).
+does not fit the idea, such as the viral lens for a local bakery, and adds the
+domain lenses that fit; the report lists what was skipped and why).
 
 ## Project structure
 
 ```
 main.py                    CLI: logging setup and idea selection
 config.py                  API key check, model, token limit, enabled lenses, experiment switches
+lens_knowledge/            domain knowledge for lenses, one Agent Skill per folder
 evaluators/
   lenses.py                all lenses as data + shared analysis standards
+  knowledge.py             loads a lens knowledge pack into the lens prompt
   evaluator.py             builds prompts from a lens and calls Claude
   schemas.py               EvaluatorResult: the structured output schema
 gate/

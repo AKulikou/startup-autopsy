@@ -5,7 +5,7 @@ import time
 
 from conftest import gate_result, lens_result, response
 
-from config import ENABLED_LENSES
+from config import DOMAIN_LENSES, ENABLED_LENSES
 from core.analysis_runner import AnalysisRunner
 from evaluators.lenses import select_lenses
 from evaluators.schemas import EvaluatorResult
@@ -14,6 +14,7 @@ from gate.schemas import GateResult
 from synthesis.schemas import SynthesisResult
 
 LENS_NAMES = [lens.name for lens in select_lenses(ENABLED_LENSES)]
+WITH_DOMAIN_LENSES = select_lenses(ENABLED_LENSES + DOMAIN_LENSES)
 
 
 def analyze(confirm=None):
@@ -115,7 +116,7 @@ def test_lens_prompt_wraps_the_idea_and_treats_its_claims_as_unverified(fake_cla
 def enable_lens_selection(monkeypatch):
     import core.analysis_runner as runner_module
     monkeypatch.setattr(runner_module, "LENS_SELECTION", True)
-    return [lens for lens in select_lenses(ENABLED_LENSES) if lens.applies_to]
+    return [lens for lens in WITH_DOMAIN_LENSES if lens.applies_to]
 
 
 def fits(candidates, misfit_key=None):
@@ -139,7 +140,7 @@ def test_lens_selection_skips_a_lens_that_does_not_fit(fake_claude, monkeypatch)
     fit_prompt = fake_claude.calls(LensFitResult)[0]["messages"][0]["content"]
     assert all(f"- {lens.key}:" in fit_prompt for lens in candidates)
     assert "<candidate" not in fake_claude.calls(GateResult)[0]["messages"][0]["content"]
-    assert len(fake_claude.calls(EvaluatorResult)) == len(LENS_NAMES) - 1
+    assert len(fake_claude.calls(EvaluatorResult)) == len(WITH_DOMAIN_LENSES) - 1
     assert misfit.name not in [r["evaluator_display"] for r in analysis["lenses"]]
     assert analysis["skipped_lenses"] == [{"lens": misfit.name, "reason": "A reason for this."}]
 
@@ -159,5 +160,16 @@ def test_failed_lens_fit_runs_every_lens(fake_claude, monkeypatch):
         raise RuntimeError("API down")
     fake_claude.handlers[LensFitResult] = fail
     analysis = analyze()
-    assert len(fake_claude.calls(EvaluatorResult)) == len(LENS_NAMES)
+    assert len(fake_claude.calls(EvaluatorResult)) == len(WITH_DOMAIN_LENSES)
     assert analysis["lens_fit"]["status"] == "error" and analysis["skipped_lenses"] == []
+
+
+def test_domain_lenses_run_only_with_lens_selection(fake_claude, monkeypatch):
+    analyze()
+    systems = [r["system"] for r in fake_claude.calls(EvaluatorResult)]
+    assert not any(lens.role in system for lens in select_lenses(DOMAIN_LENSES) for system in systems)
+
+    candidates = enable_lens_selection(monkeypatch)
+    fake_claude.handlers[LensFitResult] = lambda kw: response(fits(candidates))
+    analysis = analyze()
+    assert [r["evaluator_display"] for r in analysis["lenses"]] == [lens.name for lens in WITH_DOMAIN_LENSES]

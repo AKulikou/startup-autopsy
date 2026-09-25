@@ -55,10 +55,19 @@ schema - do not repeat them in the lens. Keep the tone requirements in
    an existing key casually), a display `name`, a `role`, the `focus` and the
    `questions`.
 2. To enable it, add the key to `ENABLED_LENSES` in `config.py`. Order is the
-   order the synthesis reads the lenses in.
+   order the synthesis reads the lenses in. A domain lens goes into
+   `DOMAIN_LENSES` instead: it then runs only with `LENS_SELECTION=on`, where
+   its `applies_to` condition fits.
+   - Expert knowledge the lens needs (checklists, typical traps, how to
+     estimate) goes into a knowledge pack, not into the questions:
+     `lens_knowledge/<name>/SKILL.md` in Agent Skill format (`name` equal to
+     the folder name, lowercase with hyphens; a `description` saying when to
+     use it), plus optional `references/*.md`. Set `knowledge="<name>"` on the
+     lens. Keep facts hedged where unsure: the lens repeats what the pack says
+     as if it were true.
 3. Update the three lens tables: `README.md` (Lenses: name, question, enabled
-   by default), `CLAUDE.md` (Evaluator framework: number, name, short lens
-   description, `enabled` or `defined`) and `docs/prompt_framework.md` (The
+   by default, or `domain: <where>`), `CLAUDE.md` (Evaluator framework: number, name, short lens
+   description, `enabled`, `domain` or `defined`) and `docs/prompt_framework.md` (The
    lenses: number, name, key, question).
 4. Run `check_lenses.py` again until it reports everything in sync, then
    `pytest` and `ruff check .`.
