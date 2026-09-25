@@ -45,6 +45,7 @@ after any change; run the eval after any change to prompts, lenses or the model.
 - `core/report_builder.py` — builds `report.md` (synthesis first, lens results as appendix)
 - `core/idea_processor.py`, `file_manager.py`, `result_writer.py` — idea I/O and Markdown output
 - `.claude/skills/review-run/` — project skill: review a finished run (script for mechanical checks + judgment guide)
+- `.claude/skills/add-lens/` — project skill: add or change a lens; `scripts/check_lenses.py` checks lenses, config and doc tables agree
 - `ideas/` — a few showcase ideas for the CLI and README; `eval/` — eval cases (`gate/`, `pipeline/` with their own ideas) and `run_eval.py`; `results/`, `logs/`, `.claude/hillclimb/` — generated, git-ignored
 
 ## Evaluator framework
