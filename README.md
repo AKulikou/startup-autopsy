@@ -207,6 +207,8 @@ core/
   structured_call.py       shared Claude request with validation and one retry
   translator.py            optional translated copies of finished reports
 mcp_server.py              MCP server: check_idea and analyze_idea tools
+skills/startup-autopsy/    Agent Skill for using the MCP tools
+.claude/skills/            project skills for development (review-run, add-lens)
   idea_input.py            local checks and quote normalization of the idea text
   report_builder.py        the final report.md
   result_writer.py         Markdown report files
