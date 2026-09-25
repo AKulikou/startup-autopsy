@@ -116,8 +116,8 @@ python main.py
 The CLI lists the ideas in `ideas/`. Pick one by number or name, and the reports
 are written to `results/`. Logs go to `logs/`.
 
-**Time and cost.** Lenses currently run one after another, about a minute each,
-followed by the synthesis, so the default five lenses take about 7 minutes. One run
+**Time and cost.** The lenses run in parallel, about a minute or so each, followed by
+the synthesis (about a minute and a half), so a run takes about 3 minutes. One run
 on `claude-sonnet-4-6` costs roughly $0.30–0.40, depending on the length of the idea
 and of the answers.
 
@@ -203,14 +203,16 @@ with the lens reports as an appendix.
 Known limitations:
 
 - The synthesis is new and not yet measured against an eval set.
-- Lenses run sequentially.
+- Only a local input check exists; vague or non-business ideas still run through
+  all lenses.
 
 Next:
 
 1. An eval set: ideas with expected verdicts and automated consistency checks,
    run several times per prompt change.
-2. A cheap input check that rejects empty or non-business input before the lenses run.
-3. Parallel evaluation; enabling the remaining lenses.
+2. A Claude-based input check that asks for details on vague ideas, rejects
+   non-business input and selects the lenses that apply to the idea.
+3. Enabling the remaining lenses, including domain lenses chosen per idea.
 4. An MCP server interface, so the analysis can be called as a tool from Claude
    and other MCP clients.
 5. Optional: JSON/PDF export, persistence, web UI.

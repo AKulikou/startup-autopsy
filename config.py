@@ -37,7 +37,7 @@ MODEL_PRICING_PER_MTOK: dict[str, tuple[float, float]] = {
 MAX_TOKENS = 16000
 
 # Lenses to run, by key (see evaluators/lenses.py for all eight).
-# Evaluators run sequentially for now, so each extra lens adds ~1 minute.
+# They run in parallel, so an extra lens adds cost but little wall time.
 ENABLED_LENSES = (
     "profitable_designer",
     "no_code_stack",
@@ -45,3 +45,7 @@ ENABLED_LENSES = (
     "churn_eliminator",
     "reality_auditor",
 )
+
+# Upper bound on concurrent lens requests. Five parallel lenses use about a quarter
+# of an output-tokens-per-minute limit of 80k; the SDK retries 429 responses.
+MAX_PARALLEL_LENSES = 5

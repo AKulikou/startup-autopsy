@@ -1,16 +1,20 @@
 """
 Runs the full analysis of one business idea: lenses, synthesis, reports.
 
-Progress goes to the log one line per event (INFO); the reports themselves
-are written only to Markdown files.
+The lenses run in parallel threads (they are independent API calls), so their
+"done" lines arrive in completion order. Results are still passed to the
+synthesis in the configured lens order. Progress goes to the log one line per
+event (INFO); the reports themselves are written only to Markdown files.
 """
 
 import logging
+import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
-from config import ENABLED_LENSES, MODEL
+from config import ENABLED_LENSES, MAX_PARALLEL_LENSES, MODEL
 from evaluators.evaluator import Evaluator
 from evaluators.lenses import select_lenses
 from evaluators.schemas import confidence_label, verdict_label
@@ -75,26 +79,41 @@ class AnalysisRunner:
         return idea_content
 
     def _run_evaluators(self, idea_content: str) -> list[dict]:
-        results = []
         total = len(self.lenses)
-        for index, lens in enumerate(self.lenses, start=1):
-            prefix = f"[{index}/{total}] {lens.name}"
-            logger.info(f"{prefix} ... started")
-            result = Evaluator(lens, idea_content).evaluate()
-            results.append(result)
+        prefixes = [f"[{index}/{total}] {lens.name}" for index, lens in enumerate(self.lenses, start=1)]
+        results: list[Optional[dict]] = [None] * total
 
-            duration = f"{result['duration_s']:.0f}s"
-            if result["status"] == "success":
-                cost = estimate_cost(result["input_tokens"], result["output_tokens"])
-                logger.info(
-                    f"{prefix} ... done in {duration}: {verdict_label(result['verdict'])} "
-                    f"({confidence_label(result['confidence'])}), "
-                    f"{len(result['out_of_lens_red_flags'])} red flags, "
-                    f"{result['input_tokens']}/{result['output_tokens']} tokens, {format_cost(cost)}"
-                )
-            else:
-                logger.error(f"{prefix} ... FAILED in {duration}: {result['error']}")
+        started = time.monotonic()
+        with ThreadPoolExecutor(max_workers=min(MAX_PARALLEL_LENSES, total)) as pool:
+            futures = {}
+            for index, lens in enumerate(self.lenses):
+                logger.info(f"{prefixes[index]} ... started")
+                futures[pool.submit(Evaluator(lens, idea_content).evaluate)] = index
+            for finished, future in enumerate(as_completed(futures), start=1):
+                index = futures[future]
+                results[index] = future.result()  # evaluate() never raises
+                self._log_lens_result(prefixes[index], results[index], finished, total)
+
+        elapsed = time.monotonic() - started
+        busy = sum(r["duration_s"] for r in results)
+        logger.info(f"Lenses finished in {elapsed:.0f}s (sum of lens times {busy:.0f}s)")
         return results
+
+    @staticmethod
+    def _log_lens_result(prefix: str, result: dict, finished: int, total: int) -> None:
+        duration = f"{result['duration_s']:.0f}s"
+        progress = f"({finished}/{total} finished)"
+        if result["status"] == "success":
+            cost = estimate_cost(result["input_tokens"], result["output_tokens"])
+            logger.info(
+                f"{prefix} ... done in {duration}: {verdict_label(result['verdict'])} "
+                f"({confidence_label(result['confidence'])}), "
+                f"{len(result['out_of_lens_red_flags'])} red flags, "
+                f"{result['input_tokens']}/{result['output_tokens']} tokens, "
+                f"{format_cost(cost)} {progress}"
+            )
+        else:
+            logger.error(f"{prefix} ... FAILED in {duration}: {result['error']} {progress}")
 
     def _save_reports(
         self, results: list[dict], run_dir: Path, idea_name: str, started_at: datetime

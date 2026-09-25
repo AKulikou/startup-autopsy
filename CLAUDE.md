@@ -101,4 +101,3 @@ These define what a "correct" report is — apply them when editing prompts or s
 ## Known issues
 
 - The synthesis prompt is new and not yet measured; there is no eval set yet.
-- Evaluators run sequentially.
