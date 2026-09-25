@@ -50,6 +50,7 @@ def test_main_report_is_translated_next_to_the_english_one(fake_claude, run_idea
     assert list((run_dir / "lenses").glob("*.russian.md")) == []
     assert len(text_calls(fake_claude)) == 1
     assert "Russian" in text_calls(fake_claude)[0]["system"]
+    assert text_calls(fake_claude)[0]["model"] == "claude-haiku-4-5"
     assert text_calls(fake_claude)[0]["messages"][0]["content"] == english
 
 

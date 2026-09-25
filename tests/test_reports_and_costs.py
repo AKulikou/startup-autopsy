@@ -70,3 +70,16 @@ def test_unknown_model_has_no_invented_cost(monkeypatch):
     monkeypatch.setattr(token_summary, "MODEL", "some-unknown-model")
     assert token_summary.estimate_cost(1000, 1000) is None
     assert token_summary.format_cost(None) == "cost n/a"
+
+
+def test_each_call_is_priced_with_its_own_model(monkeypatch, caplog):
+    monkeypatch.setattr(token_summary, "MODEL", "claude-sonnet-4-6")
+    calls = [
+        {"evaluator_display": "Lens", "input_tokens": 1_000_000, "output_tokens": 0},
+        {"evaluator_display": "Translation", "model": "claude-haiku-4-5",
+         "input_tokens": 0, "output_tokens": 1_000_000},
+    ]
+    with caplog.at_level("INFO"):
+        token_summary.log_token_summary(calls)
+    # 1M Sonnet input tokens at $3 plus 1M Haiku output tokens at $5.
+    assert "est. cost $8.0000 (claude-haiku-4-5, claude-sonnet-4-6)" in caplog.text

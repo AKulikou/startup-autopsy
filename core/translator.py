@@ -9,7 +9,7 @@ so it cannot change a verdict or an eval result.
 import logging
 import time
 
-from config import MAX_TOKENS, MODEL
+from config import MAX_TOKENS, TRANSLATION_MODEL
 from core.claude_client import get_client
 
 logger = logging.getLogger(__name__)
@@ -34,12 +34,13 @@ def translate_markdown(markdown: str, language: str) -> dict:
     started = time.monotonic()
     try:
         response = get_client().messages.create(
-            model=MODEL,
+            model=TRANSLATION_MODEL,
             max_tokens=MAX_TOKENS,
             system=TRANSLATION_PROMPT.format(language=language),
             messages=[{"role": "user", "content": markdown}],
         )
         usage = {
+            "model": TRANSLATION_MODEL,
             "input_tokens": response.usage.input_tokens,
             "output_tokens": response.usage.output_tokens,
         }
@@ -55,4 +56,4 @@ def translate_markdown(markdown: str, language: str) -> dict:
     except Exception as e:
         logger.debug("Translation failed", exc_info=True)
         return {"status": "error", "error": f"{type(e).__name__}: {e}",
-                "duration_s": time.monotonic() - started}
+                "model": TRANSLATION_MODEL, "duration_s": time.monotonic() - started}

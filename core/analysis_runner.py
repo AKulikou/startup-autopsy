@@ -14,7 +14,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Callable, Optional
 
-from config import ENABLED_LENSES, MODEL, REPORT_TRANSLATION, TRANSLATE_LENS_REPORTS
+from config import ENABLED_LENSES, MODEL, REPORT_TRANSLATION, TRANSLATE_LENS_REPORTS, TRANSLATION_MODEL
 from evaluators.evaluator import Evaluator
 from evaluators.lenses import select_lenses
 from evaluators.schemas import confidence_label, verdict_label
@@ -256,7 +256,8 @@ class AnalysisRunner:
             logger.info(
                 f"[Translation] ... done: {len(done)} of {len(paths)} report(s), "
                 f"{input_tokens}/{output_tokens} tokens, "
-                f"{format_cost(estimate_cost(input_tokens, output_tokens))}; "
+                f"{format_cost(estimate_cost(input_tokens, output_tokens, TRANSLATION_MODEL))} "
+                f"({TRANSLATION_MODEL}); "
                 f"main report: report.{suffix}.md"
             )
         return outcomes

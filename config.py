@@ -31,6 +31,7 @@ MODEL = "claude-sonnet-4-6"
 # printed after a run; check https://www.anthropic.com/pricing when changing MODEL.
 MODEL_PRICING_PER_MTOK: dict[str, tuple[float, float]] = {
     "claude-sonnet-4-6": (3.00, 15.00),
+    "claude-haiku-4-5": (1.00, 5.00),
 }
 
 # Per-evaluator output limit; a truncated response is treated as an error.
@@ -53,5 +54,7 @@ ENABLED_LENSES = (
 # language. The analysis always runs in English and the English reports stay the
 # source of truth. Set in .env, e.g. REPORT_TRANSLATION=Russian; unset = English only.
 REPORT_TRANSLATION = os.getenv("REPORT_TRANSLATION", "").strip() or None
+# Translation only restates a finished report, so the cheapest model is enough.
+TRANSLATION_MODEL = "claude-haiku-4-5"
 # Also translate the per-lens reports (about six more calls per run).
 TRANSLATE_LENS_REPORTS = os.getenv("TRANSLATE_LENS_REPORTS", "").strip().lower() in ("1", "true", "yes")
