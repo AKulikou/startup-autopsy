@@ -201,6 +201,20 @@ docs/prompt_framework.md   evaluator framework specification
 
 `results/` and `logs/` are generated and git-ignored.
 
+## Testing
+
+```bash
+pip install -r requirements-dev.txt
+pytest                                     # unit tests: no API calls, under a second
+python -m eval.run_eval gate --reps 3      # eval of the input check (~$0.25)
+python -m eval.run_eval pipeline --reps 2  # eval of the whole pipeline (~$14)
+```
+
+The unit tests replace Claude with a scripted fake and cover the guards around
+the model: malformed-answer detection and retry, input checks, parallel lenses,
+report rendering and cost. The eval runs the real pipeline over reviewed cases
+in `eval/` and grades the outcomes (see `eval/run_eval.py`).
+
 ## Status and roadmap
 
 Working now: lenses defined as data (most enabled by default, all run in parallel), structured output,

@@ -17,12 +17,15 @@ CLI (`main.py`) calling the Anthropic API directly.
 
 ```bash
 python -m venv venv && venv\Scripts\activate   # Windows
-pip install -r requirements.txt
+pip install -r requirements-dev.txt            # app + pytest
 python main.py                                 # interactive: pick an idea from ideas/
+pytest                                         # unit tests, fake Claude client, no API calls
+python -m eval.run_eval gate --reps 3          # eval: input check (~$0.25)
+python -m eval.run_eval pipeline --reps 2      # eval: whole pipeline (~$14, paid)
 ```
 
-Requires `ANTHROPIC_API_KEY` in `.env` (never commit it).
-No test suite yet.
+Requires `ANTHROPIC_API_KEY` in `.env` (never commit it). Run `pytest` after any
+change; run the eval after any change to prompts, lenses or the model.
 
 ## Layout
 
