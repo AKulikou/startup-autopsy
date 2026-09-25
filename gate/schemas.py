@@ -11,6 +11,18 @@ class GateDecision(str, Enum):
     ANALYZABLE = "ANALYZABLE"
 
 
+# Console text for each decision; the codes stay internal (logs, future MCP clients).
+GATE_DECISION_TEXT: dict[GateDecision, str] = {
+    GateDecision.ANALYZABLE: "idea accepted for analysis",
+    GateDecision.TOO_VAGUE: "too vague to analyze",
+    GateDecision.NOT_AN_IDEA: "not a business idea",
+}
+
+
+def gate_decision_label(decision: str) -> str:
+    return GATE_DECISION_TEXT[GateDecision(decision)]
+
+
 class GateResult(BaseModel):
     reason: str = Field(
         description="One short sentence explaining the decision, e.g. 'A one-off personal sale, "

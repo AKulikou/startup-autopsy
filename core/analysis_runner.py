@@ -19,7 +19,7 @@ from evaluators.evaluator import Evaluator
 from evaluators.lenses import select_lenses
 from evaluators.schemas import confidence_label, verdict_label
 from gate.idea_gate import GATE_LABEL, NEXT_STEP_HINT, IdeaGate
-from gate.schemas import GateDecision
+from gate.schemas import GateDecision, gate_decision_label
 from core.idea_input import InvalidIdeaError, prepare_idea
 from core.idea_processor import IdeaProcessor
 from core.report_builder import build_report
@@ -86,7 +86,8 @@ class AnalysisRunner:
         try:
             idea_content, quotes_replaced = prepare_idea(raw_content)
         except InvalidIdeaError as e:
-            logger.error(f"Idea '{idea_name}' not analyzed ({e.code}): {e}")
+            logger.error(f"Idea '{idea_name}' not analyzed. {e}")
+            logger.debug(f"Local input check: rejection code {e.code}")
             logger.error(NEXT_STEP_HINT)
             return None
         if quotes_replaced:
@@ -102,7 +103,8 @@ class AnalysisRunner:
         gate = IdeaGate(idea_content).check()
         duration = f"{gate['duration_s']:.0f}s"
         if gate["status"] == "success":
-            logger.info(f"[{GATE_LABEL}] ... done in {duration}: {gate['decision']}")
+            logger.info(f"[{GATE_LABEL}] ... done in {duration}: {gate_decision_label(gate['decision'])}")
+            logger.debug(f"{GATE_LABEL}: decision code {gate['decision']}")
         return gate
 
     def _gate_allows(self, gate: dict) -> bool:
@@ -121,11 +123,11 @@ class AnalysisRunner:
 
         decision = GateDecision(gate["decision"])
         if decision == GateDecision.NOT_AN_IDEA:
-            logger.error(f"Not a business idea: {gate['reason']}")
+            logger.error(f"Reason: {gate['reason']}")
             logger.error(NEXT_STEP_HINT)
             return False
         if decision == GateDecision.TOO_VAGUE:
-            logger.warning(f"Too vague to analyze: {gate['reason']}")
+            logger.warning(f"Reason: {gate['reason']}")
             logger.warning(f"Missing: {'; '.join(gate['missing_information'])}")
             if self.confirm_vague_idea and self.confirm_vague_idea(gate):
                 logger.info("Analyzing anyway at the user's request")
