@@ -10,8 +10,9 @@ The quotes are replaced, not removed, because they often carry meaning.
 
 import re
 
-# Fewer letters than this cannot describe a business ("ABC123", "???").
-# A one-line idea such as "Sell my grandmother's apartment" is well above it.
+# Texts with fewer letters are not analyzed at all, whatever they say: too short to
+# describe a business ("ABC123", "birds sing"). Longer texts go to the Claude-based
+# input check, which judges their meaning.
 MIN_LETTERS = 15
 
 _QUOTED = re.compile(r'"([^"\n]*)"')
@@ -19,6 +20,10 @@ _QUOTED = re.compile(r'"([^"\n]*)"')
 
 class InvalidIdeaError(ValueError):
     """Raised when the idea text cannot be analyzed at all."""
+
+    def __init__(self, code: str, message: str):
+        super().__init__(message)
+        self.code = code  # "EMPTY" or "TOO_SHORT", for callers that branch on the reason
 
 
 def prepare_idea(text: str) -> tuple[str, int]:
@@ -33,13 +38,13 @@ def prepare_idea(text: str) -> tuple[str, int]:
     """
     stripped = text.strip()
     if not stripped:
-        raise InvalidIdeaError("the idea file is empty")
+        raise InvalidIdeaError("EMPTY", "The idea file is empty.")
 
     letters = sum(char.isalpha() for char in stripped)
     if letters < MIN_LETTERS:
         raise InvalidIdeaError(
-            f"the idea has only {letters} letters; describe the business in words "
-            f"(at least {MIN_LETTERS} letters)"
+            "TOO_SHORT",
+            f"Too short to analyze: {letters} letters, at least {MIN_LETTERS} are needed.",
         )
 
     replaced = stripped.count('"')

@@ -86,7 +86,8 @@ class AnalysisRunner:
         try:
             idea_content, quotes_replaced = prepare_idea(raw_content)
         except InvalidIdeaError as e:
-            logger.error(f"Idea '{idea_name}' rejected before analysis: {e}")
+            logger.error(f"Idea '{idea_name}' not analyzed ({e.code}): {e}")
+            logger.error(NEXT_STEP_HINT)
             return None
         if quotes_replaced:
             logger.debug(f"Replaced {quotes_replaced} straight double quotes in the idea text")
