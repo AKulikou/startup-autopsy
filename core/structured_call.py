@@ -31,6 +31,16 @@ class InvalidResultError(RuntimeError):
         self.output_tokens = output_tokens
 
 
+def length_problems(field: str, text: str, min_chars: int, max_chars: int) -> list[str]:
+    """A too short or too long field is a sign of truncated or bled-over output."""
+    length = len(text.strip())
+    if length < min_chars:
+        return [f"{field} too short ({text.strip()!r})"]
+    if length > max_chars:
+        return [f"{field} too long ({length} chars, starts {text.strip()[:60]!r})"]
+    return []
+
+
 def billed_tokens(error: Exception) -> dict:
     """Token fields for an error result: rejected attempts are billed, other failures are not known."""
     if isinstance(error, InvalidResultError):

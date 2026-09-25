@@ -11,7 +11,7 @@ import time
 
 from config import MAX_TOKENS, MODEL
 from core.claude_client import get_client
-from core.structured_call import billed_tokens, request_structured
+from core.structured_call import billed_tokens, length_problems, request_structured
 from evaluators.schemas import Verdict, confidence_label, verdict_label
 from synthesis.schemas import SynthesisResult
 
@@ -57,10 +57,17 @@ Standards:
 - Attribute findings to lenses by name.
 - Write in English. Describe verdicts in plain words; do not quote verdict codes
   such as NOT_VIABLE in the text.
+- When quoting anything, including the idea description, use single quotes ('like
+  this'), not double quotes: your answer is JSON, and an unescaped double quote
+  ends the field it is in.
 """
 
+# Length bounds also catch field bleed: when a field breaks off at a stray double
+# quote, the rest of the text lands in the next field.
 MIN_SUMMARY_CHARS = 60
+MAX_SUMMARY_CHARS = 1500
 MIN_REASON_CHARS = 30
+MAX_REASON_CHARS = 600
 MIN_REASONING_CHARS = 300
 
 
@@ -69,10 +76,10 @@ def validate_synthesis(result: SynthesisResult) -> list[str]:
     problems = []
     if len(result.reasoning.strip()) < MIN_REASONING_CHARS:
         problems.append("reasoning too short")
-    if len(result.summary.strip()) < MIN_SUMMARY_CHARS:
-        problems.append(f"summary too short ({result.summary.strip()!r})")
-    if len(result.confidence_reason.strip()) < MIN_REASON_CHARS:
-        problems.append(f"confidence_reason too short ({result.confidence_reason.strip()!r})")
+    problems += length_problems("summary", result.summary, MIN_SUMMARY_CHARS, MAX_SUMMARY_CHARS)
+    problems += length_problems(
+        "confidence_reason", result.confidence_reason, MIN_REASON_CHARS, MAX_REASON_CHARS
+    )
     if not result.deciding_factors:
         problems.append("no deciding_factors")
     if not result.killer_risks:

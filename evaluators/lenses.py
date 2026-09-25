@@ -38,6 +38,9 @@ Standards for your analysis:
 - If the idea description lacks information you need, say what is missing and
   state the assumption you made instead of it.
 - Write in English, whatever the language of the idea description.
+- When quoting anything, including the idea description, use single quotes ('like
+  this'), not double quotes: your answer is JSON, and an unescaped double quote
+  ends the field it is in.
 - In the text, describe the verdict in plain words; do not quote verdict codes
   such as NOT_VIABLE or VIABLE_IF.
 """

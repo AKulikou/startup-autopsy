@@ -10,24 +10,32 @@ import time
 
 from config import MODEL, MAX_TOKENS
 from core.claude_client import get_client
-from core.structured_call import billed_tokens, request_structured
+from core.structured_call import billed_tokens, length_problems, request_structured
 from evaluators.lenses import ANALYSIS_STANDARDS, Lens
 from evaluators.schemas import EvaluatorResult
 
 logger = logging.getLogger(__name__)
 
+# Length bounds also catch field bleed: when a field breaks off at a stray double
+# quote, the rest of the text lands in the next field (seen: a full analysis in
+# 'summary' and a 2 KB stub in 'analysis').
+MIN_ANALYSIS_CHARS = 1500
 MIN_SUMMARY_CHARS = 40
+MAX_SUMMARY_CHARS = 800
 MIN_REASON_CHARS = 30
+MAX_REASON_CHARS = 600
 PLACEHOLDER_VALUES = {"", "none", "n/a", "na", "null", "unknown", "-"}
 
 
 def validate_result(result: EvaluatorResult) -> list[str]:
     """Return the problems that make a parsed result unusable; empty if it is fine."""
     problems = []
-    if len(result.summary.strip()) < MIN_SUMMARY_CHARS:
-        problems.append(f"summary too short ({result.summary.strip()!r})")
-    if len(result.confidence_reason.strip()) < MIN_REASON_CHARS:
-        problems.append(f"confidence_reason too short ({result.confidence_reason.strip()!r})")
+    if len(result.analysis.strip()) < MIN_ANALYSIS_CHARS:
+        problems.append(f"analysis too short ({len(result.analysis.strip())} chars)")
+    problems += length_problems("summary", result.summary, MIN_SUMMARY_CHARS, MAX_SUMMARY_CHARS)
+    problems += length_problems(
+        "confidence_reason", result.confidence_reason, MIN_REASON_CHARS, MAX_REASON_CHARS
+    )
     if result.killer_risk.strip().lower() in PLACEHOLDER_VALUES:
         problems.append(f"killer_risk is a placeholder ({result.killer_risk.strip()!r})")
     if not result.key_assumptions:
