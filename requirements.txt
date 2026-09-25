@@ -7,6 +7,7 @@ httpcore2==2.13.0
 httpx2==2.13.0
 idna==3.20
 jiter==0.17.0
+mcp==2.2.0
 pydantic==2.13.5
 pydantic_core==2.46.5
 python-dotenv==1.2.3

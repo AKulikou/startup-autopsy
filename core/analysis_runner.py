@@ -64,8 +64,16 @@ class AnalysisRunner:
         if not analysis["analyzed"]:
             log_token_summary([analysis["gate"]])
             return False
-        results, synthesis = analysis["lenses"], analysis["synthesis"]
+        self.save(idea_name, analysis, started_at)
+        return analysis["synthesis"]["status"] == "success"
 
+    def save(self, idea_name: str, analysis: dict, started_at: datetime) -> Path:
+        """
+        Write the reports of a finished analysis (and translated copies, if
+        configured) into a new run directory, log the token summary, and
+        return the path of report.md.
+        """
+        results, synthesis = analysis["lenses"], analysis["synthesis"]
         run_dir = self.processor.create_run_dir(idea_name, started_at)
         lens_paths = self._save_reports(results, run_dir, idea_name, started_at)
         report_path = self.processor.save_report(
@@ -78,8 +86,7 @@ class AnalysisRunner:
             to_translate = [report_path] + (lens_paths if TRANSLATE_LENS_REPORTS else [])
             translations = self._translate_reports(to_translate, REPORT_TRANSLATION)
         log_token_summary([analysis["gate"]] + results + [synthesis] + translations)
-
-        return synthesis["status"] == "success"
+        return report_path
 
     def analyze(self, idea_content: str) -> dict:
         """

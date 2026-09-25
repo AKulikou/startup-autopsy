@@ -30,6 +30,7 @@ change; run the eval after any change to prompts, lenses or the model.
 ## Layout
 
 - `main.py` — CLI entry point, logging setup, idea selection
+- `mcp_server.py` — MCP server (`check_idea`, `analyze_idea`) over stdio; logs only to file, never to stdout
 - `config.py` — API key check, model, token limit, enabled lenses
 - `evaluators/lenses.py` — all lenses as data (role, focus, questions) + shared `ANALYSIS_STANDARDS`
 - `evaluators/evaluator.py` — `Evaluator`: builds prompts from a lens, calls Claude with structured output
@@ -101,7 +102,7 @@ These define what a "correct" report is — apply them when editing prompts or s
 - **Phase 2 (done):** 3 evaluators, CLI, Markdown reports, heuristic synthesis.
 - **Phase 3 (current):** Claude-based synthesis replacing keyword heuristics; structured
   evaluator output; parallel evaluation; remaining and domain-specific lenses; error handling.
-- **Phase 4:** MCP server interface; optional web UI, persistence, JSON/PDF export.
+- **Phase 4 (started):** MCP server (`mcp_server.py`, done); a skill for using it; optional web UI, persistence, JSON/PDF export.
 
 ## Known issues
 

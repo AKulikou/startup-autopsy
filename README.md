@@ -199,6 +199,7 @@ core/
   analysis_runner.py       orchestration: lenses, synthesis, reports
   structured_call.py       shared Claude request with validation and one retry
   translator.py            optional translated copies of finished reports
+mcp_server.py              MCP server: check_idea and analyze_idea tools
   idea_input.py            local checks and quote normalization of the idea text
   report_builder.py        the final report.md
   result_writer.py         Markdown report files
@@ -210,6 +211,28 @@ docs/prompt_framework.md   evaluator framework specification
 ```
 
 `results/` and `logs/` are generated and git-ignored.
+
+## Use it from Claude (MCP server)
+
+`mcp_server.py` exposes the analysis as two MCP tools, so Claude Code, Claude
+Desktop or any MCP client can call it:
+
+| Tool | What it does | Cost |
+|---|---|---|
+| `check_idea` | Is this a business idea, and is it detailed enough? Says what is missing. | ~$0.003, seconds |
+| `analyze_idea` | The full analysis; saves the report under `results/` and returns the verdict and the full `report.md`. | ~$0.40, ~3 minutes |
+
+Add it to Claude Code (use absolute paths; on macOS/Linux the Python path is
+`venv/bin/python`):
+
+```bash
+claude mcp add startup-autopsy -- /path/to/startup-autopsy/venv/Scripts/python.exe /path/to/startup-autopsy/mcp_server.py
+```
+
+Then ask Claude to evaluate an idea. The server reads the API key from `.env`
+like the CLI does, and logs to `logs/mcp_server_*.log` (stdout carries the
+protocol). A full analysis takes a few minutes, so a client with a short tool
+timeout needs it raised.
 
 ## Testing
 
@@ -228,8 +251,8 @@ in `eval/` and grades the outcomes (see `eval/run_eval.py`).
 ## Status and roadmap
 
 Working now: lenses defined as data (most enabled by default, all run in parallel), structured output,
-a Claude-based synthesis that decides the overall verdict, and a final report
-with the lens reports as an appendix.
+a Claude-based synthesis that decides the overall verdict, a final report with
+the lens reports as an appendix, an MCP server, unit tests and an eval set.
 
 Known limitations:
 
@@ -241,6 +264,6 @@ Next:
    run several times per prompt change.
 2. Lens selection per idea by the input check, and domain lenses (legal, AI,
    software architecture) enabled only where they apply.
-3. An MCP server interface, so the analysis can be called as a tool from Claude
-   and other MCP clients.
+3. A skill that teaches Claude to use the MCP tools well (clarify vague ideas
+   first, present the verdict without softening it).
 4. Optional: JSON/PDF export, persistence, web UI.
