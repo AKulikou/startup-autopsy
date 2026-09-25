@@ -251,10 +251,13 @@ class AnalysisRunner:
                 logger.warning(f"[Translation] {outcome['evaluator_display']} FAILED: {outcome['error']}")
         done = [o for o in outcomes if o["status"] == "success"]
         if done:
-            cost = estimate_cost(sum(o["input_tokens"] for o in done), sum(o["output_tokens"] for o in done))
+            input_tokens = sum(o["input_tokens"] for o in done)
+            output_tokens = sum(o["output_tokens"] for o in done)
             logger.info(
                 f"[Translation] ... done: {len(done)} of {len(paths)} report(s), "
-                f"{format_cost(cost)}; main report: report.{suffix}.md"
+                f"{input_tokens}/{output_tokens} tokens, "
+                f"{format_cost(estimate_cost(input_tokens, output_tokens))}; "
+                f"main report: report.{suffix}.md"
             )
         return outcomes
 
