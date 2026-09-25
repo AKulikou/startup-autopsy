@@ -132,7 +132,8 @@ fine; the more concrete the input, the more concrete the analysis. It helps to c
 - pricing and revenue model
 - your own numbers and assumptions: evaluators check them rather than accept them
 
-If something is missing, evaluators state what they had to assume instead.
+If something is missing, evaluators state what they had to assume instead. An empty
+file or text with almost no letters is rejected before any API call is made.
 
 ### Demo ideas
 
@@ -181,6 +182,7 @@ synthesis/
 core/
   analysis_runner.py       orchestration: lenses, synthesis, reports
   structured_call.py       shared Claude request with validation and one retry
+  idea_input.py            local checks and quote normalization of the idea text
   report_builder.py        the final report.md
   result_writer.py         Markdown report files
   idea_processor.py        idea loading and result saving facade

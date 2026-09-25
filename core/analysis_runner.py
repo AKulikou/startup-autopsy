@@ -14,6 +14,7 @@ from config import ENABLED_LENSES, MODEL
 from evaluators.evaluator import Evaluator
 from evaluators.lenses import select_lenses
 from evaluators.schemas import confidence_label, verdict_label
+from core.idea_input import InvalidIdeaError, prepare_idea
 from core.idea_processor import IdeaProcessor
 from core.report_builder import build_report
 from core.token_summary import estimate_cost, format_cost, log_token_summary
@@ -55,10 +56,17 @@ class AnalysisRunner:
         return synthesis["status"] == "success"
 
     def _load_idea(self, idea_name: str) -> Optional[str]:
-        idea_content = self.processor.load_idea(idea_name)
-        if not idea_content:
-            logger.error(f"Idea '{idea_name}' is missing or empty")
+        raw_content = self.processor.load_idea(idea_name)
+        if raw_content is None:
+            return None  # load_idea has logged the reason
+
+        try:
+            idea_content, quotes_replaced = prepare_idea(raw_content)
+        except InvalidIdeaError as e:
+            logger.error(f"Idea '{idea_name}' rejected before analysis: {e}")
             return None
+        if quotes_replaced:
+            logger.debug(f"Replaced {quotes_replaced} straight double quotes in the idea text")
 
         logger.info(
             f"Idea: {idea_name} ({len(idea_content)} chars), "
