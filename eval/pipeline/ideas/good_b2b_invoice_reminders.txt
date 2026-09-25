@@ -1,0 +1,24 @@
+Automatic invoice payment reminders for small B2B service companies.
+
+PROBLEM: small agencies and consultancies (5-50 people) send invoices from their
+accounting software and then chase late payments by hand. Owners say chasing is
+awkward and often forgotten; the average invoice is paid 18 days late.
+
+SOLUTION: a small web service that connects to Xero and QuickBooks through their
+official APIs, reads unpaid invoices and sends a polite reminder sequence by email
+(3 days before, on the due date, 7 and 14 days after), stopping automatically when
+the invoice is marked paid.
+
+PRICE: 29 USD per month per company, 14-day free trial.
+
+VALIDATION SO FAR: the founder interviewed 25 agency owners; 17 described the
+problem as painful. A landing page with a price got 41 trial sign-ups from 600
+visitors from two accounting-software community forums. 6 companies are using a
+manual prototype and 4 of them offered to pay.
+
+FOUNDER: a backend developer who has built two integrations with the Xero API
+before.
+
+COMPETITION: Xero and QuickBooks have basic built-in reminders that most users find
+rigid; standalone tools exist (for example Chaser) but target larger finance teams
+at 150+ USD per month.

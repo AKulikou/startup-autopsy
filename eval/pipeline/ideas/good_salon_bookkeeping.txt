@@ -1,0 +1,22 @@
+Bookkeeping service for hair and beauty salons in Vilnius.
+
+WHO: owners of small salons (2-8 chairs). There are roughly 900 such salons in Vilnius.
+
+PROBLEM: salon owners do their own bookkeeping in the evenings, miss VAT deadlines
+and pay late-filing fines. Generic accounting firms charge them the same as any
+company and do not understand tips, product sales and chair rental.
+
+SOLUTION: a fixed-price monthly service: monthly books, VAT returns, payroll for up
+to 8 staff, and a one-page monthly report on revenue per chair.
+
+PRICE: 150 EUR per month, fixed.
+
+FOUNDER: a certified accountant with 12 years of experience who already does the
+books for 3 salons informally and has 5 more owners asking for it.
+
+COSTS: works from home with standard accounting software (about 60 EUR per month).
+One accountant can serve about 40 salons.
+
+PLAN: take on the 8 known salons in the first 2 months, then grow through salon
+owners' recommendations and a local beauty-supply distributor that agreed to
+mention the service to its customers. Target: 30 salons in 12 months.

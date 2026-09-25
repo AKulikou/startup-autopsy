@@ -1,0 +1,16 @@
+Free, unlimited, live human tutoring for school children, paid for by advertising.
+
+PROBLEM: private tutoring costs 20-40 EUR per hour, so children from lower-income
+families fall behind. Parents want help but cannot pay.
+
+SOLUTION: an app where any child can call a qualified human tutor 24/7 for any
+school subject, for free and without limits. Tutors are paid 18 EUR per hour.
+
+REVENUE: advertising shown to children and parents in the app, plus sponsorship
+from education brands.
+
+NUMBERS: we expect 100,000 active children in year one, each using about 6 hours of
+tutoring per month. Advertising in children's apps pays about 4 EUR per 1,000
+impressions, and each child will see about 300 ads per month.
+
+DEMAND: a survey of 400 parents showed that 91% would use free tutoring.
