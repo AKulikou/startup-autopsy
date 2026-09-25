@@ -241,6 +241,17 @@ like the CLI does, and logs to `logs/mcp_server_*.log` (stdout carries the
 protocol). A full analysis takes a few minutes, so a client with a short tool
 timeout needs it raised.
 
+### A skill that teaches Claude to use the tools
+
+`skills/startup-autopsy/` is an Agent Skill for the MCP tools: it tells Claude to
+screen short or vague ideas with `check_idea` and ask what is missing, to confirm
+the cost before a full run, and to present the verdict without softening it.
+For Claude Code, copy the folder into your skills directory:
+
+```bash
+cp -r skills/startup-autopsy ~/.claude/skills/
+```
+
 ## Testing
 
 ```bash
@@ -272,9 +283,7 @@ Next:
    run several times per prompt change.
 2. Lens selection per idea by the input check, and domain lenses (legal, AI,
    software architecture) enabled only where they apply.
-3. A skill that teaches Claude to use the MCP tools well (clarify vague ideas
-   first, present the verdict without softening it).
-4. Optional: JSON/PDF export, persistence, web UI.
+3. Optional: JSON/PDF export, persistence, web UI.
 
 ## License
 

@@ -44,6 +44,7 @@ after any change; run the eval after any change to prompts, lenses or the model.
 - `core/translator.py` — optional translated copies of finished reports (`REPORT_TRANSLATION` in `.env`); the analysis stays English
 - `core/report_builder.py` — builds `report.md` (synthesis first, lens results as appendix)
 - `core/idea_processor.py`, `file_manager.py`, `result_writer.py` — idea I/O and Markdown output
+- `skills/startup-autopsy/` — user-facing Agent Skill for the MCP tools (install into ~/.claude/skills); not auto-loaded in this repo
 - `.claude/skills/review-run/` — project skill: review a finished run (script for mechanical checks + judgment guide)
 - `.claude/skills/add-lens/` — project skill: add or change a lens; `scripts/check_lenses.py` checks lenses, config and doc tables agree
 - `ideas/` — a few showcase ideas for the CLI and README; `eval/` — eval cases (`gate/`, `pipeline/` with their own ideas) and `run_eval.py`; `results/`, `logs/`, `.claude/hillclimb/` — generated, git-ignored
@@ -105,7 +106,7 @@ These define what a "correct" report is — apply them when editing prompts or s
 - **Phase 2 (done):** 3 evaluators, CLI, Markdown reports, heuristic synthesis.
 - **Phase 3 (current):** Claude-based synthesis replacing keyword heuristics; structured
   evaluator output; parallel evaluation; remaining and domain-specific lenses; error handling.
-- **Phase 4 (started):** MCP server (`mcp_server.py`, done); a skill for using it; optional web UI, persistence, JSON/PDF export.
+- **Phase 4 (started):** MCP server (`mcp_server.py`) and a user skill for it (`skills/startup-autopsy/`), done; optional web UI, persistence, JSON/PDF export.
 
 ## Known issues
 
