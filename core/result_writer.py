@@ -2,9 +2,10 @@
 Writes analysis results to Markdown files, one directory per run:
 
     results/2026-09-24_18-48-18_fitness_tracker/
-        00_synthesis.md
-        no_code_stack_master.md
-        reality_auditor.md
+        report.md                     the final report for the reader
+        lenses/
+            no_code_stack_master.md   one detailed report per lens
+            reality_auditor.md
 
 The timestamp comes first so that runs sort chronologically by name.
 """
@@ -15,9 +16,28 @@ from datetime import datetime
 
 from evaluators.schemas import confidence_label, verdict_label, verdict_meaning
 
+REPORT_FILENAME = "report.md"
+LENSES_DIR = "lenses"
+
+
+def lens_report_path(evaluator_name: str) -> str:
+    """
+    Path of a lens report relative to the run directory, also used for links.
+
+    Example: "No-Code Stack Master" -> "lenses/no_code_stack_master.md"
+    """
+    cleaned = re.sub(r'[^\w\s]', ' ', evaluator_name)
+    cleaned = re.sub(r'_+', '_', cleaned.lower().strip().replace(" ", "_"))
+    return f"{LENSES_DIR}/{cleaned}.md"
+
+
+def table_cell(text: str) -> str:
+    """Make text safe for a Markdown table cell."""
+    return text.replace("|", "\\|").replace("\n", " ")
+
 
 class ResultWriter:
-    """Writes evaluator results to Markdown files."""
+    """Writes the final report and the lens reports to Markdown files."""
 
     def __init__(self, results_directory: str = "results"):
         """
@@ -26,16 +46,6 @@ class ResultWriter:
         """
         self.results_dir = Path(results_directory)
         self.results_dir.mkdir(parents=True, exist_ok=True)
-
-    def _clean_evaluator_name(self, evaluator_name: str) -> str:
-        """
-        Strip special characters and format the name for a filename.
-
-        Example: "No-Code Stack Master" -> "no_code_stack_master"
-        """
-        cleaned = re.sub(r'[^\w\s]', ' ', evaluator_name)
-        cleaned = cleaned.lower().strip().replace(" ", "_")
-        return re.sub(r'_+', '_', cleaned)
 
     def create_run_dir(self, idea_name: str, started_at: datetime) -> Path:
         """Create and return the directory for one analysis run."""
@@ -56,7 +66,8 @@ class ResultWriter:
         Returns:
             Path: Path to the saved file
         """
-        filepath = run_dir / f"{self._clean_evaluator_name(result['evaluator_display'])}.md"
+        filepath = run_dir / lens_report_path(result["evaluator_display"])
+        filepath.parent.mkdir(exist_ok=True)
         filepath.write_text(self._format_markdown(idea_name, started_at, result), encoding="utf-8")
         return filepath
 
@@ -65,8 +76,8 @@ class ResultWriter:
         timestamp = started_at.strftime("%Y-%m-%d %H:%M:%S")
 
         assumption_rows = "\n".join(
-            f"| {self._cell(a['statement'])} | {self._cell(a['how_to_test'])} "
-            f"| {self._cell(a['failure_signal'])} |"
+            f"| {table_cell(a['statement'])} | {table_cell(a['how_to_test'])} "
+            f"| {table_cell(a['failure_signal'])} |"
             for a in result["key_assumptions"]
         )
         next_steps = "\n".join(
@@ -115,13 +126,8 @@ class ResultWriter:
 {result['analysis']}
 """
 
-    @staticmethod
-    def _cell(text: str) -> str:
-        """Make text safe for a Markdown table cell."""
-        return text.replace("|", "\\|").replace("\n", " ")
-
-    def save_synthesis(self, run_dir: Path, synthesis: str) -> Path:
-        """Save the synthesis report; the 00_ prefix keeps it first in the directory."""
-        filepath = run_dir / "00_synthesis.md"
-        filepath.write_text(synthesis, encoding="utf-8")
+    def save_report(self, run_dir: Path, report: str) -> Path:
+        """Save the final report and return its path."""
+        filepath = run_dir / REPORT_FILENAME
+        filepath.write_text(report, encoding="utf-8")
         return filepath

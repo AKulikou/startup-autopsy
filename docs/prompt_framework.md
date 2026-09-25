@@ -90,7 +90,17 @@ fails at startup.
 
 ## Synthesis
 
-Evaluator results are aggregated into one report that shows:
+One more Claude call (`synthesis/synthesizer.py`) reads every lens result — the
+structured fields and the full analysis — and decides the overall verdict. Its
+principles (`SYNTHESIS_PRINCIPLES`): weakest link rather than majority vote;
+substance over labels (a lens verdict that contradicts its own reasoning is recorded
+as a conflict); independent corroboration raises weight, an unsupported claim is an
+assumption to test; flawed versus unvalidated; lower confidence when lenses disagree
+or some failed. It must name the deciding factors and the lenses behind each, so the
+verdict can be checked. Code only warns about obvious inconsistencies (for example an
+overall "viable" when a lens found the idea not viable); it never overrides the verdict.
+
+The final report (`report.md`) shows:
 
 - each perspective with its lens verdict and confidence;
 - red flags that lenses raised outside their own scope (several lenses flagging the

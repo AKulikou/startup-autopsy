@@ -1,12 +1,11 @@
 """
-Runs the full analysis of one business idea: evaluate, save, synthesize.
+Runs the full analysis of one business idea: lenses, synthesis, reports.
 
 Progress goes to the log one line per event (INFO); the reports themselves
 are written only to Markdown files.
 """
 
 import logging
-from collections import Counter
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
@@ -16,8 +15,9 @@ from evaluators.evaluator import Evaluator
 from evaluators.lenses import select_lenses
 from evaluators.schemas import confidence_label, verdict_label
 from core.idea_processor import IdeaProcessor
-from core.report_aggregator import ReportAggregator
+from core.report_builder import build_report
 from core.token_summary import estimate_cost, format_cost, log_token_summary
+from synthesis.synthesizer import SYNTHESIS_LABEL, Synthesizer
 
 logger = logging.getLogger(__name__)
 
@@ -28,14 +28,13 @@ class AnalysisRunner:
     def __init__(self, processor: IdeaProcessor):
         self.processor = processor
         self.lenses = select_lenses(ENABLED_LENSES)
-        self.aggregator = ReportAggregator()
 
     def run(self, idea_name: str) -> bool:
         """
         Run the full analysis cycle for one idea.
 
         Returns:
-            bool: True if at least one evaluator succeeded
+            bool: True if the synthesis produced an overall verdict
         """
         started_at = datetime.now()
         idea_content = self._load_idea(idea_name)
@@ -43,14 +42,17 @@ class AnalysisRunner:
             return False
 
         results = self._run_evaluators(idea_content)
+        synthesis = self._run_synthesis(idea_content, results)
 
         run_dir = self.processor.create_run_dir(idea_name, started_at)
         self._save_reports(results, run_dir, idea_name, started_at)
-        self._save_synthesis(results, run_dir)
-        logger.info(f"Reports: {run_dir}")
-        log_token_summary(results)
+        report_path = self.processor.save_report(
+            run_dir, build_report(idea_name, started_at, synthesis, results)
+        )
+        logger.info(f"Report: {report_path}")
+        log_token_summary(results + [synthesis])
 
-        return any(r["status"] == "success" for r in results)
+        return synthesis["status"] == "success"
 
     def _load_idea(self, idea_name: str) -> Optional[str]:
         idea_content = self.processor.load_idea(idea_name)
@@ -94,14 +96,24 @@ class AnalysisRunner:
                 path = self.processor.save_analysis(run_dir, idea_name, started_at, result)
                 logger.debug(f"Saved {result['evaluator_display']} report: {path}")
 
-    def _save_synthesis(self, results: list[dict], run_dir: Path) -> None:
-        path = self.processor.save_synthesis(run_dir, self.aggregator.aggregate(results))
-        logger.debug(f"Saved synthesis: {path}")
+    def _run_synthesis(self, idea_content: str, results: list[dict]) -> dict:
+        succeeded = sum(r["status"] == "success" for r in results)
+        if not succeeded:
+            error = "no lens succeeded, nothing to synthesize"
+            logger.error(f"[{SYNTHESIS_LABEL}] skipped: {error}")
+            return {"evaluator_display": SYNTHESIS_LABEL, "status": "error", "error": error}
 
-        successful = [r for r in results if r["status"] == "success"]
-        verdicts = Counter(verdict_label(r["verdict"]) for r in successful)
-        split = ", ".join(f"{label} x{count}" for label, count in verdicts.most_common())
-        logger.info(
-            f"Synthesis: {len(successful)} of {len(results)} lenses succeeded"
-            + (f"; {split}" if split else "")
-        )
+        logger.info(f"[{SYNTHESIS_LABEL}] ... started ({succeeded} of {len(results)} lenses)")
+        synthesis = Synthesizer(idea_content, results).synthesize()
+        duration = f"{synthesis['duration_s']:.0f}s"
+        if synthesis["status"] == "success":
+            cost = estimate_cost(synthesis["input_tokens"], synthesis["output_tokens"])
+            logger.info(
+                f"[{SYNTHESIS_LABEL}] ... done in {duration}: OVERALL {verdict_label(synthesis['verdict'])} "
+                f"({confidence_label(synthesis['confidence'])}), "
+                f"{len(synthesis['conflicts'])} conflicts, "
+                f"{synthesis['input_tokens']}/{synthesis['output_tokens']} tokens, {format_cost(cost)}"
+            )
+        else:
+            logger.error(f"[{SYNTHESIS_LABEL}] ... FAILED in {duration}: {synthesis['error']}")
+        return synthesis

@@ -30,7 +30,7 @@ an app that charges your card when your weight goes up:
 | Users will trust a new app with card authorization for unpredictable charges | Landing page asking 200 visitors to pre-authorize a $10 variable charge | Fewer than 10 of 200 complete it |
 
 All three enabled lenses independently named the payment processor as the
-killer risk. The synthesis report shows that agreement side by side.
+killer risk; the synthesis treats such independent agreement as strong evidence.
 
 ## How it works
 
@@ -47,9 +47,14 @@ ideas/<idea>.txt
   red flags outside the lens, full analysis
       |
       v
+  synthesis: one more Claude call reads every lens result and decides
+  the overall verdict, resolving conflicts between lenses
+      |
+      v
   results/<timestamp>_<idea>/        one directory per run, sorted by time
-      00_synthesis.md                all lenses compared
-      <lens>.md                      one report per lens
+      report.md                      the final report: verdict, reasons,
+                                     risks, conflicts, next steps
+      lenses/<lens>.md               full report of each lens (appendix)
 ```
 
 Each lens verdict answers only that lens's question ("can an MVP be built in
@@ -170,9 +175,13 @@ evaluators/
   lenses.py                the eight lenses as data + shared analysis standards
   evaluator.py             builds prompts from a lens and calls Claude
   schemas.py               EvaluatorResult: the structured output schema
+synthesis/
+  synthesizer.py           overall verdict from all lens results
+  schemas.py               SynthesisResult: the synthesis output schema
 core/
-  analysis_runner.py       orchestration: load, evaluate, save, synthesize
-  report_aggregator.py     synthesis report across lenses
+  analysis_runner.py       orchestration: lenses, synthesis, reports
+  structured_call.py       shared Claude request with validation and one retry
+  report_builder.py        the final report.md
   result_writer.py         Markdown report files
   idea_processor.py        idea loading and result saving facade
   file_manager.py          reading idea files
@@ -186,19 +195,20 @@ docs/prompt_framework.md   evaluator framework specification
 ## Status and roadmap
 
 Working now: eight defined lenses (three enabled by default), structured output,
-per-lens Markdown reports and a synthesis report.
+a Claude-based synthesis that decides the overall verdict, and a final report
+with the lens reports as an appendix.
 
 Known limitations:
 
-- The synthesis only lays the lens results side by side. It does not yet reason
-  about why the lenses disagree.
+- The synthesis is new and not yet measured against an eval set.
 - Lenses run sequentially.
 
 Next:
 
-1. Claude-based synthesis that explains conflicts between lenses, including
-   conflicting numbers.
-2. Parallel evaluation; enabling the remaining lenses.
-3. An MCP server interface, so the analysis can be called as a tool from Claude
+1. An eval set: ideas with expected verdicts and automated consistency checks,
+   run several times per prompt change.
+2. A cheap input check that rejects empty or non-business input before the lenses run.
+3. Parallel evaluation; enabling the remaining lenses.
+4. An MCP server interface, so the analysis can be called as a tool from Claude
    and other MCP clients.
-4. Optional: JSON/PDF export, persistence, web UI.
+5. Optional: JSON/PDF export, persistence, web UI.

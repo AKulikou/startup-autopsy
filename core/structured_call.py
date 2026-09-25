@@ -24,6 +24,19 @@ ResultT = TypeVar("ResultT", bound=BaseModel)
 class InvalidResultError(RuntimeError):
     """Raised when the model keeps returning structurally valid but unusable output."""
 
+    def __init__(self, message: str, input_tokens: int, output_tokens: int):
+        super().__init__(message)
+        # The rejected attempts are billed, so callers still report their tokens.
+        self.input_tokens = input_tokens
+        self.output_tokens = output_tokens
+
+
+def billed_tokens(error: Exception) -> dict:
+    """Token fields for an error result: rejected attempts are billed, other failures are not known."""
+    if isinstance(error, InvalidResultError):
+        return {"input_tokens": error.input_tokens, "output_tokens": error.output_tokens}
+    return {}
+
 
 @dataclass
 class StructuredResponse(Generic[ResultT]):
@@ -89,5 +102,7 @@ def request_structured(
         )
 
     raise InvalidResultError(
-        f"{MAX_ATTEMPTS} attempts returned malformed output: {'; '.join(problems)}"
+        f"{MAX_ATTEMPTS} attempts returned malformed output: {'; '.join(problems)}",
+        input_tokens,
+        output_tokens,
     )

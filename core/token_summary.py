@@ -24,21 +24,24 @@ def format_cost(cost: Optional[float]) -> str:
 
 
 def log_token_summary(results: list[dict]) -> None:
-    """Log one total line; the per-evaluator breakdown goes to the log file only."""
-    successful = [r for r in results if r["status"] == "success"]
-    if not successful:
-        logger.info("Tokens: no successful evaluators")
+    """
+    Log one total line; the per-call breakdown goes to the log file only.
+    Failed calls count when their tokens are known (rejected attempts are billed).
+    """
+    billed = [r for r in results if "input_tokens" in r]
+    if not billed:
+        logger.info("Tokens: no billed calls")
         return
 
-    for result in successful:
+    for result in billed:
         cost = estimate_cost(result["input_tokens"], result["output_tokens"])
         logger.debug(
             f"Tokens {result['evaluator_display']}: "
             f"{result['input_tokens']} in / {result['output_tokens']} out, {format_cost(cost)}"
         )
 
-    total_input = sum(r["input_tokens"] for r in successful)
-    total_output = sum(r["output_tokens"] for r in successful)
+    total_input = sum(r["input_tokens"] for r in billed)
+    total_output = sum(r["output_tokens"] for r in billed)
     cost = estimate_cost(total_input, total_output)
     logger.info(f"Tokens: {total_input} in / {total_output} out, {format_cost(cost)} ({MODEL})")
     if cost is None:

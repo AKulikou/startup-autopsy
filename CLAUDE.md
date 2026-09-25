@@ -31,8 +31,10 @@ No test suite yet.
 - `evaluators/lenses.py` — the eight lenses as data (role, focus, questions) + shared `ANALYSIS_STANDARDS`
 - `evaluators/evaluator.py` — `Evaluator`: builds prompts from a lens, calls Claude with structured output
 - `evaluators/schemas.py` — `EvaluatorResult` Pydantic schema (verdict, confidence, assumptions, killer risk, next steps)
-- `core/analysis_runner.py` — orchestrates load → evaluate → save → synthesize → token stats
-- `core/report_aggregator.py` — builds the synthesis report
+- `synthesis/synthesizer.py` — `Synthesizer`: one Claude call that reads all lens results and decides the overall verdict (`SYNTHESIS_PRINCIPLES`); `synthesis/schemas.py` — `SynthesisResult`
+- `core/structured_call.py` — shared structured request: stop-reason checks, result validation, one retry
+- `core/analysis_runner.py` — orchestrates load → lenses → synthesis → reports → token stats
+- `core/report_builder.py` — builds `report.md` (synthesis first, lens results as appendix)
 - `core/idea_processor.py`, `file_manager.py`, `result_writer.py` — idea I/O and Markdown output
 - `ideas/` — input ideas (`.txt`); `results/`, `logs/` — generated, git-ignored
 
@@ -97,6 +99,5 @@ These define what a "correct" report is — apply them when editing prompts or s
 
 ## Known issues
 
-- `core/report_aggregator.py` only restates evaluator fields (verdicts, killer risks,
-  next steps); Claude-based synthesis that resolves conflicts is still Phase 3 work.
+- The synthesis prompt is new and not yet measured; there is no eval set yet.
 - Evaluators run sequentially.

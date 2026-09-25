@@ -40,6 +40,6 @@ class IdeaProcessor:
         """Save one evaluator's successful result and return the file path."""
         return self.result_writer.save_result(run_dir, idea_name, started_at, result)
 
-    def save_synthesis(self, run_dir: Path, synthesis: str) -> Path:
-        """Save the synthesis report and return the file path."""
-        return self.result_writer.save_synthesis(run_dir, synthesis)
+    def save_report(self, run_dir: Path, report: str) -> Path:
+        """Save the final report and return the file path."""
+        return self.result_writer.save_report(run_dir, report)
