@@ -14,7 +14,14 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from pathlib import Path
 
-from config import ENABLED_LENSES, MODEL, REPORT_TRANSLATION, TRANSLATE_LENS_REPORTS, TRANSLATION_MODEL
+from config import (
+    ENABLED_LENSES,
+    MODEL,
+    REPORT_TRANSLATION,
+    THINKING,
+    TRANSLATE_LENS_REPORTS,
+    TRANSLATION_MODEL,
+)
 from core.idea_input import InvalidIdeaError, prepare_idea
 from core.idea_processor import IdeaProcessor
 from core.report_builder import build_report
@@ -125,7 +132,7 @@ class AnalysisRunner:
 
         logger.info(
             f"Idea: {idea_name} ({len(idea_content)} chars), "
-            f"{len(self.lenses)} lenses, model {MODEL}"
+            f"{len(self.lenses)} lenses, model {MODEL}, thinking {THINKING}"
         )
         return idea_content
 

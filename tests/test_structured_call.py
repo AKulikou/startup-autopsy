@@ -91,3 +91,19 @@ def test_length_problems_bounds():
     assert length_problems("f", "x" * 10, 5, 20) == []
     assert "too short" in length_problems("f", "x", 5, 20)[0]
     assert "too long" in length_problems("f", "x" * 30, 5, 20)[0]
+
+
+def test_thinking_is_off_unless_requested():
+    client = scripted(response(lens_result()))
+    call(client)
+    assert "thinking" not in client.requests[0]
+
+
+def test_thinking_requests_adaptive_thinking():
+    client = scripted(response(lens_result()))
+    request_structured(
+        client, label="Test lens", model="claude-test", max_tokens=16000,
+        system="system", user="user", output_format=EvaluatorResult, validate=validate_result,
+        thinking=True,
+    )
+    assert client.requests[0]["thinking"] == {"type": "adaptive"}

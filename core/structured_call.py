@@ -66,9 +66,11 @@ def request_structured(
     user: str,
     output_format: type[ResultT],
     validate: Callable[[ResultT], list[str]],
+    thinking: bool = False,
 ) -> StructuredResponse[ResultT]:
     """
     Send the request, check why generation stopped, and validate the parsed result.
+    With `thinking`, the model uses adaptive thinking before answering.
 
     Raises:
         RuntimeError: on truncation or refusal
@@ -79,15 +81,17 @@ def request_structured(
     output_tokens = 0
     for attempt in range(1, MAX_ATTEMPTS + 1):
         logger.debug(
-            f"{label}: request model={model} max_tokens={max_tokens} "
+            f"{label}: request model={model} max_tokens={max_tokens} thinking={thinking} "
             f"system_chars={len(system)} user_chars={len(user)}"
         )
+        extra = {"thinking": {"type": "adaptive"}} if thinking else {}
         response = client.messages.parse(
             model=model,
             max_tokens=max_tokens,
             system=system,
             messages=[{"role": "user", "content": user}],
             output_format=output_format,
+            **extra,
         )
         logger.debug(
             f"{label}: response request_id={response._request_id} "

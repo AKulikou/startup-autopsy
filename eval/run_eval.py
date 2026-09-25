@@ -35,7 +35,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from config import MODEL  # noqa: E402
+from config import MODEL, THINKING  # noqa: E402
 from core.analysis_runner import AnalysisRunner  # noqa: E402
 from core.idea_input import InvalidIdeaError, prepare_idea  # noqa: E402
 from core.token_summary import estimate_cost  # noqa: E402
@@ -204,7 +204,7 @@ def run_one(flow: str, case: dict, rep: int, out: Path) -> str:
     except CaseError as e:
         append_jsonl(out / "errors.jsonl", {
             "prompt_id": case["id"], "rep": rep, "failure_class": e.failure_class,
-            "error": str(e), "model": MODEL, "usage": e.usage,
+            "error": str(e), "model": MODEL, "thinking": THINKING, "usage": e.usage,
             "cost_usd": estimate_cost(e.usage["input_tokens"], e.usage["output_tokens"]),
         })
         return f"ERROR {e.failure_class}"
@@ -214,7 +214,7 @@ def run_one(flow: str, case: dict, rep: int, out: Path) -> str:
         json.dumps(trace, ensure_ascii=False, indent=2), encoding="utf-8")
     append_jsonl(out / "results.jsonl", {
         "prompt_id": case["id"], "rep": rep, "prompt": case["text"],
-        "tags": [case["category"]], "status": "ok", "grade": grade, "model": MODEL,
+        "tags": [case["category"]], "status": "ok", "grade": grade, "model": MODEL, "thinking": THINKING,
         "usage": usage, "in_tokens": usage["input_tokens"], "out_tokens": usage["output_tokens"],
         "cost_usd": estimate_cost(usage["input_tokens"], usage["output_tokens"]),
         "latency_s": round(time.monotonic() - started, 1), **extra,
@@ -307,6 +307,7 @@ def main() -> None:
     jobs = [(c, rep) for c in cases for rep in range(args.reps) if (c["id"], rep) not in done]
     print(f"{args.flow}/{args.variant}: {len(jobs)} attempts to run "
           f"({len(cases)} cases x {args.reps} reps, {len(done)} already done)")
+    print(f"model={MODEL}, thinking={THINKING}")
 
     started = time.monotonic()
     timeout = CASE_TIMEOUT_S[args.flow]

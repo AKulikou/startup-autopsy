@@ -25,14 +25,27 @@ if not ANTHROPIC_API_KEY or not ANTHROPIC_API_KEY.startswith(API_KEY_PREFIX):
         "Copy .env.example to .env in the project root and set your API key there."
     )
 
-MODEL = "claude-sonnet-4-6"
+# Model for the input check, the lenses and the synthesis. ANALYSIS_MODEL in .env
+# overrides it, so an eval run can compare models without a code change.
+DEFAULT_MODEL = "claude-sonnet-4-6"
+MODEL = os.getenv("ANALYSIS_MODEL", "").strip() or DEFAULT_MODEL
 
 # USD per million tokens: (input, output). Used only for the cost estimate
 # printed after a run; check https://www.anthropic.com/pricing when changing MODEL.
 MODEL_PRICING_PER_MTOK: dict[str, tuple[float, float]] = {
     "claude-sonnet-4-6": (3.00, 15.00),
+    "claude-sonnet-5": (2.00, 10.00),
     "claude-haiku-4-5": (1.00, 5.00),
 }
+
+# Thinking before answering, for the lenses and the synthesis (the input check is
+# a simple classification and never thinks). "off" or "adaptive" (the model
+# decides how much to think). Thinking tokens are billed as output and count
+# against MAX_TOKENS. Set THINKING in .env; an experiment until the eval decides.
+THINKING_MODES = ("off", "adaptive")
+THINKING = os.getenv("THINKING", "").strip().lower() or "off"
+if THINKING not in THINKING_MODES:
+    raise ConfigurationError(f"THINKING must be one of {', '.join(THINKING_MODES)}, got {THINKING!r}")
 
 # Per-evaluator output limit; a truncated response is treated as an error.
 MAX_TOKENS = 16000

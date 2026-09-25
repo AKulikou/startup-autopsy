@@ -8,7 +8,7 @@ ANALYSIS_STANDARDS supply the tone; the EvaluatorResult schema defines the outpu
 import logging
 import time
 
-from config import MAX_TOKENS, MODEL
+from config import MAX_TOKENS, MODEL, THINKING
 from core.claude_client import get_client
 from core.structured_call import billed_tokens, length_problems, request_structured
 from evaluators.lenses import ANALYSIS_STANDARDS, Lens
@@ -98,6 +98,7 @@ class Evaluator:
                 user=self.get_user_prompt(),
                 output_format=EvaluatorResult,
                 validate=validate_result,
+                thinking=THINKING == "adaptive",
             )
             return {
                 "evaluator": self.lens.key,
