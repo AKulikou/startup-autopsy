@@ -17,6 +17,10 @@ class Lens:
     role: str            # who the model acts as
     focus: str           # the single question this lens answers
     questions: tuple[str, ...]
+    # When the lens's question fits an idea; None = it fits every business idea.
+    # With LENS_SELECTION on, the input check skips a lens whose condition fails,
+    # because a lens asked an ill-fitting question produces confident noise.
+    applies_to: str | None = None
 
 
 ANALYSIS_STANDARDS = """\
@@ -79,6 +83,12 @@ LENSES: tuple[Lens, ...] = (
             "Where does no-code break: what needs custom code or manual work, and at what "
             "point would professional developers be required?",
         ),
+        applies_to=(
+            "the product is delivered at least partly through software the founder would "
+            "build: an app, a web service, a marketplace or a site with its own logic. It "
+            "does not fit physical goods or in-person services that need only an ordinary "
+            "shop site or booking tool."
+        ),
     ),
     Lens(
         key="ai_tool_creator",
@@ -92,6 +102,10 @@ LENSES: tuple[Lens, ...] = (
             "What pricing model fits, and why that price point given the underlying AI costs?",
             "What is the concrete plan to acquire the first 10 paying customers? Name real "
             "channels, communities or people, not 'do marketing'.",
+        ),
+        applies_to=(
+            "the product's value depends on AI: language models, machine learning or "
+            "generative AI doing work for the customer."
         ),
     ),
     Lens(
@@ -107,6 +121,9 @@ LENSES: tuple[Lens, ...] = (
             "Project revenue at months 3, 6 and 12 as two clearly separated scenarios: "
             "conservative and optimistic, with the assumptions that differ between them.",
         ),
+        applies_to=(
+            "the product is subscription software."
+        ),
     ),
     Lens(
         key="viral_designer",
@@ -121,6 +138,11 @@ LENSES: tuple[Lens, ...] = (
             "use it? If not, say so plainly.",
             "What conditions must actually hold for organic growth to happen? Separate "
             "required conditions from hopeful assumptions.",
+        ),
+        applies_to=(
+            "users interact with each other through the product or would naturally show it to "
+            "others inside it: social and collaborative tools, marketplaces, consumer apps, "
+            "content products."
         ),
     ),
     Lens(
@@ -149,6 +171,10 @@ LENSES: tuple[Lens, ...] = (
             "Which behavioural signals would predict a cancellation before it happens?",
             "What churn reduction is realistic within 30 days, and under which conditions "
             "would these tactics fail?",
+        ),
+        applies_to=(
+            "the same customers keep using the product over time (a subscription, an app, a "
+            "recurring service), so retention decides the revenue."
         ),
     ),
     Lens(

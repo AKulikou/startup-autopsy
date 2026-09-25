@@ -15,6 +15,7 @@ from core import translator as translator_module
 from evaluators import evaluator as evaluator_module
 from evaluators.schemas import EvaluatorResult
 from gate import idea_gate as gate_module
+from gate import lens_fit as lens_fit_module
 from gate.schemas import GateResult
 from synthesis import synthesizer as synthesizer_module
 from synthesis.schemas import SynthesisResult
@@ -116,6 +117,6 @@ class FakeClaude:
 def fake_claude(monkeypatch) -> FakeClaude:
     """Replace the shared Anthropic client in every module that makes API calls."""
     fake = FakeClaude()
-    for module in (evaluator_module, synthesizer_module, gate_module, translator_module):
+    for module in (evaluator_module, synthesizer_module, gate_module, lens_fit_module, translator_module):
         monkeypatch.setattr(module, "get_client", lambda: fake)
     return fake

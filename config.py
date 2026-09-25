@@ -71,3 +71,9 @@ REPORT_TRANSLATION = os.getenv("REPORT_TRANSLATION", "").strip() or None
 TRANSLATION_MODEL = "claude-haiku-4-5"
 # Also translate the per-lens reports (about six more calls per run).
 TRANSLATE_LENS_REPORTS = os.getenv("TRANSLATE_LENS_REPORTS", "").strip().lower() in ("1", "true", "yes")
+
+# Lens selection per idea: one small call (gate/lens_fit.py) skips an enabled lens whose
+# applicability condition (Lens.applies_to) does not fit the idea. Lenses without
+# a condition always run. Set LENS_SELECTION=on in .env; an experiment until the
+# eval decides.
+LENS_SELECTION = os.getenv("LENS_SELECTION", "").strip().lower() in ("1", "true", "yes", "on")

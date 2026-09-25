@@ -35,7 +35,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from config import MODEL, THINKING  # noqa: E402
+from config import LENS_SELECTION, MODEL, THINKING  # noqa: E402
 from core.analysis_runner import AnalysisRunner  # noqa: E402
 from core.idea_input import InvalidIdeaError, prepare_idea  # noqa: E402
 from core.token_summary import estimate_cost  # noqa: E402
@@ -67,6 +67,8 @@ PERF_FIELDS = [
 ]
 
 write_lock = threading.Lock()
+# Settings that change model behavior, recorded with every row so variants can be told apart.
+RUN_SETTINGS = {"model": MODEL, "thinking": THINKING, "lens_selection": LENS_SELECTION}
 
 
 class CaseError(Exception):
@@ -142,7 +144,7 @@ def run_pipeline_case(case: dict) -> tuple[dict, list[dict], dict]:
     runner = AnalysisRunner(processor=None, confirm_vague_idea=lambda gate: True)
     analysis = runner.analyze(text)
     gate, lenses, synthesis = analysis["gate"], analysis["lenses"], analysis["synthesis"]
-    usage = usage_of(gate, *lenses, synthesis or {})
+    usage = usage_of(gate, analysis["lens_fit"] or {}, *lenses, synthesis or {})
 
     if not analysis["analyzed"]:
         raise CaseError("gate_rejected", f"input check stopped the idea: {gate.get('decision')}", usage)
@@ -173,6 +175,7 @@ def run_pipeline_case(case: dict) -> tuple[dict, list[dict], dict]:
         "verdict": verdict, "confidence": synthesis["confidence"], "expected": case["expected"],
         "gate_decision": gate.get("decision"), "consistency_warnings": warnings,
         "lens_verdicts": {r["evaluator_display"]: r.get("verdict", "FAILED") for r in lenses},
+        "skipped_lenses": [s["lens"] for s in analysis["skipped_lenses"]],
     }}
     return grade, trace, extra
 
@@ -204,7 +207,7 @@ def run_one(flow: str, case: dict, rep: int, out: Path) -> str:
     except CaseError as e:
         append_jsonl(out / "errors.jsonl", {
             "prompt_id": case["id"], "rep": rep, "failure_class": e.failure_class,
-            "error": str(e), "model": MODEL, "thinking": THINKING, "usage": e.usage,
+            "error": str(e), **RUN_SETTINGS, "usage": e.usage,
             "cost_usd": estimate_cost(e.usage["input_tokens"], e.usage["output_tokens"]),
         })
         return f"ERROR {e.failure_class}"
@@ -214,7 +217,7 @@ def run_one(flow: str, case: dict, rep: int, out: Path) -> str:
         json.dumps(trace, ensure_ascii=False, indent=2), encoding="utf-8")
     append_jsonl(out / "results.jsonl", {
         "prompt_id": case["id"], "rep": rep, "prompt": case["text"],
-        "tags": [case["category"]], "status": "ok", "grade": grade, "model": MODEL, "thinking": THINKING,
+        "tags": [case["category"]], "status": "ok", "grade": grade, **RUN_SETTINGS,
         "usage": usage, "in_tokens": usage["input_tokens"], "out_tokens": usage["output_tokens"],
         "cost_usd": estimate_cost(usage["input_tokens"], usage["output_tokens"]),
         "latency_s": round(time.monotonic() - started, 1), **extra,
@@ -307,7 +310,7 @@ def main() -> None:
     jobs = [(c, rep) for c in cases for rep in range(args.reps) if (c["id"], rep) not in done]
     print(f"{args.flow}/{args.variant}: {len(jobs)} attempts to run "
           f"({len(cases)} cases x {args.reps} reps, {len(done)} already done)")
-    print(f"model={MODEL}, thinking={THINKING}")
+    print(", ".join(f"{k}={v}" for k, v in RUN_SETTINGS.items()))
 
     started = time.monotonic()
     timeout = CASE_TIMEOUT_S[args.flow]

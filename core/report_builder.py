@@ -16,6 +16,7 @@ def build_report(
     synthesis: dict,
     lens_results: list[dict],
     input_note: str | None = None,
+    skipped_lenses: list[dict] = (),
 ) -> str:
     """
     Render the final report. If the synthesis failed, say so and show only the
@@ -38,7 +39,7 @@ def build_report(
             "The lens results below answer only their own questions; read their reports "
             "for details."
         )
-        return "\n\n".join([header, body, _lens_appendix(lens_results)]) + "\n"
+        return "\n\n".join([header, body, _lens_appendix(lens_results, skipped_lenses)]) + "\n"
 
     sections = [
         header,
@@ -53,7 +54,7 @@ def build_report(
         f"## What Must Be True\n\n{_assumptions(synthesis['key_assumptions'])}",
         f"## Next Steps\n\n{_numbered(synthesis['next_steps'])}",
         "---",
-        _lens_appendix(lens_results),
+        _lens_appendix(lens_results, skipped_lenses),
         f"## Appendix: How the Verdict Was Reached\n\n{synthesis['reasoning']}",
     ]
     return "\n\n".join(sections) + "\n"
@@ -88,7 +89,7 @@ def _numbered(items: list[str]) -> str:
     return "\n".join(f"{i}. {item}" for i, item in enumerate(items, start=1))
 
 
-def _lens_appendix(lens_results: list[dict]) -> str:
+def _lens_appendix(lens_results: list[dict], skipped_lenses: list[dict] = ()) -> str:
     rows = []
     for r in lens_results:
         name = r["evaluator_display"]
@@ -103,4 +104,15 @@ def _lens_appendix(lens_results: list[dict]) -> str:
         "## Appendix: Lens Results\n\n"
         "Each lens verdict answers only that lens's question.\n\n"
         "| Lens | Lens verdict | Confidence | Summary |\n|---|---|---|---|\n" + "\n".join(rows)
+        + _skipped(skipped_lenses)
+    )
+
+
+def _skipped(skipped_lenses: list[dict]) -> str:
+    if not skipped_lenses:
+        return ""
+    lines = "\n".join(f"- **{s['lens']}:** {s['reason']}" for s in skipped_lenses)
+    return (
+        "\n\nNot run, because the lens fit check found their question does not fit "
+        f"this idea:\n\n{lines}"
     )

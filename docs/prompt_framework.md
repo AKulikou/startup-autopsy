@@ -117,3 +117,18 @@ The final report (`report.md`) shows:
 The synthesis must not depend on specific evaluator names or on a fixed number of
 evaluators: lenses can be modified, combined, reordered, or replaced, and
 domain-specific lenses can be added.
+
+## Lens applicability
+
+A lens asked a question that does not fit the idea produces confident noise: the
+subscription and viral lenses called a local cookie business "not viable". A lens
+can therefore carry an applicability condition (`Lens.applies_to`, e.g. "the
+product's value depends on AI"); a lens without one fits every business idea.
+With `LENS_SELECTION=on`, one small call (`gate/lens_fit.py`) decides for each
+enabled conditional lens whether its condition holds, and the lenses that do not
+fit are skipped and listed in the report. It judges fit, not quality, and when
+unsure the lens runs.
+
+This is a separate call from the input check on purpose: asked together, the lens
+conditions leaked into the input check, which then accepted vague ideas ("an online
+learning platform") as analyzable.

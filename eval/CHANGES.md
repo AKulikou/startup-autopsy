@@ -12,6 +12,31 @@ code version can be measured in several variants.
 Entry format: date, commit, what changed, expected effect, how it was checked
 so far, and the eval result once there is one.
 
+## 2026-09-25 — lens selection per idea (off by default)
+
+- **Change:** lenses can carry an applicability condition (`Lens.applies_to`):
+  No-Code Stack Master, Viral Product Designer, Churn Eliminator, and the
+  not-enabled AI Tool Creator and SaaS Revenue Builder. With `LENS_SELECTION=on`
+  a separate call (`gate/lens_fit.py`, about 0.006 USD) skips enabled lenses
+  whose condition fails; the report lists them with the reason.
+- **Expected:** less lens noise on ideas the lenses do not fit (cookies, salon
+  bookkeeping, physical goods), so fewer "not viable because not scalable"
+  verdicts; slightly cheaper runs. Risk: a skipped lens can no longer raise a
+  problem, so a wrongly skipped lens can lose a real finding.
+- **Checked:**
+  - First version asked the input check itself: gate eval (`--variant
+    lens_selection`) fell from 93/93 to 83/93, with 10 vague ideas accepted as
+    analyzable. Moved to a separate call; the input check prompt is unchanged.
+  - Lens fit on the 17 pipeline ideas, 2 reps: skips are plausible (viral for
+    solo tools, no-code and viral for salon bookkeeping, three lenses for
+    cookies); no lens skipped on software products because it would score badly
+    (the first version skipped no-code for 'too complex'). 3 of 17 ideas got
+    different skips between reps.
+  - One full run (good_salon_bookkeeping): 4 of 6 lenses, Viable if, report
+    lists the skipped lenses.
+- **Eval:** planned variant `lens_selection` against the winner of the model
+  and thinking comparison. Look at cookies, salon and forged lens cases.
+
 ## 2026-09-25 — model and thinking switches (off by default)
 
 - **Change:** `ANALYSIS_MODEL` selects the analysis model (default

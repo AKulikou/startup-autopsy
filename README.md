@@ -187,17 +187,26 @@ translation cost on Sonnet 4.6.
 `TRANSLATE_LENS_REPORTS=true` translates the lens reports too. The eval never
 translates.
 
+**Experiments.** Three `.env` switches change model behavior; they stay off
+until the weekly eval shows they help (see [eval/CHANGES.md](eval/CHANGES.md)):
+`ANALYSIS_MODEL` (another analysis model, e.g. `claude-sonnet-5`),
+`THINKING=adaptive` (the lenses and the synthesis think before answering), and
+`LENS_SELECTION=on` (one small call, about $0.006, skips lenses whose question
+does not fit the idea, such as the viral lens for a local bakery; the report
+lists what was skipped and why).
+
 ## Project structure
 
 ```
 main.py                    CLI: logging setup and idea selection
-config.py                  API key check, model, token limit, enabled lenses
+config.py                  API key check, model, token limit, enabled lenses, experiment switches
 evaluators/
   lenses.py                all lenses as data + shared analysis standards
   evaluator.py             builds prompts from a lens and calls Claude
   schemas.py               EvaluatorResult: the structured output schema
 gate/
   idea_gate.py             input check: is this an analyzable business idea?
+  lens_fit.py              lens fit: which conditional lenses fit this idea (LENS_SELECTION)
   schemas.py               GateResult: the input check output schema
 synthesis/
   synthesizer.py           overall verdict from all lens results

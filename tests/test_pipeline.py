@@ -9,6 +9,7 @@ from config import ENABLED_LENSES
 from core.analysis_runner import AnalysisRunner
 from evaluators.lenses import select_lenses
 from evaluators.schemas import EvaluatorResult
+from gate.lens_fit import LensFitResult
 from gate.schemas import GateResult
 from synthesis.schemas import SynthesisResult
 
@@ -108,3 +109,55 @@ def test_lens_prompt_wraps_the_idea_and_treats_its_claims_as_unverified(fake_cla
     assert "<business_idea>" in request["messages"][0]["content"]
     assert "unverified" in request["system"]
     assert "single quotes" in request["system"]
+
+
+
+def enable_lens_selection(monkeypatch):
+    import core.analysis_runner as runner_module
+    monkeypatch.setattr(runner_module, "LENS_SELECTION", True)
+    return [lens for lens in select_lenses(ENABLED_LENSES) if lens.applies_to]
+
+
+def fits(candidates, misfit_key=None):
+    return LensFitResult(lens_fit=[
+        {"lens": lens.key, "applies": lens.key != misfit_key, "reason": "A reason for this."}
+        for lens in candidates
+    ])
+
+
+def test_without_lens_selection_there_is_no_lens_fit_call(fake_claude):
+    analysis = analyze()
+    assert fake_claude.calls(LensFitResult) == [] and analysis["skipped_lenses"] == []
+
+
+def test_lens_selection_skips_a_lens_that_does_not_fit(fake_claude, monkeypatch):
+    candidates = enable_lens_selection(monkeypatch)
+    misfit = candidates[0]
+    fake_claude.handlers[LensFitResult] = lambda kw: response(fits(candidates, misfit.key))
+    analysis = analyze()
+
+    fit_prompt = fake_claude.calls(LensFitResult)[0]["messages"][0]["content"]
+    assert all(f"- {lens.key}:" in fit_prompt for lens in candidates)
+    assert "<candidate" not in fake_claude.calls(GateResult)[0]["messages"][0]["content"]
+    assert len(fake_claude.calls(EvaluatorResult)) == len(LENS_NAMES) - 1
+    assert misfit.name not in [r["evaluator_display"] for r in analysis["lenses"]]
+    assert analysis["skipped_lenses"] == [{"lens": misfit.name, "reason": "A reason for this."}]
+
+
+def test_lens_fit_answer_missing_a_candidate_is_retried(fake_claude, monkeypatch):
+    candidates = enable_lens_selection(monkeypatch)
+    answers = [LensFitResult(lens_fit=fits(candidates).lens_fit[1:]), fits(candidates)]
+    fake_claude.handlers[LensFitResult] = lambda kw: response(answers.pop(0))
+    analyze()
+    assert len(fake_claude.calls(LensFitResult)) == 2
+
+
+def test_failed_lens_fit_runs_every_lens(fake_claude, monkeypatch):
+    enable_lens_selection(monkeypatch)
+
+    def fail(kw):
+        raise RuntimeError("API down")
+    fake_claude.handlers[LensFitResult] = fail
+    analysis = analyze()
+    assert len(fake_claude.calls(EvaluatorResult)) == len(LENS_NAMES)
+    assert analysis["lens_fit"]["status"] == "error" and analysis["skipped_lenses"] == []

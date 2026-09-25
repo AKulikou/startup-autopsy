@@ -33,12 +33,15 @@ pursuing at all?": a lens that judges the whole idea becomes a second judge,
 and in this project the synthesis then followed that lens's verdict in every
 run (this is why the Reality Auditor was narrowed).
 
-**Applies to most ideas, or is marked as domain-specific.** A lens whose
-question does not fit an idea produces confident noise (subscription and viral
-lenses called a local cookie business "not viable"). A domain lens (legal, AI,
-software architecture, construction) should only run where it applies; until
-the input check selects lenses per idea, leave such a lens defined but not
-enabled, and tell the user.
+**Applies to most ideas, or says when it applies.** A lens whose question does
+not fit an idea produces confident noise (subscription and viral lenses called a
+local cookie business "not viable"). If the lens fits only some ideas, give it an
+`applies_to` condition: one plain sentence finishing "Fits when ..." ("the
+product's value depends on AI: ..."), about the idea's nature, never its quality.
+With `LENS_SELECTION=on` the lens fit check skips it where the condition fails.
+A domain lens (legal, AI, software architecture) always needs a condition; while
+`LENS_SELECTION` is off by default, tell the user that enabling such a lens
+makes it run on every idea.
 
 **Questions ask, they do not format.** Three to five lens-specific questions.
 The output format, verdict scale, confidence and red flags come from the shared

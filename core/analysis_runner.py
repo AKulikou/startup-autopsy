@@ -16,6 +16,7 @@ from pathlib import Path
 
 from config import (
     ENABLED_LENSES,
+    LENS_SELECTION,
     MODEL,
     REPORT_TRANSLATION,
     THINKING,
@@ -28,9 +29,10 @@ from core.report_builder import build_report
 from core.token_summary import estimate_cost, format_cost, log_token_summary
 from core.translator import translate_markdown
 from evaluators.evaluator import Evaluator
-from evaluators.lenses import select_lenses
+from evaluators.lenses import Lens, select_lenses
 from evaluators.schemas import confidence_label, verdict_label
 from gate.idea_gate import GATE_LABEL, NEXT_STEP_HINT, IdeaGate
+from gate.lens_fit import LENS_FIT_LABEL, LensFitCheck
 from gate.schemas import GateDecision, gate_decision_label
 from synthesis.synthesizer import SYNTHESIS_LABEL, Synthesizer
 
@@ -85,14 +87,16 @@ class AnalysisRunner:
         lens_paths = self._save_reports(results, run_dir, idea_name, started_at)
         report_path = self.processor.save_report(
             run_dir,
-            build_report(idea_name, started_at, synthesis, results, analysis["input_note"]),
+            build_report(idea_name, started_at, synthesis, results, analysis["input_note"],
+                         analysis["skipped_lenses"]),
         )
         logger.info(f"Report: {report_path}")
         translations = []
         if REPORT_TRANSLATION:
             to_translate = [report_path] + (lens_paths if TRANSLATE_LENS_REPORTS else [])
             translations = self._translate_reports(to_translate, REPORT_TRANSLATION)
-        log_token_summary([analysis["gate"]] + results + [synthesis] + translations)
+        checks = [analysis["gate"]] + ([analysis["lens_fit"]] if analysis["lens_fit"] else [])
+        log_token_summary(checks + results + [synthesis] + translations)
         return report_path
 
     def analyze(self, idea_content: str) -> dict:
@@ -103,17 +107,23 @@ class AnalysisRunner:
 
         Returns:
             {"analyzed": bool, "gate": dict, "input_note": str | None,
-             "lenses": list[dict], "synthesis": dict | None}
+             "lens_fit": dict | None, "lenses": list[dict], "skipped_lenses": list[dict],
+             "synthesis": dict | None}
+
+            lens_fit: the lens fit call's result (LENS_SELECTION only).
+            skipped_lenses: {"lens": display name, "reason": str} for each enabled
+            lens found not to fit the idea.
         """
         gate = self._run_gate(idea_content)
         if not self._gate_allows(gate):
-            return {"analyzed": False, "gate": gate, "input_note": None,
-                    "lenses": [], "synthesis": None}
+            return {"analyzed": False, "gate": gate, "input_note": None, "lens_fit": None,
+                    "lenses": [], "skipped_lenses": [], "synthesis": None}
         input_note = self._input_note(gate)
-        lenses = self._run_evaluators(idea_content, input_note)
+        lens_fit, to_run, skipped = self._select_lenses(idea_content)
+        lenses = self._run_evaluators(idea_content, input_note, to_run)
         synthesis = self._run_synthesis(idea_content, lenses, input_note)
-        return {"analyzed": True, "gate": gate, "input_note": input_note,
-                "lenses": lenses, "synthesis": synthesis}
+        return {"analyzed": True, "gate": gate, "input_note": input_note, "lens_fit": lens_fit,
+                "lenses": lenses, "skipped_lenses": skipped, "synthesis": synthesis}
 
     def _load_idea(self, idea_name: str) -> str | None:
         raw_content = self.processor.load_idea(idea_name)
@@ -132,7 +142,8 @@ class AnalysisRunner:
 
         logger.info(
             f"Idea: {idea_name} ({len(idea_content)} chars), "
-            f"{len(self.lenses)} lenses, model {MODEL}, thinking {THINKING}"
+            f"{len(self.lenses)} lenses, model {MODEL}, thinking {THINKING}, "
+            f"lens selection {'on' if LENS_SELECTION else 'off'}"
         )
         return idea_content
 
@@ -192,16 +203,47 @@ class AnalysisRunner:
             )
         return " ".join(notes) or None
 
-    def _run_evaluators(self, idea_content: str, input_note: str | None) -> list[dict]:
-        total = len(self.lenses)
-        prefixes = [f"[{index}/{total}] {lens.name}" for index, lens in enumerate(self.lenses, start=1)]
+    def _select_lenses(
+        self, idea_content: str
+    ) -> tuple[dict | None, tuple[Lens, ...], list[dict]]:
+        """
+        With LENS_SELECTION, ask which conditional lenses fit the idea and split the
+        enabled lenses into those to run and those skipped. If the check fails,
+        every enabled lens runs: an extra lens costs money, a missing one a finding.
+
+        Returns (lens fit result or None, lenses to run, skipped lenses).
+        """
+        candidates = tuple(lens for lens in self.lenses if lens.applies_to)
+        if not LENS_SELECTION or not candidates:
+            return None, self.lenses, []
+        fit = LensFitCheck(idea_content, candidates).check()
+        if fit["status"] != "success":
+            logger.warning(f"[{LENS_FIT_LABEL}] ... FAILED: {fit['error']}; running every lens")
+            return fit, self.lenses, []
+        misfits = {f["lens"]: f["reason"] for f in fit["lens_fit"] if not f["applies"]}
+        to_run = tuple(lens for lens in self.lenses if lens.key not in misfits)
+        skipped = [{"lens": lens.name, "reason": misfits[lens.key]}
+                   for lens in self.lenses if lens.key in misfits]
+        logger.info(
+            f"[{LENS_FIT_LABEL}] ... done in {fit['duration_s']:.0f}s: "
+            f"{len(to_run)} of {len(self.lenses)} lenses fit this idea"
+        )
+        for entry in skipped:
+            logger.info(f"[{LENS_FIT_LABEL}] skipping {entry['lens']}: {entry['reason']}")
+        return fit, to_run, skipped
+
+    def _run_evaluators(
+        self, idea_content: str, input_note: str | None, lenses: tuple[Lens, ...]
+    ) -> list[dict]:
+        total = len(lenses)
+        prefixes = [f"[{index}/{total}] {lens.name}" for index, lens in enumerate(lenses, start=1)]
         results: list[dict | None] = [None] * total
 
         started = time.monotonic()
         # One thread per lens: all enabled lenses start at once.
         with ThreadPoolExecutor(max_workers=total) as pool:
             futures = {}
-            for index, lens in enumerate(self.lenses):
+            for index, lens in enumerate(lenses):
                 logger.info(f"{prefixes[index]} ... started")
                 futures[pool.submit(Evaluator(lens, idea_content, input_note).evaluate)] = index
             for finished, future in enumerate(as_completed(futures), start=1):

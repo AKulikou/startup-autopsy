@@ -82,3 +82,11 @@ def test_each_call_is_priced_with_its_own_model(monkeypatch, caplog):
         token_summary.log_token_summary(calls)
     # 1M Sonnet input tokens at $3 plus 1M Haiku output tokens at $5.
     assert "est. cost $8.0000 (claude-haiku-4-5, claude-sonnet-4-6)" in caplog.text
+
+
+def test_report_lists_lenses_skipped_by_the_input_check():
+    skipped = [{"lens": "Viral Product Designer", "reason": "A local bakery has no network effect."}]
+    report = build_report("idea", datetime(2026, 9, 25), synthesis_row(), [lens_row("Reality Auditor")],
+                          skipped_lenses=skipped)
+    assert "- **Viral Product Designer:** A local bakery has no network effect." in report
+    assert "Not run" not in build_report("idea", datetime(2026, 9, 25), synthesis_row(), [])
