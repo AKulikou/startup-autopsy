@@ -8,9 +8,8 @@ ANALYSIS_STANDARDS supply the tone; the EvaluatorResult schema defines the outpu
 import logging
 import time
 
-from anthropic import Anthropic
-
-from config import ANTHROPIC_API_KEY, MODEL, MAX_TOKENS
+from config import MODEL, MAX_TOKENS
+from core.claude_client import get_client
 from core.structured_call import billed_tokens, request_structured
 from evaluators.lenses import ANALYSIS_STANDARDS, Lens
 from evaluators.schemas import EvaluatorResult
@@ -44,7 +43,7 @@ class Evaluator:
     def __init__(self, lens: Lens, business_idea: str):
         self.lens = lens
         self.business_idea = business_idea
-        self.client = Anthropic(api_key=ANTHROPIC_API_KEY)
+        self.client = get_client()
         self.model = MODEL
         self.max_tokens = MAX_TOKENS
 

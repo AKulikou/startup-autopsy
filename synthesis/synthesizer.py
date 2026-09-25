@@ -9,9 +9,8 @@ analysis) and decides on the whole business, following SYNTHESIS_PRINCIPLES.
 import logging
 import time
 
-from anthropic import Anthropic
-
-from config import ANTHROPIC_API_KEY, MAX_TOKENS, MODEL
+from config import MAX_TOKENS, MODEL
+from core.claude_client import get_client
 from core.structured_call import billed_tokens, request_structured
 from evaluators.schemas import Verdict, confidence_label, verdict_label
 from synthesis.schemas import SynthesisResult
@@ -114,7 +113,7 @@ class Synthesizer:
     def __init__(self, business_idea: str, lens_results: list[dict]):
         self.business_idea = business_idea
         self.lens_results = lens_results
-        self.client = Anthropic(api_key=ANTHROPIC_API_KEY)
+        self.client = get_client()
         self.model = MODEL
         self.max_tokens = MAX_TOKENS
 
