@@ -174,8 +174,9 @@ startup if the key is missing or malformed.
 **Reports in another language.** The analysis always runs in English, and the
 English reports are the source of truth. To also get a translated copy, add
 `REPORT_TRANSLATION=Russian` (or any language) to `.env`: each run then writes
-`report.russian.md` next to `report.md` with one extra call (measured on a
-six-lens run: about $0.12 and two minutes, since translated text is longer).
+`report.russian.md` next to `report.md` with one extra call to Claude Haiku 4.5
+(`TRANSLATION_MODEL`), the cheapest model: about a third of the $0.12 the same
+translation cost on Sonnet 4.6.
 `TRANSLATE_LENS_REPORTS=true` translates the lens reports too. The eval never
 translates.
 
