@@ -15,6 +15,7 @@ from evaluators import evaluator as evaluator_module  # noqa: E402
 from evaluators.schemas import EvaluatorResult  # noqa: E402
 from gate import idea_gate as gate_module  # noqa: E402
 from gate.schemas import GateResult  # noqa: E402
+from core import translator as translator_module  # noqa: E402
 from synthesis import synthesizer as synthesizer_module  # noqa: E402
 from synthesis.schemas import SynthesisResult  # noqa: E402
 
@@ -74,6 +75,14 @@ def response(parsed, stop_reason="end_turn", input_tokens=1000, output_tokens=50
     )
 
 
+def text_response(text, stop_reason="end_turn", input_tokens=3000, output_tokens=4000):
+    return SimpleNamespace(
+        content=[SimpleNamespace(type="text", text=text)],
+        stop_reason=stop_reason,
+        usage=SimpleNamespace(input_tokens=input_tokens, output_tokens=output_tokens),
+    )
+
+
 class FakeClaude:
     """
     Answers messages.parse() by output schema. Each handler takes the request
@@ -87,7 +96,13 @@ class FakeClaude:
             EvaluatorResult: lambda kwargs: response(lens_result()),
             SynthesisResult: lambda kwargs: response(synthesis_result()),
         }
-        self.messages = SimpleNamespace(parse=self._parse)
+        # Plain-text requests (translation): returns the "translated" text.
+        self.create_handler = lambda kwargs: text_response("ПЕРЕВЕДЁННЫЙ ОТЧЁТ")
+        self.messages = SimpleNamespace(parse=self._parse, create=self._create)
+
+    def _create(self, **kwargs):
+        self.requests.append({**kwargs, "output_format": None})
+        return self.create_handler(kwargs)
 
     def _parse(self, **kwargs):
         self.requests.append(kwargs)
@@ -101,6 +116,6 @@ class FakeClaude:
 def fake_claude(monkeypatch) -> FakeClaude:
     """Replace the shared Anthropic client in every module that makes API calls."""
     fake = FakeClaude()
-    for module in (evaluator_module, synthesizer_module, gate_module):
+    for module in (evaluator_module, synthesizer_module, gate_module, translator_module):
         monkeypatch.setattr(module, "get_client", lambda: fake)
     return fake

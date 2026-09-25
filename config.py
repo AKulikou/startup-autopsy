@@ -48,3 +48,10 @@ ENABLED_LENSES = (
     "viral_designer",
     "reality_auditor",
 )
+
+# Optional translated copies of the reports, for readers who prefer another
+# language. The analysis always runs in English and the English reports stay the
+# source of truth. Set in .env, e.g. REPORT_TRANSLATION=Russian; unset = English only.
+REPORT_TRANSLATION = os.getenv("REPORT_TRANSLATION", "").strip() or None
+# Also translate the per-lens reports (about six more calls per run).
+TRANSLATE_LENS_REPORTS = os.getenv("TRANSLATE_LENS_REPORTS", "").strip().lower() in ("1", "true", "yes")

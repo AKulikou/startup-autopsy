@@ -171,6 +171,13 @@ quick, cheaper runs.
 The API key is read from `.env` (`ANTHROPIC_API_KEY`). The program stops at
 startup if the key is missing or malformed.
 
+**Reports in another language.** The analysis always runs in English, and the
+English reports are the source of truth. To also get a translated copy, add
+`REPORT_TRANSLATION=Russian` (or any language) to `.env`: each run then writes
+`report.russian.md` next to `report.md` with one extra call (about $0.05).
+`TRANSLATE_LENS_REPORTS=true` translates the lens reports too. The eval never
+translates.
+
 ## Project structure
 
 ```
@@ -189,6 +196,7 @@ synthesis/
 core/
   analysis_runner.py       orchestration: lenses, synthesis, reports
   structured_call.py       shared Claude request with validation and one retry
+  translator.py            optional translated copies of finished reports
   idea_input.py            local checks and quote normalization of the idea text
   report_builder.py        the final report.md
   result_writer.py         Markdown report files

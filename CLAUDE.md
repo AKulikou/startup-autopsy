@@ -39,6 +39,7 @@ change; run the eval after any change to prompts, lenses or the model.
 - `gate/idea_gate.py` — `IdeaGate`: one Claude call that decides NOT_AN_IDEA / TOO_VAGUE / ANALYZABLE before the lenses run (`gate/schemas.py` — `GateResult`)
 - `core/idea_input.py` — local checks before any API call (empty or letterless input is rejected; straight double quotes become typographic)
 - `core/analysis_runner.py` — orchestrates load → lenses → synthesis → reports → token stats
+- `core/translator.py` — optional translated copies of finished reports (`REPORT_TRANSLATION` in `.env`); the analysis stays English
 - `core/report_builder.py` — builds `report.md` (synthesis first, lens results as appendix)
 - `core/idea_processor.py`, `file_manager.py`, `result_writer.py` — idea I/O and Markdown output
 - `ideas/` — input ideas (`.txt`); `results/`, `logs/` — generated, git-ignored

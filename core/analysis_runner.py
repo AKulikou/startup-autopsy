@@ -14,7 +14,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Callable, Optional
 
-from config import ENABLED_LENSES, MODEL
+from config import ENABLED_LENSES, MODEL, REPORT_TRANSLATION, TRANSLATE_LENS_REPORTS
 from evaluators.evaluator import Evaluator
 from evaluators.lenses import select_lenses
 from evaluators.schemas import confidence_label, verdict_label
@@ -23,6 +23,7 @@ from gate.schemas import GateDecision, gate_decision_label
 from core.idea_input import InvalidIdeaError, prepare_idea
 from core.idea_processor import IdeaProcessor
 from core.report_builder import build_report
+from core.translator import translate_markdown
 from core.token_summary import estimate_cost, format_cost, log_token_summary
 from synthesis.synthesizer import SYNTHESIS_LABEL, Synthesizer
 
@@ -66,13 +67,17 @@ class AnalysisRunner:
         results, synthesis = analysis["lenses"], analysis["synthesis"]
 
         run_dir = self.processor.create_run_dir(idea_name, started_at)
-        self._save_reports(results, run_dir, idea_name, started_at)
+        lens_paths = self._save_reports(results, run_dir, idea_name, started_at)
         report_path = self.processor.save_report(
             run_dir,
             build_report(idea_name, started_at, synthesis, results, analysis["input_note"]),
         )
         logger.info(f"Report: {report_path}")
-        log_token_summary([analysis["gate"]] + results + [synthesis])
+        translations = []
+        if REPORT_TRANSLATION:
+            to_translate = [report_path] + (lens_paths if TRANSLATE_LENS_REPORTS else [])
+            translations = self._translate_reports(to_translate, REPORT_TRANSLATION)
+        log_token_summary([analysis["gate"]] + results + [synthesis] + translations)
 
         return synthesis["status"] == "success"
 
@@ -213,11 +218,45 @@ class AnalysisRunner:
 
     def _save_reports(
         self, results: list[dict], run_dir: Path, idea_name: str, started_at: datetime
-    ) -> None:
+    ) -> list[Path]:
+        paths = []
         for result in results:
             if result["status"] == "success":
                 path = self.processor.save_analysis(run_dir, idea_name, started_at, result)
                 logger.debug(f"Saved {result['evaluator_display']} report: {path}")
+                paths.append(path)
+        return paths
+
+    @staticmethod
+    def _translate_reports(paths: list[Path], language: str) -> list[dict]:
+        """
+        Write <name>.<language>.md next to each English report. A failed
+        translation is logged and skipped; the English report is unaffected.
+        """
+        suffix = language.strip().lower().replace(" ", "_")
+        logger.info(f"[Translation] ... started: {len(paths)} report(s) into {language}")
+
+        def translate(path: Path) -> dict:
+            outcome = translate_markdown(path.read_text(encoding="utf-8"), language)
+            outcome["evaluator_display"] = f"Translation of {path.name}"
+            if outcome["status"] == "success":
+                path.with_name(f"{path.stem}.{suffix}.md").write_text(outcome["text"], encoding="utf-8")
+            return outcome
+
+        with ThreadPoolExecutor(max_workers=len(paths)) as pool:
+            outcomes = list(pool.map(translate, paths))
+
+        for outcome in outcomes:
+            if outcome["status"] != "success":
+                logger.warning(f"[Translation] {outcome['evaluator_display']} FAILED: {outcome['error']}")
+        done = [o for o in outcomes if o["status"] == "success"]
+        if done:
+            cost = estimate_cost(sum(o["input_tokens"] for o in done), sum(o["output_tokens"] for o in done))
+            logger.info(
+                f"[Translation] ... done: {len(done)} of {len(paths)} report(s), "
+                f"{format_cost(cost)}; main report: report.{suffix}.md"
+            )
+        return outcomes
 
     def _run_synthesis(
         self, idea_content: str, results: list[dict], input_note: Optional[str]
