@@ -267,3 +267,7 @@ Next:
 3. A skill that teaches Claude to use the MCP tools well (clarify vague ideas
    first, present the verdict without softening it).
 4. Optional: JSON/PDF export, persistence, web UI.
+
+## License
+
+MIT, see [LICENSE](LICENSE).
