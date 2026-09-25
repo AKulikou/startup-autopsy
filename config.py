@@ -38,4 +38,10 @@ MAX_TOKENS = 16000
 
 # Lenses to run, by key (see evaluators/lenses.py for all eight).
 # Evaluators run sequentially for now, so each extra lens adds ~1 minute.
-ENABLED_LENSES = ("profitable_designer", "no_code_stack", "reality_auditor")
+ENABLED_LENSES = (
+    "profitable_designer",
+    "no_code_stack",
+    "launch_expert",
+    "churn_eliminator",
+    "reality_auditor",
+)

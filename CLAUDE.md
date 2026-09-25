@@ -52,8 +52,8 @@ Eight prompts, each a distinct lens (must not overlap):
 | 3 | AI Tool Creator | AI differentiation, pricing rationale, first 10 customers | defined |
 | 4 | SaaS Revenue Builder | Pricing tiers, churn, 3/6/12-month optimistic vs conservative | defined |
 | 5 | Viral Product Designer | Network effects, conditions for organic growth | defined |
-| 6 | Launch Expert | First-week traction grounded in real audience size | defined |
-| 7 | Churn Eliminator | Onboarding, habit loops, when retention tactics fail | defined |
+| 6 | Launch Expert | First-week traction grounded in real audience size | enabled |
+| 7 | Churn Eliminator | Onboarding, habit loops, when retention tactics fail | enabled |
 | 8 | Reality Auditor | Killer risk, true timeline, go/no-go criteria | enabled |
 
 Prompts are meant to be modified, combined, or replaced. **Synthesis and reporting

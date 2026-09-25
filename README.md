@@ -29,7 +29,7 @@ an app that charges your card when your weight goes up:
 | A major payment processor will approve automatic variable charges tied to body weight | Submit a merchant application to Stripe describing the exact use case | Stripe rejects it or requires an escrow model |
 | Users will trust a new app with card authorization for unpredictable charges | Landing page asking 200 visitors to pre-authorize a $10 variable charge | Fewer than 10 of 200 complete it |
 
-All three enabled lenses independently named the payment processor as the
+All three lenses enabled at the time independently named the payment processor as the
 killer risk; the synthesis treats such independent agreement as strong evidence.
 
 ## How it works
@@ -90,8 +90,8 @@ Eight lenses are defined in [`evaluators/lenses.py`](evaluators/lenses.py);
 | AI Tool Creator | Is the AI capability genuinely useful and differentiated? | |
 | SaaS Revenue Builder | Is there a realistic path to sustainable recurring revenue? | |
 | Viral Product Designer | Can this grow through users themselves, without paid acquisition? | |
-| Launch Expert | What can realistically be achieved in the first week after launch? | |
-| Churn Eliminator | Will users stay, and what keeps them from cancelling? | |
+| Launch Expert | What can realistically be achieved in the first week after launch? | yes |
+| Churn Eliminator | Will users stay, and what keeps them from cancelling? | yes |
 | Reality Auditor | Before committing serious time: is this worth pursuing at all? | yes |
 
 The design rules behind the lenses (no overlap, shared analysis standards, output
@@ -117,8 +117,8 @@ The CLI lists the ideas in `ideas/`. Pick one by number or name, and the reports
 are written to `results/`. Logs go to `logs/`.
 
 **Time and cost.** Lenses currently run one after another, about a minute each,
-so the default three take about 3 minutes. One run with three lenses on
-`claude-sonnet-4-6` costs roughly $0.10–0.20, depending on the length of the idea
+followed by the synthesis, so the default five lenses take about 7 minutes. One run
+on `claude-sonnet-4-6` costs roughly $0.30–0.40, depending on the length of the idea
 and of the answers.
 
 ## Adding your own idea
@@ -161,7 +161,7 @@ quick, cheaper runs.
 | `MODEL` | `claude-sonnet-4-6` | Claude model used by all lenses |
 | `MODEL_PRICING_PER_MTOK` | Sonnet 4.6 rates | Input/output prices for the cost estimate after a run; add an entry when changing `MODEL` |
 | `MAX_TOKENS` | `16000` | Output limit per lens; a truncated answer is treated as an error |
-| `ENABLED_LENSES` | three lenses | Which lenses run, by key |
+| `ENABLED_LENSES` | five lenses | Which lenses run, by key |
 
 The API key is read from `.env` (`ANTHROPIC_API_KEY`). The program stops at
 startup if the key is missing or malformed.
@@ -194,7 +194,7 @@ docs/prompt_framework.md   evaluator framework specification
 
 ## Status and roadmap
 
-Working now: eight defined lenses (three enabled by default), structured output,
+Working now: eight defined lenses (five enabled by default), structured output,
 a Claude-based synthesis that decides the overall verdict, and a final report
 with the lens reports as an appendix.
 
