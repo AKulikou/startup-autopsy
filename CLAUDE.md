@@ -28,7 +28,7 @@ No test suite yet.
 
 - `main.py` — CLI entry point, logging setup, idea selection
 - `config.py` — API key check, model, token limit, enabled lenses
-- `evaluators/lenses.py` — the eight lenses as data (role, focus, questions) + shared `ANALYSIS_STANDARDS`
+- `evaluators/lenses.py` — all lenses as data (role, focus, questions) + shared `ANALYSIS_STANDARDS`
 - `evaluators/evaluator.py` — `Evaluator`: builds prompts from a lens, calls Claude with structured output
 - `evaluators/schemas.py` — `EvaluatorResult` Pydantic schema (verdict, confidence, assumptions, killer risk, next steps)
 - `synthesis/synthesizer.py` — `Synthesizer`: one Claude call that reads all lens results and decides the overall verdict (`SYNTHESIS_PRINCIPLES`); `synthesis/schemas.py` — `SynthesisResult`
@@ -44,7 +44,7 @@ No test suite yet.
 Full specification: [docs/prompt_framework.md](docs/prompt_framework.md) — read it
 before adding or changing an evaluator or the synthesis.
 
-Eight prompts, each a distinct lens (must not overlap):
+Each prompt is a distinct lens (lenses must not overlap):
 
 | # | Evaluator | Lens | Status |
 |---|-----------|------|--------|
@@ -52,7 +52,7 @@ Eight prompts, each a distinct lens (must not overlap):
 | 2 | No-Code Stack Master | 7-day no-code MVP, concrete stack, day-7 scope | enabled |
 | 3 | AI Tool Creator | AI differentiation, pricing rationale, first 10 customers | defined |
 | 4 | SaaS Revenue Builder | Pricing tiers, churn, 3/6/12-month optimistic vs conservative | defined |
-| 5 | Viral Product Designer | Network effects, conditions for organic growth | defined |
+| 5 | Viral Product Designer | Network effects, conditions for organic growth | enabled |
 | 6 | Launch Expert | First-week traction grounded in real audience size | enabled |
 | 7 | Churn Eliminator | Onboarding, habit loops, when retention tactics fail | enabled |
 | 8 | Reality Auditor | Killer risk, true timeline, go/no-go criteria | enabled |
@@ -60,7 +60,7 @@ Eight prompts, each a distinct lens (must not overlap):
 Prompts are meant to be modified, combined, or replaced. **Synthesis and reporting
 code must not depend on specific evaluator names or on a fixed evaluator count.**
 
-All eight are defined in `evaluators/lenses.py`; `ENABLED_LENSES` in `config.py`
+All lenses are defined in `evaluators/lenses.py`; `ENABLED_LENSES` in `config.py`
 selects which run. Lens prompts ask only lens-specific questions — the output
 format comes from the schema.
 
@@ -95,7 +95,7 @@ These define what a "correct" report is — apply them when editing prompts or s
 
 - **Phase 2 (done):** 3 evaluators, CLI, Markdown reports, heuristic synthesis.
 - **Phase 3 (current):** Claude-based synthesis replacing keyword heuristics; structured
-  evaluator output; async parallel evaluation; remaining 5 evaluators; error handling.
+  evaluator output; parallel evaluation; remaining and domain-specific lenses; error handling.
 - **Phase 4:** MCP server interface; optional web UI, persistence, JSON/PDF export.
 
 ## Known issues

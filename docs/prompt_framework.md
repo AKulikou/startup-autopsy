@@ -1,6 +1,6 @@
 # Analytical Prompt Framework
 
-Startup Autopsy evaluates a business idea through eight independent analytical
+Startup Autopsy evaluates a business idea through several independent analytical
 lenses. Each lens is run by the same evaluator (one Claude call per
 lens); their outputs are then synthesized into a single report.
 
@@ -56,7 +56,7 @@ good the idea is: `HIGH` rests on facts, regulations or arithmetic, `MEDIUM` on
 plausible but unverified assumptions, `LOW` on a judgement call with key
 information missing.
 
-## The eight lenses
+## The lenses
 
 The prompt text of every lens lives in `evaluators/lenses.py`; this section
 summarises what each lens covers. A lens only asks its own questions: the

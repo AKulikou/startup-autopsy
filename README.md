@@ -80,7 +80,7 @@ Confidence is `LOW`, `MEDIUM` or `HIGH`, always with a one-sentence reason.
 
 ### Lenses
 
-Eight lenses are defined in [`evaluators/lenses.py`](evaluators/lenses.py);
+The lenses are defined in [`evaluators/lenses.py`](evaluators/lenses.py);
 `ENABLED_LENSES` in [`config.py`](config.py) selects which ones run.
 
 | Lens | Answers the question | Enabled by default |
@@ -89,7 +89,7 @@ Eight lenses are defined in [`evaluators/lenses.py`](evaluators/lenses.py);
 | No-Code Stack Master | Can a sellable MVP be built with no-code tools in 7 days? | yes |
 | AI Tool Creator | Is the AI capability genuinely useful and differentiated? | |
 | SaaS Revenue Builder | Is there a realistic path to sustainable recurring revenue? | |
-| Viral Product Designer | Can this grow through users themselves, without paid acquisition? | |
+| Viral Product Designer | Can this grow through users themselves, without paid acquisition? | yes |
 | Launch Expert | What can realistically be achieved in the first week after launch? | yes |
 | Churn Eliminator | Will users stay, and what keeps them from cancelling? | yes |
 | Reality Auditor | Are the founder's assumptions, competitive position and timeline realistic, and what early evidence should decide whether to continue? | yes |
@@ -162,7 +162,7 @@ quick, cheaper runs.
 | `MODEL` | `claude-sonnet-4-6` | Claude model used by all lenses |
 | `MODEL_PRICING_PER_MTOK` | Sonnet 4.6 rates | Input/output prices for the cost estimate after a run; add an entry when changing `MODEL` |
 | `MAX_TOKENS` | `16000` | Output limit per lens; a truncated answer is treated as an error |
-| `ENABLED_LENSES` | five lenses | Which lenses run, by key |
+| `ENABLED_LENSES` | see the lens table | Which lenses run, by key |
 
 The API key is read from `.env` (`ANTHROPIC_API_KEY`). The program stops at
 startup if the key is missing or malformed.
@@ -173,7 +173,7 @@ startup if the key is missing or malformed.
 main.py                    CLI: logging setup and idea selection
 config.py                  API key check, model, token limit, enabled lenses
 evaluators/
-  lenses.py                the eight lenses as data + shared analysis standards
+  lenses.py                all lenses as data + shared analysis standards
   evaluator.py             builds prompts from a lens and calls Claude
   schemas.py               EvaluatorResult: the structured output schema
 synthesis/
@@ -196,7 +196,7 @@ docs/prompt_framework.md   evaluator framework specification
 
 ## Status and roadmap
 
-Working now: eight defined lenses (five enabled by default), structured output,
+Working now: lenses defined as data (most enabled by default, all run in parallel), structured output,
 a Claude-based synthesis that decides the overall verdict, and a final report
 with the lens reports as an appendix.
 
