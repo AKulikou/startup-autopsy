@@ -33,6 +33,7 @@ MODEL = os.getenv("ANALYSIS_MODEL", "").strip() or DEFAULT_MODEL
 # USD per million tokens: (input, output). Used only for the cost estimate
 # printed after a run; check https://www.anthropic.com/pricing when changing MODEL.
 MODEL_PRICING_PER_MTOK: dict[str, tuple[float, float]] = {
+    "claude-opus-5-5": (4.00, 20.00),
     "claude-sonnet-4-6": (3.00, 15.00),
     "claude-sonnet-5": (2.00, 10.00),
     "claude-haiku-4-5": (1.00, 5.00),
@@ -46,6 +47,18 @@ THINKING_MODES = ("off", "adaptive")
 THINKING = os.getenv("THINKING", "").strip().lower() or "off"
 if THINKING not in THINKING_MODES:
     raise ConfigurationError(f"THINKING must be one of {', '.join(THINKING_MODES)}, got {THINKING!r}")
+
+# Effort for the lenses and the synthesis: how much the model thinks and writes.
+# Unset = the model's default (Opus 5.5: medium; Sonnet 4.6: high). Opus 5.5
+# always thinks - THINKING=off only means no thinking parameter is sent - so on
+# that model effort is the control for depth, cost and time. Set ANALYSIS_EFFORT
+# in .env; Haiku 4.5 rejects it.
+EFFORT_LEVELS = ("low", "medium", "high", "xhigh", "max")
+ANALYSIS_EFFORT = os.getenv("ANALYSIS_EFFORT", "").strip().lower() or None
+if ANALYSIS_EFFORT and ANALYSIS_EFFORT not in EFFORT_LEVELS:
+    raise ConfigurationError(
+        f"ANALYSIS_EFFORT must be one of {', '.join(EFFORT_LEVELS)}, got {ANALYSIS_EFFORT!r}"
+    )
 
 # Per-evaluator output limit; a truncated response is treated as an error.
 MAX_TOKENS = 16000

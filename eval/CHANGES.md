@@ -12,6 +12,28 @@ code version can be measured in several variants.
 Entry format: date, commit, what changed, expected effect, how it was checked
 so far, and the eval result once there is one.
 
+## 2026-09-26 — Opus 5.5 support and an effort switch
+
+- **Change:** pricing for `claude-opus-5-5` (4 / 20 USD per MTok) and
+  `ANALYSIS_EFFORT` (low ... max) for the lenses and the synthesis; unset keeps
+  each model's default (Opus 5.5: medium). Opus 5.5 always thinks: the code
+  sends no thinking parameter with `THINKING=off`, so requests are valid, and
+  effort is the only depth control. No forced tool_choice, refusals already
+  raise. Prompt audit: the synthesis `reasoning` field is a report section for
+  the reader, not a request for internal reasoning; kept, watch for
+  `reasoning_extraction` refusals.
+- **Checked:** effort together with structured output (smoke call). One run of
+  the garden idea, `ANALYSIS_MODEL=claude-opus-5-5`, default effort: 0 refusals,
+  0 malformed; 0.87 USD (Sonnet 4.6: 0.43); synthesis 53 s instead of about
+  95 s. All six lenses costed the delivery loss (11-50 BYN per trip, each
+  estimate attributed), one attribution warning instead of five. Verdict
+  Viable if conditions hold, outside the case's expected Risky / Needs
+  validation - defensible under 'a replaceable implementation choice is a
+  condition', one run, not tuned.
+- **Eval:** variant `opus55` (`ANALYSIS_MODEL=claude-opus-5-5`, then
+  `ANALYSIS_EFFORT=low` as a cheaper arm); about twice the Sonnet 4.6 cost per
+  case, so roughly 30 USD per pass.
+
 ## 2026-09-26 — web search for fact-heavy lenses (off by default)
 
 - **Change:** `WEB_SEARCH=on` gives the Reality Auditor and Legal Counsel the

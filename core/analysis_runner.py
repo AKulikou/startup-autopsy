@@ -15,6 +15,7 @@ from datetime import datetime
 from pathlib import Path
 
 from config import (
+    ANALYSIS_EFFORT,
     DOMAIN_LENSES,
     ENABLED_LENSES,
     EXTRA_LENSES,
@@ -149,7 +150,8 @@ class AnalysisRunner:
 
         logger.info(
             f"Idea: {idea_name} ({len(idea_content)} chars), "
-            f"{len(self.lenses)} lenses, model {MODEL}, thinking {THINKING}, "
+            f"{len(self.lenses)} lenses, model {MODEL}, effort {ANALYSIS_EFFORT or 'default'}, "
+            f"thinking {THINKING}, "
             f"lens selection {'on' if LENS_SELECTION else 'off'}"
             + (f", extra lenses {', '.join(EXTRA_LENSES)}" if EXTRA_LENSES else "")
             + (", web search on" if WEB_SEARCH else "")

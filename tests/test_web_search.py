@@ -65,3 +65,12 @@ def test_searches_are_priced_on_top_of_tokens(monkeypatch):
     without = call_cost({"input_tokens": 1_000_000, "output_tokens": 0})
     with_searches = call_cost({"input_tokens": 1_000_000, "output_tokens": 0, "web_searches": 3})
     assert with_searches == pytest.approx(without + 0.03)
+
+
+def test_effort_is_sent_only_when_set(fake_claude, monkeypatch):
+    Evaluator(lens("reality_auditor"), IDEA).evaluate()
+    monkeypatch.setattr(evaluator_module, "ANALYSIS_EFFORT", "low")
+    Evaluator(lens("reality_auditor"), IDEA).evaluate()
+    default, low = fake_claude.calls(EvaluatorResult)
+    assert "output_config" not in default
+    assert low["output_config"] == {"effort": "low"}

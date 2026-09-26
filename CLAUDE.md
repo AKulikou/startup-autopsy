@@ -128,5 +128,5 @@ These define what a "correct" report is — apply them when editing prompts or s
   illegal, yet says RISKY rather than NOT_VIABLE).
 - Facts (laws, competitors, prices) come from model knowledge, not live sources, unless
   `WEB_SEARCH=on` (Reality Auditor and Legal Counsel only; off by default).
-- Experiments behind `.env` switches (`ANALYSIS_MODEL`, `THINKING`, `LENS_SELECTION`, `EXTRA_LENSES`, `WEB_SEARCH`)
+- Experiments behind `.env` switches (`ANALYSIS_MODEL`, `ANALYSIS_EFFORT`, `THINKING`, `LENS_SELECTION`, `EXTRA_LENSES`, `WEB_SEARCH`)
   are off by default until the pipeline eval decides; see `eval/CHANGES.md`.

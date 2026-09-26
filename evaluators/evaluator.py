@@ -8,7 +8,15 @@ ANALYSIS_STANDARDS supply the tone; the EvaluatorResult schema defines the outpu
 import logging
 import time
 
-from config import MAX_TOKENS, MODEL, THINKING, WEB_SEARCH, WEB_SEARCH_LENSES, WEB_SEARCH_TOOL
+from config import (
+    ANALYSIS_EFFORT,
+    MAX_TOKENS,
+    MODEL,
+    THINKING,
+    WEB_SEARCH,
+    WEB_SEARCH_LENSES,
+    WEB_SEARCH_TOOL,
+)
 from core.claude_client import get_client
 from core.structured_call import billed_tokens, length_problems, request_structured
 from evaluators.knowledge import load_knowledge
@@ -116,6 +124,7 @@ class Evaluator:
                 output_format=EvaluatorResult,
                 validate=validate_result,
                 thinking=THINKING == "adaptive",
+                effort=ANALYSIS_EFFORT,
                 tools=[WEB_SEARCH_TOOL] if self.web_search else None,
             )
             return {

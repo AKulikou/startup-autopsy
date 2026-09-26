@@ -71,10 +71,12 @@ def request_structured(
     validate: Callable[[ResultT], list[str]],
     thinking: bool = False,
     tools: list[dict] | None = None,
+    effort: str | None = None,
 ) -> StructuredResponse[ResultT]:
     """
     Send the request, check why generation stopped, and validate the parsed result.
-    With `thinking`, the model uses adaptive thinking before answering. `tools` are
+    With `thinking`, the model uses adaptive thinking before answering; `effort`
+    sets output_config.effort (None = the model's default). `tools` are
     server-side tools (web search); a turn they pause is resumed up to
     MAX_CONTINUATIONS times.
 
@@ -89,9 +91,11 @@ def request_structured(
     extra = {"thinking": {"type": "adaptive"}} if thinking else {}
     if tools:
         extra["tools"] = tools
+    if effort:
+        extra["output_config"] = {"effort": effort}
     for attempt in range(1, MAX_ATTEMPTS + 1):
         logger.debug(
-            f"{label}: request model={model} max_tokens={max_tokens} thinking={thinking} "
+            f"{label}: request model={model} max_tokens={max_tokens} thinking={thinking} effort={effort} "
             f"tools={[t['name'] for t in tools or []]} "
             f"system_chars={len(system)} user_chars={len(user)}"
         )

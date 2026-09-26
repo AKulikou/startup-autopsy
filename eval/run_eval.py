@@ -35,7 +35,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from config import EXTRA_LENSES, LENS_SELECTION, MODEL, THINKING, WEB_SEARCH  # noqa: E402
+from config import ANALYSIS_EFFORT, EXTRA_LENSES, LENS_SELECTION, MODEL, THINKING, WEB_SEARCH  # noqa: E402
 from core.analysis_runner import AnalysisRunner  # noqa: E402
 from core.idea_input import InvalidIdeaError, prepare_idea  # noqa: E402
 from core.token_summary import estimate_cost  # noqa: E402
@@ -68,8 +68,9 @@ PERF_FIELDS = [
 
 write_lock = threading.Lock()
 # Settings that change model behavior, recorded with every row so variants can be told apart.
-RUN_SETTINGS = {"model": MODEL, "thinking": THINKING, "lens_selection": LENS_SELECTION,
-                "extra_lenses": list(EXTRA_LENSES), "web_search": WEB_SEARCH}
+RUN_SETTINGS = {"model": MODEL, "effort": ANALYSIS_EFFORT, "thinking": THINKING,
+                "lens_selection": LENS_SELECTION, "extra_lenses": list(EXTRA_LENSES),
+                "web_search": WEB_SEARCH}
 
 
 class CaseError(Exception):

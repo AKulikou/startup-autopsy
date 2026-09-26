@@ -9,7 +9,7 @@ analysis) and decides on the whole business, following SYNTHESIS_PRINCIPLES.
 import logging
 import time
 
-from config import MAX_TOKENS, MODEL, THINKING
+from config import ANALYSIS_EFFORT, MAX_TOKENS, MODEL, THINKING
 from core.claude_client import get_client
 from core.structured_call import billed_tokens, length_problems, request_structured
 from evaluators.schemas import Verdict, confidence_label, verdict_label
@@ -188,6 +188,7 @@ class Synthesizer:
                 output_format=SynthesisResult,
                 validate=validate_synthesis,
                 thinking=THINKING == "adaptive",
+                effort=ANALYSIS_EFFORT,
             )
             result = {
                 "evaluator_display": SYNTHESIS_LABEL,
