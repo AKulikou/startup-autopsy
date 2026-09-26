@@ -7,7 +7,7 @@ model), so every call is priced with the model that served it.
 
 import logging
 
-from config import MODEL, MODEL_PRICING_PER_MTOK
+from config import MODEL, MODEL_PRICING_PER_MTOK, WEB_SEARCH_PRICE
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +24,14 @@ def estimate_cost(
         return None
     input_price, output_price = pricing
     return (input_tokens * input_price + output_tokens * output_price) / 1_000_000
+
+
+def call_cost(result: dict) -> float | None:
+    """Estimated cost of one call: its tokens at its model's prices plus its web searches."""
+    cost = estimate_cost(result["input_tokens"], result["output_tokens"], result.get("model", MODEL))
+    if cost is None:
+        return None
+    return cost + result.get("web_searches", 0) * WEB_SEARCH_PRICE
 
 
 def format_cost(cost: float | None) -> str:
@@ -44,11 +52,12 @@ def log_token_summary(results: list[dict]) -> None:
     costs = []
     for result in billed:
         model = result.get("model", MODEL)
-        cost = estimate_cost(result["input_tokens"], result["output_tokens"], model)
+        cost = call_cost(result)
         costs.append(cost)
+        searches = f", {result['web_searches']} web searches" if result.get("web_searches") else ""
         logger.debug(
             f"Tokens {result['evaluator_display']} ({model}): "
-            f"{result['input_tokens']} in / {result['output_tokens']} out, {format_cost(cost)}"
+            f"{result['input_tokens']} in / {result['output_tokens']} out{searches}, {format_cost(cost)}"
         )
 
     total_input = sum(r["input_tokens"] for r in billed)

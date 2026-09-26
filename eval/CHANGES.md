@@ -12,6 +12,24 @@ code version can be measured in several variants.
 Entry format: date, commit, what changed, expected effect, how it was checked
 so far, and the eval result once there is one.
 
+## 2026-09-26 — web search for fact-heavy lenses (off by default)
+
+- **Change:** `WEB_SEARCH=on` gives the Reality Auditor and Legal Counsel the
+  server-side web search tool (`web_search_20260209`, max 3 searches) and a
+  line asking them to check competitors, laws and prices and mark what they
+  could not confirm. `pause_turn` is resumed up to 3 times; searches are
+  counted and priced (0.01 USD each).
+- **Why:** the garden tool rental report named Leroy Merlin as a Minsk
+  competitor; it left Belarus in 2020-2022 (a user's Claude caught it).
+- **Checked:** web search works together with structured output (smoke call
+  on Sonnet 4.6). One run of the garden idea: the Reality Auditor made 3
+  searches and named four real Minsk rental firms with their prices (20-40
+  BYN/day), no Leroy Merlin, prices it could not confirm marked unverified.
+  Reality Auditor 0.23 USD instead of about 0.04 (45k input tokens of search
+  results); the run 0.61 USD instead of 0.43. Verdict Needs validation.
+- **Eval:** variant `web_search` (`WEB_SEARCH=on`); watch cost per case and
+  whether verdicts on legal cases (ticket resale, Alibaba) change.
+
 ## 2026-09-26 — startup-autopsy skill description (trigger)
 
 - **Change:** the user skill's description now says why the tools beat an

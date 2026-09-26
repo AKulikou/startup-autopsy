@@ -68,12 +68,17 @@ def gate_result(decision="ANALYZABLE", **overrides) -> GateResult:
     return GateResult(**fields)
 
 
-def response(parsed, stop_reason="end_turn", input_tokens=1000, output_tokens=500):
+def response(parsed, stop_reason="end_turn", input_tokens=1000, output_tokens=500, web_searches=0):
     return SimpleNamespace(
         parsed_output=parsed,
         stop_reason=stop_reason,
+        content=[SimpleNamespace(type="server_tool_use")] if stop_reason == "pause_turn" else [],
         _request_id="req_test",
-        usage=SimpleNamespace(input_tokens=input_tokens, output_tokens=output_tokens),
+        usage=SimpleNamespace(
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
+            server_tool_use=SimpleNamespace(web_search_requests=web_searches),
+        ),
     )
 
 

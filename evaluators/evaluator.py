@@ -8,7 +8,7 @@ ANALYSIS_STANDARDS supply the tone; the EvaluatorResult schema defines the outpu
 import logging
 import time
 
-from config import MAX_TOKENS, MODEL, THINKING
+from config import MAX_TOKENS, MODEL, THINKING, WEB_SEARCH, WEB_SEARCH_LENSES, WEB_SEARCH_TOOL
 from core.claude_client import get_client
 from core.structured_call import billed_tokens, length_problems, request_structured
 from evaluators.knowledge import load_knowledge
@@ -16,6 +16,13 @@ from evaluators.lenses import ANALYSIS_STANDARDS, Lens
 from evaluators.schemas import EvaluatorResult
 
 logger = logging.getLogger(__name__)
+
+WEB_SEARCH_GUIDANCE = (
+    "You can search the web. Check the facts your conclusions rest on - which "
+    "competitors operate in the named market, what the law requires there, current "
+    "prices - instead of relying on memory, and name the source in the analysis. "
+    "A fact you could not confirm is marked as unverified."
+)
 
 # Length bounds also catch field bleed: when a field breaks off at a stray double
 # quote, the rest of the text lands in the next field (seen: a full analysis in
@@ -56,6 +63,7 @@ class Evaluator:
         self.client = get_client()
         self.model = MODEL
         self.max_tokens = MAX_TOKENS
+        self.web_search = WEB_SEARCH and lens.key in WEB_SEARCH_LENSES
 
     def get_system_prompt(self) -> str:
         prompt = (
@@ -68,6 +76,8 @@ class Evaluator:
                 "\n\nDomain knowledge for your lens:\n\n"
                 f"<domain_knowledge>\n{load_knowledge(self.lens.knowledge)}\n</domain_knowledge>"
             )
+        if self.web_search:
+            prompt += f"\n\n{WEB_SEARCH_GUIDANCE}"
         return prompt
 
     def get_evaluation_prompt(self) -> str:
@@ -106,6 +116,7 @@ class Evaluator:
                 output_format=EvaluatorResult,
                 validate=validate_result,
                 thinking=THINKING == "adaptive",
+                tools=[WEB_SEARCH_TOOL] if self.web_search else None,
             )
             return {
                 "evaluator": self.lens.key,
@@ -115,6 +126,7 @@ class Evaluator:
                 "tokens_used": response.input_tokens + response.output_tokens,
                 "input_tokens": response.input_tokens,
                 "output_tokens": response.output_tokens,
+                "web_searches": response.web_searches,
                 "duration_s": time.monotonic() - started,
             }
         except Exception as e:

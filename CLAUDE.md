@@ -126,6 +126,7 @@ These define what a "correct" report is — apply them when editing prompts or s
   between two reps in the baseline); judge prompt changes by the eval, not one run.
 - The synthesis can stay soft on a blocker it describes as certain (calls the core
   illegal, yet says RISKY rather than NOT_VIABLE).
-- Facts (laws, competitors, prices) come from model knowledge, not live sources.
-- Experiments behind `.env` switches (`ANALYSIS_MODEL`, `THINKING`, `LENS_SELECTION`, `EXTRA_LENSES`)
+- Facts (laws, competitors, prices) come from model knowledge, not live sources, unless
+  `WEB_SEARCH=on` (Reality Auditor and Legal Counsel only; off by default).
+- Experiments behind `.env` switches (`ANALYSIS_MODEL`, `THINKING`, `LENS_SELECTION`, `EXTRA_LENSES`, `WEB_SEARCH`)
   are off by default until the pipeline eval decides; see `eval/CHANGES.md`.

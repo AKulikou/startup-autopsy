@@ -24,12 +24,13 @@ from config import (
     THINKING,
     TRANSLATE_LENS_REPORTS,
     TRANSLATION_MODEL,
+    WEB_SEARCH,
 )
 from core.idea_input import InvalidIdeaError, prepare_idea
 from core.idea_processor import IdeaProcessor
 from core.json_export import build_json
 from core.report_builder import build_report
-from core.token_summary import estimate_cost, format_cost, log_token_summary
+from core.token_summary import call_cost, estimate_cost, format_cost, log_token_summary
 from core.translator import translate_markdown
 from evaluators.evaluator import Evaluator
 from evaluators.lenses import Lens, select_lenses
@@ -151,6 +152,7 @@ class AnalysisRunner:
             f"{len(self.lenses)} lenses, model {MODEL}, thinking {THINKING}, "
             f"lens selection {'on' if LENS_SELECTION else 'off'}"
             + (f", extra lenses {', '.join(EXTRA_LENSES)}" if EXTRA_LENSES else "")
+            + (", web search on" if WEB_SEARCH else "")
         )
         return idea_content
 
@@ -268,12 +270,13 @@ class AnalysisRunner:
         duration = f"{result['duration_s']:.0f}s"
         progress = f"({finished}/{total} finished)"
         if result["status"] == "success":
-            cost = estimate_cost(result["input_tokens"], result["output_tokens"])
+            cost = call_cost(result)
+            searches = f", {result['web_searches']} web searches" if result.get("web_searches") else ""
             logger.info(
                 f"{prefix} ... done in {duration}: {verdict_label(result['verdict'])} "
                 f"({confidence_label(result['confidence'])}), "
                 f"{len(result['out_of_lens_red_flags'])} red flags, "
-                f"{result['input_tokens']}/{result['output_tokens']} tokens, "
+                f"{result['input_tokens']}/{result['output_tokens']} tokens{searches}, "
                 f"{format_cost(cost)} {progress}"
             )
         else:

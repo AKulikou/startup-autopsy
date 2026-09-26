@@ -18,6 +18,8 @@ from pydantic import BaseModel
 logger = logging.getLogger(__name__)
 
 MAX_ATTEMPTS = 2
+# A server-side tool loop (web search) can pause a long turn; resume it this many times.
+MAX_CONTINUATIONS = 3
 
 ResultT = TypeVar("ResultT", bound=BaseModel)
 
@@ -54,6 +56,7 @@ class StructuredResponse(Generic[ResultT]):
     result: ResultT
     input_tokens: int  # summed over all attempts: discarded attempts are billed too
     output_tokens: int
+    web_searches: int = 0  # billed per search, on top of tokens
 
 
 def request_structured(
@@ -67,10 +70,13 @@ def request_structured(
     output_format: type[ResultT],
     validate: Callable[[ResultT], list[str]],
     thinking: bool = False,
+    tools: list[dict] | None = None,
 ) -> StructuredResponse[ResultT]:
     """
     Send the request, check why generation stopped, and validate the parsed result.
-    With `thinking`, the model uses adaptive thinking before answering.
+    With `thinking`, the model uses adaptive thinking before answering. `tools` are
+    server-side tools (web search); a turn they pause is resumed up to
+    MAX_CONTINUATIONS times.
 
     Raises:
         RuntimeError: on truncation or refusal
@@ -79,27 +85,46 @@ def request_structured(
     """
     input_tokens = 0
     output_tokens = 0
+    web_searches = 0
+    extra = {"thinking": {"type": "adaptive"}} if thinking else {}
+    if tools:
+        extra["tools"] = tools
     for attempt in range(1, MAX_ATTEMPTS + 1):
         logger.debug(
             f"{label}: request model={model} max_tokens={max_tokens} thinking={thinking} "
+            f"tools={[t['name'] for t in tools or []]} "
             f"system_chars={len(system)} user_chars={len(user)}"
         )
-        extra = {"thinking": {"type": "adaptive"}} if thinking else {}
-        response = client.messages.parse(
-            model=model,
-            max_tokens=max_tokens,
-            system=system,
-            messages=[{"role": "user", "content": user}],
-            output_format=output_format,
-            **extra,
-        )
-        logger.debug(
-            f"{label}: response request_id={response._request_id} "
-            f"stop_reason={response.stop_reason} input_tokens={response.usage.input_tokens} "
-            f"output_tokens={response.usage.output_tokens}"
-        )
-        input_tokens += response.usage.input_tokens
-        output_tokens += response.usage.output_tokens
+        messages = [{"role": "user", "content": user}]
+        paused_content = []
+        for continuation in range(MAX_CONTINUATIONS + 1):
+            response = client.messages.parse(
+                model=model,
+                max_tokens=max_tokens,
+                system=system,
+                messages=messages,
+                output_format=output_format,
+                **extra,
+            )
+            server_tools = getattr(response.usage, "server_tool_use", None)
+            searches = getattr(server_tools, "web_search_requests", 0) or 0
+            logger.debug(
+                f"{label}: response request_id={response._request_id} "
+                f"stop_reason={response.stop_reason} input_tokens={response.usage.input_tokens} "
+                f"output_tokens={response.usage.output_tokens} web_searches={searches}"
+            )
+            input_tokens += response.usage.input_tokens
+            output_tokens += response.usage.output_tokens
+            web_searches += searches
+            if response.stop_reason != "pause_turn":
+                break
+            if continuation == MAX_CONTINUATIONS:
+                raise RuntimeError(
+                    f"Server tool turn still paused after {MAX_CONTINUATIONS} continuations"
+                )
+            # The API resumes from the trailing server_tool_use block; no extra user message.
+            paused_content += response.content
+            messages = [{"role": "user", "content": user}, {"role": "assistant", "content": paused_content}]
 
         if response.stop_reason == "max_tokens":
             raise RuntimeError(
@@ -110,7 +135,7 @@ def request_structured(
 
         problems = validate(response.parsed_output)
         if not problems:
-            return StructuredResponse(response.parsed_output, input_tokens, output_tokens)
+            return StructuredResponse(response.parsed_output, input_tokens, output_tokens, web_searches)
         logger.warning(
             f"{label}: invalid result on attempt {attempt}/{MAX_ATTEMPTS} "
             f"(request_id={response._request_id}): {'; '.join(problems)}"

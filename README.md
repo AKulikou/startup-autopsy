@@ -197,7 +197,7 @@ translation cost on Sonnet 4.6.
 `TRANSLATE_LENS_REPORTS=true` translates the lens reports too. The eval never
 translates.
 
-**Experiments.** Four `.env` switches change model behavior; they stay off
+**Experiments.** Five `.env` switches change model behavior; they stay off
 until the pipeline eval shows they help (see [eval/CHANGES.md](eval/CHANGES.md)):
 `ANALYSIS_MODEL` (another analysis model, e.g. `claude-sonnet-5`),
 `THINKING=adaptive` (the lenses and the synthesis think before answering), and
@@ -205,7 +205,9 @@ until the pipeline eval shows they help (see [eval/CHANGES.md](eval/CHANGES.md))
 does not fit the idea, such as the viral lens for a local bakery, and adds the
 domain lenses that fit; the report lists what was skipped and why), and
 `EXTRA_LENSES` (defined lenses to run after the enabled ones, e.g.
-`EXTRA_LENSES=unit_economics`).
+`EXTRA_LENSES=unit_economics`), and `WEB_SEARCH=on` (the Reality Auditor and
+Legal Counsel check competitors, laws and prices on the web instead of relying on
+model memory; about $0.20 more per run).
 
 ## Project structure
 

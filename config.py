@@ -89,6 +89,17 @@ TRANSLATE_LENS_REPORTS = os.getenv("TRANSLATE_LENS_REPORTS", "").strip().lower()
 # eval decides.
 LENS_SELECTION = os.getenv("LENS_SELECTION", "").strip().lower() in ("1", "true", "yes", "on")
 
+# Web search for the lenses whose conclusions rest on facts the model may
+# remember wrongly (competitors in a market, laws, current prices): a real run
+# named a competitor that had left the country years before. Set WEB_SEARCH=on
+# in .env; an experiment until the eval decides. Each search costs
+# WEB_SEARCH_PRICE on top of the tokens, and search results add input tokens.
+WEB_SEARCH = os.getenv("WEB_SEARCH", "").strip().lower() in ("1", "true", "yes", "on")
+WEB_SEARCH_LENSES = ("reality_auditor", "legal_counsel")
+WEB_SEARCH_MAX_USES = 3
+WEB_SEARCH_PRICE = 0.01  # USD per search (10 USD per 1,000)
+WEB_SEARCH_TOOL = {"type": "web_search_20260209", "name": "web_search", "max_uses": WEB_SEARCH_MAX_USES}
+
 # Domain lenses fit only some ideas, so they run only with LENS_SELECTION on and
 # only where the lens fit check finds their condition holds. They follow
 # ENABLED_LENSES in the order the synthesis reads them.
