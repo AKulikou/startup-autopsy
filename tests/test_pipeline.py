@@ -173,3 +173,17 @@ def test_domain_lenses_run_only_with_lens_selection(fake_claude, monkeypatch):
     fake_claude.handlers[LensFitResult] = lambda kw: response(fits(candidates))
     analysis = analyze()
     assert [r["evaluator_display"] for r in analysis["lenses"]] == [lens.name for lens in WITH_DOMAIN_LENSES]
+
+
+def test_extra_lenses_run_after_the_enabled_ones(fake_claude, monkeypatch):
+    from core import analysis_runner
+    monkeypatch.setattr(analysis_runner, "EXTRA_LENSES", ("unit_economics",))
+    analysis = analyze()
+    names = [r["evaluator_display"] for r in analysis["lenses"]]
+    assert names == LENS_NAMES + ["Unit Economics Analyst"]
+
+
+def test_extra_lens_keys_are_parsed_from_a_comma_list():
+    from config import parse_lens_keys
+    assert parse_lens_keys(" unit_economics, ,legal_counsel ") == ("unit_economics", "legal_counsel")
+    assert parse_lens_keys("") == ()

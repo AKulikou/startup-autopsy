@@ -17,6 +17,7 @@ from pathlib import Path
 from config import (
     DOMAIN_LENSES,
     ENABLED_LENSES,
+    EXTRA_LENSES,
     LENS_SELECTION,
     MODEL,
     REPORT_TRANSLATION,
@@ -56,7 +57,9 @@ class AnalysisRunner:
                 too vague; without it such ideas are not analyzed. The CLI asks the user.
         """
         self.processor = processor
-        self.lenses = select_lenses(ENABLED_LENSES + (DOMAIN_LENSES if LENS_SELECTION else ()))
+        self.lenses = select_lenses(
+            ENABLED_LENSES + EXTRA_LENSES + (DOMAIN_LENSES if LENS_SELECTION else ())
+        )
         self.confirm_vague_idea = confirm_vague_idea
 
     def run(self, idea_name: str) -> bool:
@@ -147,6 +150,7 @@ class AnalysisRunner:
             f"Idea: {idea_name} ({len(idea_content)} chars), "
             f"{len(self.lenses)} lenses, model {MODEL}, thinking {THINKING}, "
             f"lens selection {'on' if LENS_SELECTION else 'off'}"
+            + (f", extra lenses {', '.join(EXTRA_LENSES)}" if EXTRA_LENSES else "")
         )
         return idea_content
 

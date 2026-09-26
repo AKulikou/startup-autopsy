@@ -12,6 +12,26 @@ code version can be measured in several variants.
 Entry format: date, commit, what changed, expected effect, how it was checked
 so far, and the eval result once there is one.
 
+## 2026-09-26 — Unit Economics Analyst (defined, not enabled)
+
+- **Change:** SaaS Revenue Builder re-scoped into Unit Economics Analyst
+  (`unit_economics`): cost to serve, gross margin, acquisition cost and payback,
+  break-even. Not in `ENABLED_LENSES`; default runs unchanged.
+- **Why:** manual MCP test, garden tool rental near Minsk (15 BYN/day + 10 BYN
+  delivery, 10 tools for 3000 BYN): the synthesis dropped the delivery cost
+  (60-120 km round trips for 10 BYN) that Reality Auditor had listed as an
+  assumption; the client Claude spotted it.
+- **Checked:** one run of the same idea with the lens added (ad-hoc script):
+  delivery cost moved into the deciding factors and 'What Must Be True', the
+  lens added 'year-one LTV below acquisition cost'; verdict Risky (without the
+  lens: Needs validation); +0.03 USD. One run each - not evidence of a verdict
+  shift.
+- **Eval:** variant `unit_economics`: `EXTRA_LENSES=unit_economics python -m eval.run_eval
+  pipeline --reps 2 --variant unit_economics`. New pipeline case
+  `garden_tool_rental_ru` (expected Risky or Needs validation) is not in the
+  baseline: compare the 17 shared cases, and run the new case on the baseline
+  settings too (`--cases garden_tool_rental_ru --variant baseline`).
+
 ## 2026-09-26 — 'What holds up' in the synthesis
 
 - **Change:** new synthesis field `what_holds_up` (0-4 findings the lenses examined

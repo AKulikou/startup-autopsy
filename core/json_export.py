@@ -10,7 +10,7 @@ result for a negative one.
 import json
 from datetime import datetime
 
-from config import LENS_SELECTION, MODEL, THINKING
+from config import EXTRA_LENSES, LENS_SELECTION, MODEL, THINKING
 
 FORMAT_VERSION = 1
 
@@ -21,7 +21,8 @@ def build_json(idea_name: str, started_at: datetime, analysis: dict) -> str:
         "format_version": FORMAT_VERSION,
         "idea_name": idea_name,
         "analyzed_at": started_at.isoformat(timespec="seconds"),
-        "settings": {"model": MODEL, "thinking": THINKING, "lens_selection": LENS_SELECTION},
+        "settings": {"model": MODEL, "thinking": THINKING, "lens_selection": LENS_SELECTION,
+                     "extra_lenses": list(EXTRA_LENSES)},
         "input_check": analysis["gate"],
         "input_note": analysis["input_note"],
         "skipped_lenses": analysis["skipped_lenses"],

@@ -63,6 +63,17 @@ ENABLED_LENSES = (
     "reality_auditor",
 )
 
+# Extra lenses to run after ENABLED_LENSES, for trying a defined lens without
+# editing code: comma-separated keys in .env, e.g. EXTRA_LENSES=unit_economics.
+# An unknown key fails at startup, like one in ENABLED_LENSES.
+def parse_lens_keys(value: str) -> tuple[str, ...]:
+    return tuple(key.strip() for key in value.split(",") if key.strip())
+
+
+EXTRA_LENSES = tuple(
+    key for key in parse_lens_keys(os.getenv("EXTRA_LENSES", "")) if key not in ENABLED_LENSES
+)
+
 # Optional translated copies of the reports, for readers who prefer another
 # language. The analysis always runs in English and the English reports stay the
 # source of truth. Set in .env, e.g. REPORT_TRANSLATION=Russian; unset = English only.

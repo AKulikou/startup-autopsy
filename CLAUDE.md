@@ -123,5 +123,5 @@ These define what a "correct" report is — apply them when editing prompts or s
 - The synthesis can stay soft on a blocker it describes as certain (calls the core
   illegal, yet says RISKY rather than NOT_VIABLE).
 - Facts (laws, competitors, prices) come from model knowledge, not live sources.
-- Experiments behind `.env` switches (`ANALYSIS_MODEL`, `THINKING`, `LENS_SELECTION`)
+- Experiments behind `.env` switches (`ANALYSIS_MODEL`, `THINKING`, `LENS_SELECTION`, `EXTRA_LENSES`)
   are off by default until the pipeline eval decides; see `eval/CHANGES.md`.
