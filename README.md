@@ -103,7 +103,7 @@ The lenses are defined in [`evaluators/lenses.py`](evaluators/lenses.py);
 | Profitable App Designer | Would people pay for this every month, and how much revenue is realistic? | yes |
 | No-Code Stack Master | Can a sellable MVP be built with no-code tools in 7 days? | yes |
 | AI Tool Creator | Is the AI capability genuinely useful and differentiated? | domain: AI products |
-| SaaS Revenue Builder | Is there a realistic path to sustainable recurring revenue? | |
+| Unit Economics Analyst | Does each customer bring in more than it costs to win and serve, and when does the business break even? | |
 | Viral Product Designer | Can this grow through users themselves, without paid acquisition? | yes |
 | Launch Expert | What can realistically be achieved in the first week after launch? | yes |
 | Churn Eliminator | Will users stay, and what keeps them from cancelling? | yes |

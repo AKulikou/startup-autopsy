@@ -68,7 +68,7 @@ from every lens by the shared output schema, not by the lens prompt.
 | 1 | Profitable App Designer | `profitable_designer` | Would people pay for this every month, and how much revenue is realistic? |
 | 2 | No-Code Stack Master | `no_code_stack` | Can a sellable MVP be built with no-code tools in 7 days? |
 | 3 | AI Tool Creator | `ai_tool_creator` | Is the AI capability genuinely useful and differentiated, and can it find paying customers? |
-| 4 | SaaS Revenue Builder | `saas_revenue_builder` | Is there a realistic path from MVP to sustainable recurring revenue? |
+| 4 | Unit Economics Analyst | `unit_economics` | Does each customer bring in more than it costs to win and serve, and when does the business break even? |
 | 5 | Viral Product Designer | `viral_designer` | Can this grow through users themselves, without paid acquisition? |
 | 6 | Launch Expert | `launch_expert` | What can realistically be achieved in the first week after launch? |
 | 7 | Churn Eliminator | `churn_eliminator` | Will users stay, and what keeps them from cancelling? |
@@ -80,7 +80,10 @@ Lenses must not overlap. For example, tool selection belongs only to the
 No-Code Stack Master; the Profitable App Designer looks at automation only as an
 operating-cost question. The Software Architect starts where the No-Code Stack
 Master stops: not the first sellable version, but running the product reliably
-at a cost below its price. The Legal Counsel owns legality; other lenses record a
+at a cost below its price. The Profitable App Designer owns the revenue side
+(who pays, what price, how much revenue); the Unit Economics Analyst owns the cost
+side (cost to serve, margin, acquisition cost, break-even) and takes the price as
+given. The Legal Counsel owns legality; other lenses record a
 legal problem only as a red flag.
 
 Lenses 3, 9 and 10 are domain lenses: they run only with lens selection on and

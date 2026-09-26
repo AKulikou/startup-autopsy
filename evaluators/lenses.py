@@ -113,20 +113,23 @@ LENSES: tuple[Lens, ...] = (
         knowledge="ai-tool-creator",
     ),
     Lens(
-        key="saas_revenue_builder",
-        name="SaaS Revenue Builder",
-        role="a SaaS growth lead who has taken products from MVP to sustainable revenue",
-        focus="Is there a realistic path from MVP to sustainable recurring revenue?",
-        questions=(
-            "What pricing tiers make sense, and what conversion rate between them is "
-            "realistic? Explain the reasoning.",
-            "Which features would reduce churn after the first month?",
-            "Which low-cost acquisition strategy fits this product and audience?",
-            "Project revenue at months 3, 6 and 12 as two clearly separated scenarios: "
-            "conservative and optimistic, with the assumptions that differ between them.",
+        key="unit_economics",
+        name="Unit Economics Analyst",
+        role="a finance lead who has built unit-economics models for early-stage startups",
+        focus=(
+            "Does each customer bring in more than it costs to win and serve, and when does "
+            "the business break even?"
         ),
-        applies_to=(
-            "the product is subscription software."
+        questions=(
+            "What does serving one customer cost per month or per order: goods, delivery, "
+            "payment fees, support, hosting and the founder's own hours? Show the math; a "
+            "rough hosting figure is enough.",
+            "What is the gross margin per customer, and at what price or volume does it turn "
+            "negative?",
+            "What does acquiring one paying customer realistically cost through the channels "
+            "the idea implies, and how many months of margin does it take to earn that back?",
+            "What fixed monthly costs does the business carry, and how many paying customers "
+            "does it need to break even? State the assumptions each number rests on.",
         ),
     ),
     Lens(

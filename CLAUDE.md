@@ -64,7 +64,7 @@ Each prompt is a distinct lens (lenses must not overlap):
 | 1 | Profitable App Designer | Revenue model, recurring revenue, assumptions behind numbers | enabled |
 | 2 | No-Code Stack Master | 7-day no-code MVP, concrete stack, day-7 scope | enabled |
 | 3 | AI Tool Creator | AI differentiation, pricing rationale, first 10 customers | domain |
-| 4 | SaaS Revenue Builder | Pricing tiers, churn, 3/6/12-month optimistic vs conservative | defined |
+| 4 | Unit Economics Analyst | Cost to serve, gross margin, acquisition cost and payback, break-even | defined |
 | 5 | Viral Product Designer | Network effects, conditions for organic growth | enabled |
 | 6 | Launch Expert | First-week traction grounded in real audience size | enabled |
 | 7 | Churn Eliminator | Onboarding, habit loops, when retention tactics fail | enabled |
