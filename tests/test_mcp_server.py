@@ -1,6 +1,7 @@
 """The MCP tools, called in-process through the server with a fake Claude."""
 
 import asyncio
+from pathlib import Path
 
 import pytest
 from conftest import gate_result, response
@@ -57,6 +58,8 @@ def test_analyze_idea_returns_the_verdict_and_saves_the_report(fake_claude, resu
     run_dir = next(results_dir.iterdir())
     assert run_dir.name.endswith("_meal_prep_vilnius")
     assert (run_dir / "report.md").exists()
+    assert Path(result["report_json_path"]) == run_dir / "report.json"
+    assert Path(result["report_json_path"]).exists()
 
 
 def test_analyze_idea_stops_on_a_vague_idea_unless_asked(fake_claude, results_dir):

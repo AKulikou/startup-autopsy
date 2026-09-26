@@ -69,6 +69,7 @@ ideas/<idea>.txt
   results/<timestamp>_<idea>/        one directory per run, sorted by time
       report.md                      the final report: verdict, reasons,
                                      risks, conflicts, next steps
+      report.json                    the same analysis as structured data
       lenses/<lens>.md               full report of each lens (appendix)
 ```
 
@@ -231,6 +232,7 @@ skills/startup-autopsy/    Agent Skill for using the MCP tools
 .claude/skills/            project skills for development (review-run, add-lens)
   idea_input.py            local checks and quote normalization of the idea text
   report_builder.py        the final report.md
+  json_export.py           report.json, the analysis as structured data
   result_writer.py         Markdown report files
   idea_processor.py        idea loading and result saving facade
   file_manager.py          reading idea files
@@ -249,7 +251,7 @@ Desktop or any MCP client can call it:
 | Tool | What it does | Cost |
 |---|---|---|
 | `check_idea` | Is this a business idea, and is it detailed enough? Says what is missing. | ~$0.003, seconds |
-| `analyze_idea` | The full analysis; saves the report under `results/` and returns the verdict and the full `report.md`. | ~$0.40, ~3 minutes |
+| `analyze_idea` | The full analysis; saves the report under `results/` and returns the verdict, the full `report.md` and the path of `report.json`. | ~$0.40, ~3 minutes |
 
 Add it to Claude Code (use absolute paths; on macOS/Linux the Python path is
 `venv/bin/python`):
@@ -305,7 +307,7 @@ Next:
    run several times per prompt change.
 2. Lens selection per idea by the input check, and domain lenses (legal, AI,
    software architecture) enabled only where they apply.
-3. Optional: JSON/PDF export, persistence, web UI.
+3. Optional: PDF export, persistence, web UI (JSON export is done: `report.json`).
 
 ## License
 

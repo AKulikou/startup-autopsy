@@ -54,7 +54,7 @@ months building; a "not viable" wrapped in encouragement defeats that. Then:
 - **Next steps** - the first one or two, concretely. If the verdict is not
   viable, the first step is not to pursue it as described; mention a pivot only
   if the report suggests one.
-- Where the full report is saved (`report_path`), for the details.
+- Where the full report is saved (`report_path`), for the details; `report_json_path` holds the same analysis as structured data, for when the user wants to process or compare results.
 
 Keep your own opinion separate. If you disagree with the verdict, say so as
 your view with your reason, after presenting the tool's verdict - do not blend

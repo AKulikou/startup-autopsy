@@ -3,6 +3,7 @@ Writes analysis results to Markdown files, one directory per run:
 
     results/2026-09-24_18-48-18_fitness_tracker/
         report.md                     the final report for the reader
+        report.json                   the same analysis as structured data
         lenses/
             no_code_stack_master.md   one detailed report per lens
             reality_auditor.md
@@ -17,6 +18,7 @@ from pathlib import Path
 from evaluators.schemas import confidence_label, verdict_label, verdict_meaning
 
 REPORT_FILENAME = "report.md"
+JSON_FILENAME = "report.json"
 LENSES_DIR = "lenses"
 
 
@@ -130,4 +132,10 @@ class ResultWriter:
         """Save the final report and return its path."""
         filepath = run_dir / REPORT_FILENAME
         filepath.write_text(report, encoding="utf-8")
+        return filepath
+
+    def save_json(self, run_dir: Path, document: str) -> Path:
+        """Save the structured report and return its path."""
+        filepath = run_dir / JSON_FILENAME
+        filepath.write_text(document, encoding="utf-8")
         return filepath

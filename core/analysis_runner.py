@@ -4,7 +4,7 @@ Runs the full analysis of one business idea: input check, lenses, synthesis, rep
 The lenses run in parallel threads (they are independent API calls), so their
 "done" lines arrive in completion order. Results are still passed to the
 synthesis in the configured lens order. Progress goes to the log one line per
-event (INFO); the reports themselves are written only to Markdown files.
+event (INFO); the reports themselves are written only to files (Markdown, plus report.json).
 """
 
 import logging
@@ -26,6 +26,7 @@ from config import (
 )
 from core.idea_input import InvalidIdeaError, prepare_idea
 from core.idea_processor import IdeaProcessor
+from core.json_export import build_json
 from core.report_builder import build_report
 from core.token_summary import estimate_cost, format_cost, log_token_summary
 from core.translator import translate_markdown
@@ -91,6 +92,7 @@ class AnalysisRunner:
             build_report(idea_name, started_at, synthesis, results, analysis["input_note"],
                          analysis["skipped_lenses"]),
         )
+        self.processor.save_json(run_dir, build_json(idea_name, started_at, analysis))
         logger.info(f"Report: {report_path}")
         translations = []
         if REPORT_TRANSLATION:

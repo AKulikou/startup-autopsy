@@ -27,6 +27,7 @@ sys.path.insert(0, str(ROOT))
 from core.analysis_runner import AnalysisRunner  # noqa: E402
 from core.idea_input import InvalidIdeaError, prepare_idea  # noqa: E402
 from core.idea_processor import IdeaProcessor  # noqa: E402
+from core.result_writer import JSON_FILENAME  # noqa: E402
 from evaluators.schemas import confidence_label, verdict_label  # noqa: E402
 from gate.idea_gate import NEXT_STEP_HINT, IdeaGate  # noqa: E402
 from gate.schemas import gate_decision_label  # noqa: E402
@@ -63,6 +64,9 @@ class IdeaAnalysis(BaseModel):
     summary: str | None = None
     report_markdown: str | None = Field(None, description="The full report.md.")
     report_path: str | None = None
+    report_json_path: str | None = Field(
+        None, description="report.json: the same analysis as structured data."
+    )
     error: str | None = None
 
 
@@ -116,6 +120,7 @@ def analyze_idea_sync(idea: str, name: str, analyze_if_vague: bool) -> IdeaAnaly
     result = IdeaAnalysis(
         analyzed=True, check=check,
         report_markdown=report_path.read_text(encoding="utf-8"), report_path=str(report_path),
+        report_json_path=str(report_path.with_name(JSON_FILENAME)),
     )
     if synthesis["status"] != "success":
         result.error = f"The synthesis failed ({synthesis['error']}); the report has no overall verdict."

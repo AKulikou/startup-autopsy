@@ -42,3 +42,7 @@ class IdeaProcessor:
     def save_report(self, run_dir: Path, report: str) -> Path:
         """Save the final report and return the file path."""
         return self.result_writer.save_report(run_dir, report)
+
+    def save_json(self, run_dir: Path, document: str) -> Path:
+        """Save the structured report and return the file path."""
+        return self.result_writer.save_json(run_dir, document)
