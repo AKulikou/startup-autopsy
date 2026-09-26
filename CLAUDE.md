@@ -23,12 +23,15 @@ pytest                                         # unit tests, fake Claude client,
 ruff check .                                   # lint (config in pyproject.toml, target Python 3.10)
 python -m eval.run_eval gate --reps 3          # eval: input check (~$0.25)
 python -m eval.run_eval pipeline --reps 2      # eval: whole pipeline (~$14, paid)
+python -m eval.trigger.run_trigger --effort low # skill trigger test (~15 min, Claude Code login, no API key)
 ```
 
 Requires `ANTHROPIC_API_KEY` in `.env` (never commit it). Run `pytest` and `ruff check .`
 after any change. After a change to prompts, lenses or the model, run the cheap gate eval
 and one or two single-idea runs; the pipeline eval runs only when budget allows, with
-the change logged in `eval/CHANGES.md` so that run can be read against it.
+the change logged in `eval/CHANGES.md` so that run can be read against it. After a change to
+the user skill's description, or when the default Claude model changes, run the trigger
+test at the default and the low effort level; accept a change only if it is no worse on both.
 
 ## Layout
 
@@ -49,6 +52,7 @@ the change logged in `eval/CHANGES.md` so that run can be read against it.
 - `core/json_export.py` — builds `report.json`: the same analysis as structured data (codes, not display words; failed calls kept with their error)
 - `core/idea_processor.py`, `file_manager.py`, `result_writer.py` — idea I/O and Markdown output
 - `skills/startup-autopsy/` — user-facing Agent Skill for the MCP tools (install into ~/.claude/skills); not auto-loaded in this repo
+- `eval/trigger/` — trigger test for that skill: `queries.json` (should / should not trigger) and `run_trigger.py` (runs `claude -p`, model and effort as parameters, checks the frontmatter first)
 - `.claude/skills/review-run/` — project skill: review a finished run (script for mechanical checks + judgment guide)
 - `.claude/skills/add-lens/` — project skill: add or change a lens; `scripts/check_lenses.py` checks lenses, config and doc tables agree
 - `ideas/` — a few showcase ideas for the CLI and README; `eval/` — eval cases (`gate/`, `pipeline/` with their own ideas) and `run_eval.py`; `results/`, `logs/`, `.claude/hillclimb/` — generated, git-ignored

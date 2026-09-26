@@ -12,6 +12,32 @@ code version can be measured in several variants.
 Entry format: date, commit, what changed, expected effect, how it was checked
 so far, and the eval result once there is one.
 
+## 2026-09-26 — startup-autopsy skill description (trigger)
+
+- **Change:** the user skill's description now says why the tools beat an
+  answer from model knowledge, to use them even when the user gives numbers,
+  covers shared business plans and quitting a job to start a business, and
+  lists what it is not for (a career move, writing a business plan,
+  brainstorming, market statistics, plain calculations).
+- **Why:** in the manual MCP test it triggered on 1 of 2 idea prompts.
+- **Checked:** new trigger test `eval/trigger/run_trigger.py`, 24 queries
+  (13 should trigger, 11 should not), 3 runs each, Opus 5.5:
+
+  | Description | Effort | Triggered when wanted | Quiet when not wanted |
+  |---|---|---|---|
+  | old | default | 12/13 | 11/11 |
+  | old | low | 10/13 | 11/11 |
+  | new | default | 12/13 | 11/11 |
+  | new | low | 12/13 | 11/11 |
+
+  Old at default: 11/12 on the first 23 queries plus the business-plan query
+  (2/3) run separately. The one miss left is moonshine sold to neighbours
+  (0/3 in every setting): Claude answers illegal ideas itself. Not tuned for.
+- **Lessons:** an unquoted ': ' in the description broke the YAML frontmatter
+  and made one run meaningless (3/13); the test now refuses to run on it.
+  A usage-limit error once counted as 'not triggered'; it now counts as a
+  failed run.
+
 ## 2026-09-26 — Unit Economics Analyst (defined, not enabled)
 
 - **Change:** SaaS Revenue Builder re-scoped into Unit Economics Analyst

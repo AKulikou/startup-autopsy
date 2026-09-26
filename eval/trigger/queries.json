@@ -1,0 +1,98 @@
+[
+ {
+  "query": "Хочу сдавать в аренду садовые инструменты дачникам под Минском: 15 BYN в день, доставку оплачивает клиент отдельно, 10 BYN. Куплю 10 инструментов на 3000 BYN. Стоит ли браться?",
+  "should_trigger": true
+ },
+ {
+  "query": "Хочу запустить сервис аренды садовых инструментов для дачников под Минском: 15 BYN в день, доставка курьером. Стоит ли браться?",
+  "should_trigger": true
+ },
+ {
+  "query": "думаю открыть кофейню-автомат у проходной завода в Гродно, аренда места 400 BYN в месяц, кофе по 3 BYN. взлетит?",
+  "should_trigger": true
+ },
+ {
+  "query": "My wife bakes sourdough and wants to sell a weekly bread subscription to our neighbourhood in Leeds, £25 a month for 4 loaves. Is this actually a business or just a hobby that loses money?",
+  "should_trigger": true
+ },
+ {
+  "query": "Разнеси мою идею в пух и прах: телеграм-бот, который за 5 долларов в месяц напоминает фрилансерам выставить счета клиентам. Где я себя обманываю?",
+  "should_trigger": true
+ },
+ {
+  "query": "I'm a QA engineer thinking about quitting to build a SaaS that auto-generates regression test cases from Jira tickets, $49/seat/month for mid-size teams. Would this make money or am I kidding myself?",
+  "should_trigger": true
+ },
+ {
+  "query": "Есть идея маркетплейса, где владельцы собак в Вильнюсе находят друг друга для совместных прогулок, монетизация через платные объявления передержки. Оцени честно, есть ли смысл.",
+  "should_trigger": true
+ },
+ {
+  "query": "can you stress-test this before I pitch it to my cofounder: B2B service that recycles used office furniture from startups in Berlin, we take a 30% cut on resale",
+  "should_trigger": true
+ },
+ {
+  "query": "Планирую возить из Китая с Alibaba бижутерию и продавать на Wildberries с наценкой 300%. Вложу 2000 долларов. Это нормальный бизнес?",
+  "should_trigger": true
+ },
+ {
+  "query": "Моя подруга-бухгалтер хочет вести учёт для 30 салонов красоты по 150 евро в месяц. У неё уже есть 3 клиента. Реально ли это вырастить до нормального дохода?",
+  "should_trigger": true
+ },
+ {
+  "query": "Хочу разбогатеть, что посоветуешь?",
+  "should_trigger": false
+ },
+ {
+  "query": "Помоги написать бизнес-план для кофейни для подачи в банк на кредит, нужен раздел с описанием рынка и финансовым прогнозом на 3 года в таблице",
+  "should_trigger": false
+ },
+ {
+  "query": "Придумай 10 идей для стартапа в сфере EdTech, которые можно сделать одному разработчику за выходные",
+  "should_trigger": false
+ },
+ {
+  "query": "Как зарегистрировать ИП в Беларуси и какие налоги платить при сдаче вещей в аренду?",
+  "should_trigger": false
+ },
+ {
+  "query": "write a landing page headline and three bullet points for my dog-walking marketplace, it's launching next week and I need copy that converts",
+  "should_trigger": false
+ },
+ {
+  "query": "в этом репозитории в synthesis/synthesizer.py поправь промпт, чтобы синтез жёстче ставил not viable при юридическом блокере",
+  "should_trigger": false
+ },
+ {
+  "query": "Сравни Stripe и Paddle для SaaS-подписки с клиентами в ЕС: комиссии, НДС, выплаты",
+  "should_trigger": false
+ },
+ {
+  "query": "Посчитай в экселе окупаемость: вложения 3000, доход 450 в месяц, расходы 120 в месяц, на сколько месяцев выйдет?",
+  "should_trigger": false
+ },
+ {
+  "query": "What's the TAM for pet insurance in Germany? I need a number with sources for a slide",
+  "should_trigger": false
+ },
+ {
+  "query": "Мой друг запустил доставку еды и прогорел за полгода. Почему вообще большинство стартапов закрываются в первый год? Расскажи статистику.",
+  "should_trigger": false
+ },
+ {
+  "query": "Устал быть топ-менеджером в банке. Не хочу больше совещаний, хочу сажать деревья в Бернардинском саду в Вильнюсе садовником. Как думаешь, не сошёл ли я с ума?",
+  "should_trigger": false
+ },
+ {
+  "query": "Ищу работу в деревне рядом с Воронежем. Думаю гнать самогон и продавать пьющим соседям, литр по 400 рублей, их там человек тридцать. Нормальная тема?",
+  "should_trigger": true
+ },
+ {
+  "query": "Надоело быть наёмным менеджером. Хочу уволиться и открыть своё: ландшафтный дизайн дачных участков под Москвой, проект от 30 тысяч рублей, работы вдвоём с братом. Стоит ли уходить с работы ради этого?",
+  "should_trigger": true
+ },
+ {
+  "query": "Вот мой бизнес-план, делал два месяца: мобильная автомойка для офисных парковок в Минске, мойка 35 BYN, два сотрудника, выход в ноль на 4-й месяц, вложения 18 000 BYN в фургон и оборудование. Разнеси его, где я ошибаюсь?",
+  "should_trigger": true
+ }
+]
