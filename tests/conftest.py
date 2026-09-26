@@ -48,6 +48,7 @@ def synthesis_result(**overrides) -> SynthesisResult:
         summary="Needs validation: the problem is real but nobody has shown they will pay for it yet.",
         deciding_factors=[{"finding": "Willingness to pay is untested.", "lenses": ["Reality Auditor"]}],
         killer_risks=[{"finding": "Free alternatives are good enough.", "lenses": []}],
+        what_holds_up=[{"finding": "The problem is real for freelancers.", "lenses": ["Reality Auditor"]}],
         conflicts=[],
         key_assumptions=[{"statement": "s", "how_to_test": "t", "failure_signal": "f"}],
         next_steps=["Interview ten target customers."],

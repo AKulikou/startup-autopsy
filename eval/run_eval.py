@@ -168,7 +168,8 @@ def run_pipeline_case(case: dict) -> tuple[dict, list[dict], dict]:
                       "content": json.dumps(body, ensure_ascii=False, indent=2)})
     trace.append({"role": "assistant", "content": json.dumps(
         {k: synthesis[k] for k in ("verdict", "confidence", "confidence_reason", "summary",
-                                   "deciding_factors", "killer_risks", "conflicts", "next_steps")},
+                                   "deciding_factors", "killer_risks", "what_holds_up", "conflicts",
+                                   "next_steps")},
         ensure_ascii=False, indent=2), "thinking": synthesis["reasoning"]})
 
     extra = {"usage": usage, "meta": {

@@ -48,6 +48,12 @@ class SynthesisResult(BaseModel):
         description="The distinct risks most likely to kill the project, merged across lens "
         "killer risks and red flags, most severe first. Each risk appears once."
     )
+    what_holds_up: list[Finding] = Field(
+        description="0-4 parts of the idea that the lenses examined and found sound, with the "
+        "evidence they gave, strongest first. Only what survived scrutiny: not the founder's "
+        "unexamined claims, not merely 'interesting', not the absence of a known risk. "
+        "Empty if nothing held up."
+    )
     conflicts: list[Conflict] = Field(
         description="Conflicts between lenses, with the founder's claims, or within one lens. "
         "Empty if there are none."

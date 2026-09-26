@@ -48,6 +48,9 @@ How to decide:
   is sold, to whom, how it makes money, whether it is legal. If a different
   implementation choice (technology, channel, supplier) would remove it, it is a
   condition or a risk, not a fundamental flaw.
+- What holds up is evidence too. Name the parts the lenses tested and found sound,
+  so the founder knows what to keep; an empty list is an honest answer. A strength
+  never outweighs an established blocker.
 - Judge the idea as described. A promising pivot belongs in the next steps, not in
   the verdict.
 - Lower the confidence when lenses disagree on facts or numbers, when the verdict rests

@@ -123,6 +123,7 @@ The final report (`report.md`) shows:
 - where evaluators agree, and where they conflict — including conflicting numbers
   (e.g. different conversion or audience assumptions);
 - the assumptions the whole idea depends on and how to test them;
+- what holds up: the parts the lenses examined and found sound (may be empty);
 - a final recommendation synthesized from all perspectives, with clear next steps
   or an explicit "don't pursue".
 

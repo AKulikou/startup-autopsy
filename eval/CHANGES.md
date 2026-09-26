@@ -3,7 +3,7 @@
 Every change that can change what the model answers — prompts, lenses, schemas,
 model or request settings — gets an entry here, newest first. The full pipeline
 eval (`python -m eval.run_eval pipeline --reps 2 --variant <name>`, about 14 USD
-per pass) runs weekly, not after every change, so this log is how its results
+per pass) runs when budget allows, not after every change, so this log is how its results
 are read: which changes a pass covers, and what each was expected to do.
 
 Experiments sit behind switches in `.env` (`ANALYSIS_MODEL`, `THINKING`), so one
@@ -11,6 +11,20 @@ code version can be measured in several variants.
 
 Entry format: date, commit, what changed, expected effect, how it was checked
 so far, and the eval result once there is one.
+
+## 2026-09-26 — 'What holds up' in the synthesis
+
+- **Change:** new synthesis field `what_holds_up` (0-4 findings the lenses examined
+  and found sound, with lens attribution; empty allowed) and a principle in
+  `SYNTHESIS_PRINCIPLES`: strengths are evidence, never outweigh a blocker. New
+  report section 'What Holds Up'.
+- **Expected:** no verdict change. Risk to watch: softer verdicts (strengths
+  pulling bad ideas up) and marketing-style strengths on weak ideas; output
+  tokens up slightly.
+- **Checked:** pytest; one run each of beer subscription and salon bookkeeping:
+  both VIABLE_IF, 3-4 attributed strengths, none flagged by the review-run
+  attribution check. Observation (one run, not tuned): one salon strength rests
+  on the founder's own claim (12 years certified), which the field excludes.
 
 ## 2026-09-25 — domain lenses with knowledge packs (with lens selection only)
 

@@ -26,7 +26,9 @@ python -m eval.run_eval pipeline --reps 2      # eval: whole pipeline (~$14, pai
 ```
 
 Requires `ANTHROPIC_API_KEY` in `.env` (never commit it). Run `pytest` and `ruff check .`
-after any change; run the eval after any change to prompts, lenses or the model.
+after any change. After a change to prompts, lenses or the model, run the cheap gate eval
+and one or two single-idea runs; the pipeline eval runs only when budget allows, with
+the change logged in `eval/CHANGES.md` so that run can be read against it.
 
 ## Layout
 
@@ -121,4 +123,4 @@ These define what a "correct" report is — apply them when editing prompts or s
   illegal, yet says RISKY rather than NOT_VIABLE).
 - Facts (laws, competitors, prices) come from model knowledge, not live sources.
 - Experiments behind `.env` switches (`ANALYSIS_MODEL`, `THINKING`, `LENS_SELECTION`)
-  are off by default until the weekly eval decides; see `eval/CHANGES.md`.
+  are off by default until the pipeline eval decides; see `eval/CHANGES.md`.

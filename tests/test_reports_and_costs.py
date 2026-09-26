@@ -46,6 +46,16 @@ def test_failed_synthesis_gives_no_verdict_instead_of_an_invented_one():
     assert "## Verdict:" not in report
 
 
+def test_report_shows_what_holds_up_with_its_lenses():
+    report = build_report("idea", datetime(2026, 9, 25), synthesis_row(), [])
+    assert "## What Holds Up\n\n- The problem is real for freelancers. *(Reality Auditor)*" in report
+
+
+def test_empty_what_holds_up_is_said_plainly_not_left_blank():
+    report = build_report("idea", datetime(2026, 9, 25), synthesis_row(what_holds_up=[]), [])
+    assert "## What Holds Up\n\nThe lenses found nothing" in report
+
+
 def test_input_check_note_appears_in_the_report_header():
     report = build_report("idea", datetime(2026, 9, 25), synthesis_row(), [], input_note="Too vague.")
     assert "> **Input check:** Too vague." in report.split("## Verdict")[0]

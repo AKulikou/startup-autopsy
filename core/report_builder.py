@@ -50,6 +50,7 @@ def build_report(
         f"{synthesis['confidence_reason']}",
         f"## Why: Deciding Factors\n\n{_findings(synthesis['deciding_factors'])}",
         f"## What Could Kill This Project\n\n{_findings(synthesis['killer_risks'])}",
+        f"## What Holds Up\n\n{_holds_up(synthesis['what_holds_up'])}",
         f"## Conflicts\n\n{_conflicts(synthesis['conflicts'])}",
         f"## What Must Be True\n\n{_assumptions(synthesis['key_assumptions'])}",
         f"## Next Steps\n\n{_numbered(synthesis['next_steps'])}",
@@ -66,6 +67,12 @@ def _findings(findings: list[dict]) -> str:
         source = f" *({', '.join(f['lenses'])})*" if f["lenses"] else ""
         lines.append(f"- {f['finding']}{source}")
     return "\n".join(lines)
+
+
+def _holds_up(findings: list[dict]) -> str:
+    if not findings:
+        return "The lenses found nothing in the idea that clearly holds up."
+    return _findings(findings)
 
 
 def _conflicts(conflicts: list[dict]) -> str:

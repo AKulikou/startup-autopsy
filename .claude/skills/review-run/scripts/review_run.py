@@ -90,7 +90,7 @@ def check_attribution(run_dir: Path, report: str) -> None:
     lens_text = {p.stem: p.read_text(encoding="utf-8").lower() for p in (run_dir / "lenses").glob("*.md")
                  if p.stem.count(".") == 0}
     suspicious = 0
-    for heading in ("Why: Deciding Factors", "What Could Kill This Project"):
+    for heading in ("Why: Deciding Factors", "What Could Kill This Project", "What Holds Up"):
         for line in section(report, heading).splitlines():
             match = FINDING.match(line.strip())
             if not match:
