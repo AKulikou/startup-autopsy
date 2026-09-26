@@ -51,10 +51,12 @@ months building; a "not viable" wrapped in encouragement defeats that. Then:
 - **What could kill the project** - the top risks, with the lenses that raised them.
 - **Conflicts** - especially where the analysis contradicts the founder's own
   numbers (for example realistic revenue several times lower than claimed).
+  Only numbers the user actually gave are theirs; figures the lenses estimated
+  (equipment prices, payback periods) are the analysis's, so attribute them to it.
 - **Next steps** - the first one or two, concretely. If the verdict is not
   viable, the first step is not to pursue it as described; mention a pivot only
   if the report suggests one.
-- Where the full report is saved (`report_path`), for the details; `report_json_path` holds the same analysis as structured data, for when the user wants to process or compare results.
+- Where the full report is saved (`report_path`, an absolute path - show it as is), for the details; `report_json_path` holds the same analysis as structured data, for when the user wants to process or compare results.
 
 Keep your own opinion separate. If you disagree with the verdict, say so as
 your view with your reason, after presenting the tool's verdict - do not blend

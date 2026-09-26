@@ -22,6 +22,9 @@ from mcp_types import ToolAnnotations
 from pydantic import BaseModel, Field
 
 ROOT = Path(__file__).resolve().parent
+# Anchored to the project, not the working directory: an MCP client starts the
+# server from wherever its own session runs.
+RESULTS_DIR = ROOT / "results"
 sys.path.insert(0, str(ROOT))
 
 from core.analysis_runner import AnalysisRunner  # noqa: E402
@@ -109,13 +112,14 @@ def analyze_idea_sync(idea: str, name: str, analyze_if_vague: bool) -> IdeaAnaly
     except InvalidIdeaError as e:
         return IdeaAnalysis(analyzed=False, check=_local_rejection(e))
 
-    runner = AnalysisRunner(IdeaProcessor(), confirm_vague_idea=lambda gate: analyze_if_vague)
+    processor = IdeaProcessor(results_dir=str(RESULTS_DIR))
+    runner = AnalysisRunner(processor, confirm_vague_idea=lambda gate: analyze_if_vague)
     analysis = runner.analyze(text)
     check = _gate_check(analysis["gate"])
     if not analysis["analyzed"]:
         return IdeaAnalysis(analyzed=False, check=check)
 
-    report_path = runner.save(_run_name(name), analysis, started_at)
+    report_path = runner.save(_run_name(name), analysis, started_at).resolve()
     synthesis = analysis["synthesis"]
     result = IdeaAnalysis(
         analyzed=True, check=check,

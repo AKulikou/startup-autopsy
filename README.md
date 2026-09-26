@@ -262,7 +262,8 @@ claude mcp add startup-autopsy -- /path/to/startup-autopsy/venv/Scripts/python.e
 
 Then ask Claude to evaluate an idea. The server reads the API key from `.env`
 like the CLI does, and logs to `logs/mcp_server_*.log` (stdout carries the
-protocol). A full analysis takes a few minutes, so a client with a short tool
+protocol). Reports go to the project's `results/`, whichever folder the client
+runs in. A full analysis takes a few minutes, so a client with a short tool
 timeout needs it raised.
 
 ### A skill that teaches Claude to use the tools

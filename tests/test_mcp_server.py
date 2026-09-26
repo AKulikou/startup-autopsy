@@ -7,7 +7,6 @@ import pytest
 from conftest import gate_result, response
 
 import mcp_server
-from core.idea_processor import IdeaProcessor
 from evaluators.schemas import EvaluatorResult
 from gate.schemas import GateResult
 
@@ -17,8 +16,8 @@ IDEA = "Weekly meal-prep delivery for office workers in Vilnius, 60 EUR a week, 
 @pytest.fixture
 def results_dir(tmp_path, monkeypatch):
     """Keep reports written by analyze_idea out of the real results/ folder."""
-    monkeypatch.setattr(mcp_server, "IdeaProcessor", lambda: IdeaProcessor(results_dir=str(tmp_path)))
-    return tmp_path
+    monkeypatch.setattr(mcp_server, "RESULTS_DIR", tmp_path / "results")
+    return tmp_path / "results"
 
 
 def call(tool, **arguments) -> dict:
@@ -71,3 +70,17 @@ def test_analyze_idea_stops_on_a_vague_idea_unless_asked(fake_claude, results_di
     forced = call("analyze_idea", idea="An app for dog owners", analyze_if_vague=True)
     assert forced["analyzed"] is True
     assert "Input check" in forced["report_markdown"]
+
+
+def test_reports_land_in_the_project_whatever_folder_the_client_runs_in(
+    fake_claude, results_dir, tmp_path, monkeypatch
+):
+    elsewhere = tmp_path / "client_session"
+    elsewhere.mkdir()
+    monkeypatch.chdir(elsewhere)
+    result = call("analyze_idea", idea=IDEA, name="meals")
+    report = Path(result["report_path"])
+    assert report.is_absolute()
+    assert report.parent.parent == results_dir
+    assert Path(result["report_json_path"]).is_absolute()
+    assert not (elsewhere / "results").exists()
