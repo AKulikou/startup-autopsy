@@ -13,6 +13,25 @@ can be measured in several variants.
 Entry format: date, commit, what changed, expected effect, how it was checked
 so far, and the eval result once there is one.
 
+## 2026-09-27 — eval through Message Batches (`--batch`)
+
+- **Change:** `run_eval.py --batch` sends every request through the Message
+  Batches API (`core/batch_client.py`). Prompts, schemas and settings are
+  unchanged; only the transport and the price differ. Rows carry `batch: true`,
+  their cost is at batch prices, and their latency measures batch waiting.
+- **Expected effect:** half the token cost, same verdicts within normal
+  variation.
+- **Checked:** gate, 4 cases in one batch: 4/4 correct, 135 s, 0.01 USD.
+  Pipeline, `good_salon_bookkeeping`: in range, consistent, all lenses ok,
+  430 s, 0.20 USD against 0.39-0.40 USD for the same case in `baseline`.
+- **Prompt caching, measured and not enabled:** the repeated prefix is the
+  output schema (about 1,170 tokens for a lens, 1,720 for the synthesis) plus
+  the system prompt (about 410 tokens for a core lens). The lenses of one run
+  start together and have different system prompts, so a single run gets no
+  cache hits and would pay the cache-write premium; only the eval repeats a lens
+  prompt across ideas, estimated at about 6% of a pass. Worth one measured try
+  in batch mode later, not a default.
+
 ## 2026-09-27 — eval cases renamed, two pipeline ideas translated
 
 - **Change:** pipeline case ids `zz_cookies_ru` → `small_business_cookies` and

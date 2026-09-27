@@ -23,6 +23,7 @@ pytest                                         # unit tests, fake Claude client,
 ruff check .                                   # lint (config in pyproject.toml, target Python 3.10)
 python -m eval.run_eval gate --reps 3          # eval: input check (~$0.25)
 python -m eval.run_eval pipeline --reps 2      # eval: whole pipeline (~$14, paid)
+python -m eval.run_eval pipeline --reps 2 --batch  # same via Message Batches (~$7, slower)
 python -m eval.trigger.run_trigger --effort low # skill trigger test (~15 min, Claude Code login, no API key)
 ```
 
@@ -43,6 +44,7 @@ test at the default and the low effort level; accept a change only if it is no w
 - `evaluators/schemas.py` — `EvaluatorResult` Pydantic schema (verdict, confidence, assumptions, killer risk, next steps)
 - `synthesis/synthesizer.py` — `Synthesizer`: one Claude call that reads all lens results and decides the overall verdict (`SYNTHESIS_PRINCIPLES`); `synthesis/schemas.py` — `SynthesisResult`
 - `core/structured_call.py` — shared structured request: stop-reason checks, result validation, one retry
+- `core/batch_client.py` — `BatchingClient`: answers `messages.parse()` through Message Batches (half price); `use_batches()` in `core/claude_client.py`, used by `eval/run_eval.py --batch`
 - `gate/lens_fit.py` — `LensFitCheck`: with `LENS_SELECTION` on, one call that decides which conditional lenses (`Lens.applies_to`) fit the idea
 - `gate/idea_gate.py` — `IdeaGate`: one Claude call that decides NOT_AN_IDEA / TOO_VAGUE / ANALYZABLE before the lenses run (`gate/schemas.py` — `GateResult`)
 - `core/idea_input.py` — local checks before any API call (empty or letterless input is rejected; straight double quotes become typographic)

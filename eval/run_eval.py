@@ -16,6 +16,12 @@ Flows:
 Usage:
     python -m eval.run_eval gate --reps 3
     python -m eval.run_eval pipeline --reps 2 --cases alibaba_jewelry_flip,api_monitor
+    python -m eval.run_eval pipeline --reps 2 --batch   # Message Batches: half price, slower
+
+With --batch every request goes through the Message Batches API: tokens cost half,
+and each pipeline stage waits for its batch (usually minutes, at most 24 hours).
+All attempts run at once so their requests share batches; the reported cost is
+at batch prices, and latency then measures batch waiting, not the model.
 
 Rows are written as each case finishes, and a rerun skips (case, rep) pairs
 that already have a row, so an interrupted run can simply be restarted.
@@ -37,12 +43,14 @@ sys.path.insert(0, str(ROOT))
 
 from config import ANALYSIS_EFFORT, EXTRA_LENSES, LENS_SELECTION, MODEL, THINKING, WEB_SEARCH  # noqa: E402
 from core.analysis_runner import AnalysisRunner  # noqa: E402
+from core.claude_client import use_batches  # noqa: E402
 from core.idea_input import InvalidIdeaError, prepare_idea  # noqa: E402
 from core.token_summary import estimate_cost  # noqa: E402
 from gate.idea_gate import GATE_PRINCIPLES, IdeaGate  # noqa: E402
 from synthesis.synthesizer import consistency_warnings  # noqa: E402
 
 CASE_TIMEOUT_S = {"gate": 120, "pipeline": 900}
+BATCH_TIMEOUT_S = 24 * 3600  # the Batches API's own limit per batch
 DEFAULT_CONCURRENCY = {"gate": 8, "pipeline": 2}
 
 # Metric definitions per flow. The first binary metric is the headline.
@@ -295,6 +303,8 @@ def main() -> None:
     parser.add_argument("--variant", default="baseline")
     parser.add_argument("--cases", help="comma-separated case ids (default: all)")
     parser.add_argument("--concurrency", type=int)
+    parser.add_argument("--batch", action="store_true",
+                        help="send requests through the Message Batches API (half price, slower)")
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.WARNING, format="  %(name)s: %(message)s")
@@ -315,9 +325,15 @@ def main() -> None:
           f"({len(cases)} cases x {args.reps} reps, {len(done)} already done)")
     print(", ".join(f"{k}={v}" for k, v in RUN_SETTINGS.items()))
 
-    started = time.monotonic()
     timeout = CASE_TIMEOUT_S[args.flow]
-    with ThreadPoolExecutor(max_workers=args.concurrency or DEFAULT_CONCURRENCY[args.flow]) as pool:
+    concurrency = args.concurrency or DEFAULT_CONCURRENCY[args.flow]
+    if args.batch:
+        use_batches()
+        RUN_SETTINGS["batch"] = True
+        timeout, concurrency = BATCH_TIMEOUT_S, max(len(jobs), 1)
+        print("batch mode: all attempts at once, requests sent as Message Batches")
+    started = time.monotonic()
+    with ThreadPoolExecutor(max_workers=concurrency) as pool:
         futures = {pool.submit(run_one, args.flow, c, rep, out): (c, rep) for c, rep in jobs}
         for future, (case, rep) in futures.items():
             try:

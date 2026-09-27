@@ -239,7 +239,8 @@ synthesis/
 core/
   analysis_runner.py       orchestration: lenses, synthesis, reports
   structured_call.py       shared Claude request with validation and one retry
-  claude_client.py         the Anthropic client
+  claude_client.py         the Anthropic client (direct, or batching for the eval)
+  batch_client.py          sends requests through the Message Batches API at half price
   idea_input.py            local checks and quote normalization of the idea text
   report_builder.py        the final report.md
   json_export.py           report.json, the analysis as structured data
@@ -301,13 +302,17 @@ pytest                                     # unit tests: no API calls, under a s
 ruff check .                               # lint, targeting Python 3.10
 python -m eval.run_eval gate --reps 3      # eval of the input check (~$0.25)
 python -m eval.run_eval pipeline --reps 2  # eval of the whole pipeline (~$14)
+python -m eval.run_eval pipeline --reps 2 --batch  # the same at half price, via Message Batches (slower)
 python -m eval.trigger.run_trigger         # does the skill trigger on the right requests (Claude Code login)
 ```
 
 The unit tests replace Claude with a scripted fake and cover the guards around
 the model: malformed-answer detection and retry, input checks, parallel lenses,
 report rendering and cost. The eval runs the real pipeline over reviewed cases
-in `eval/` and grades the outcomes (see `eval/run_eval.py`). Some input-check
+in `eval/` and grades the outcomes (see `eval/run_eval.py`). With `--batch`, every
+request goes through the Message Batches API (`core/batch_client.py`): tokens
+cost half, each pipeline stage waits for its batch, and the pipeline code is
+unchanged, because the batching client answers the same call the direct client does. Some input-check
 and trigger cases are in Russian on purpose: people describe ideas in their own
 language, and the system has to handle that.
 

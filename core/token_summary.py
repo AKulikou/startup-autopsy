@@ -11,6 +11,17 @@ from config import MODEL, MODEL_PRICING_PER_MTOK, WEB_SEARCH_PRICE
 
 logger = logging.getLogger(__name__)
 
+# Token price multiplier: the Message Batches API bills tokens at half price
+# (core/batch_client.py). Web searches are priced separately and kept at full price.
+BATCH_TOKEN_DISCOUNT = 0.5
+token_price_factor = 1.0
+
+
+def use_batch_pricing() -> None:
+    """Price tokens at the batch rate for the rest of the process (the eval with --batch)."""
+    global token_price_factor
+    token_price_factor = BATCH_TOKEN_DISCOUNT
+
 
 def estimate_cost(
     input_tokens: int, output_tokens: int, model: str | None = None
@@ -23,7 +34,7 @@ def estimate_cost(
     if pricing is None:
         return None
     input_price, output_price = pricing
-    return (input_tokens * input_price + output_tokens * output_price) / 1_000_000
+    return token_price_factor * (input_tokens * input_price + output_tokens * output_price) / 1_000_000
 
 
 def call_cost(result: dict) -> float | None:

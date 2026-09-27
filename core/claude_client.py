@@ -13,6 +13,8 @@ from functools import lru_cache
 from anthropic import Anthropic, DefaultHttpxClient
 
 from config import ANTHROPIC_API_KEY
+from core.batch_client import BatchingClient
+from core.token_summary import use_batch_pricing
 
 logger = logging.getLogger(__name__)
 
@@ -32,8 +34,28 @@ def _log_rate_limits(response) -> None:
         )
 
 
+# Set by use_batches(): the eval can send every request through the Batches API.
+_batching_client: BatchingClient | None = None
+
+
+def use_batches(window_s: float = 10.0, poll_s: float = 30.0) -> BatchingClient:
+    """
+    From now on get_client() returns a client that answers messages.parse()
+    through Message Batches (half price, minutes of latency). For the eval only.
+    """
+    global _batching_client
+    _batching_client = BatchingClient(_direct_client(), window_s=window_s, poll_s=poll_s)
+    use_batch_pricing()
+    return _batching_client
+
+
+def get_client() -> Anthropic | BatchingClient:
+    """The shared client: direct, or batching after use_batches()."""
+    return _batching_client or _direct_client()
+
+
 @lru_cache(maxsize=1)
-def get_client() -> Anthropic:
+def _direct_client() -> Anthropic:
     """One client per process: it reuses connections and is safe to share across threads."""
     return Anthropic(
         api_key=ANTHROPIC_API_KEY,
