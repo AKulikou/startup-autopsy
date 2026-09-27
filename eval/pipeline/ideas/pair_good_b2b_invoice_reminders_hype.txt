@@ -1,0 +1,25 @@
+🚀 A GAME-CHANGING, AI-READY platform that will revolutionize how every small B2B company gets paid!!!
+
+THE PAIN IS MASSIVE: small agencies and consultancies (5-50 people) send invoices from
+their accounting software and then chase late payments by hand. Owners HATE chasing:
+it is awkward and often forgotten, and the average invoice is paid 18 days late!
+
+OUR BREAKTHROUGH SOLUTION: a sleek web service that connects to Xero and QuickBooks
+through their official APIs, reads unpaid invoices and sends a polite reminder sequence
+by email (3 days before, on the due date, 7 and 14 days after), stopping automatically
+when the invoice is marked paid. Honestly, it is a no-brainer!
+
+PRICE: just 29 USD per month per company, with a 14-day free trial. Everyone we talk to
+says they would pay much more!
+
+INSANE TRACTION ALREADY: the founder interviewed 25 agency owners and 17 described the
+problem as painful. A landing page with a price got 41 trial sign-ups from 600 visitors
+from two accounting-software community forums. 6 companies are using a manual prototype
+and 4 of them offered to pay. This is going to be HUGE!
+
+WORLD-CLASS FOUNDER: a backend developer who has built two integrations with the Xero
+API before.
+
+COMPETITION? NOT REALLY: Xero and QuickBooks have basic built-in reminders that most
+users find rigid; standalone tools exist (for example Chaser) but target larger finance
+teams at 150+ USD per month. We will crush it!

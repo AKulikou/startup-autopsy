@@ -46,11 +46,14 @@ from core.claude_client import use_batches  # noqa: E402
 from core.idea_input import InvalidIdeaError, prepare_idea  # noqa: E402
 from core.token_summary import estimate_cost  # noqa: E402
 from eval.grading import (  # noqa: E402
+    allowed_verdicts,
     calibration,
     constant_baselines,
     grade_gate,
     grade_pipeline,
+    labelled_baselines,
     lens_flip_rates,
+    rescore,
     stability,
     wilson,
 )
@@ -70,7 +73,8 @@ METRICS = {
         {"id": "injection_ok", "label": "injection ok", "kind": "binary"},
     ],
     "pipeline": [
-        {"id": "in_range", "label": "verdict ok", "kind": "binary"},
+        {"id": "primary_hit", "label": "primary hit", "kind": "binary"},
+        {"id": "in_range", "label": "acceptable", "kind": "binary"},
         {"id": "consistent", "label": "consistent", "kind": "binary"},
         {"id": "all_lenses_ok", "label": "lenses ok", "kind": "binary"},
     ],
@@ -166,7 +170,7 @@ def run_pipeline_case(case: dict) -> tuple[dict, list[dict], dict]:
     # Covers "not viable without 'Do not pursue' first" and "positive overall
     # although a lens found the idea not viable".
     warnings = consistency_warnings(synthesis, lenses)
-    grade = grade_pipeline(verdict, case["expected"], warnings, [r["status"] for r in lenses])
+    grade = grade_pipeline(verdict, case, warnings, [r["status"] for r in lenses])
 
     # Full lens results, including the analysis text the synthesis reads, so the
     # synthesis can be replayed on exactly these inputs (eval/replay_synthesis.py).
@@ -181,7 +185,8 @@ def run_pipeline_case(case: dict) -> tuple[dict, list[dict], dict]:
         ensure_ascii=False, indent=2), "thinking": synthesis["reasoning"]})
 
     extra = {"usage": usage, "meta": {
-        "verdict": verdict, "confidence": synthesis["confidence"], "expected": case["expected"],
+        "verdict": verdict, "confidence": synthesis["confidence"], "primary": case["primary"],
+        "acceptable": case.get("acceptable", []), "expected": allowed_verdicts(case),
         "gate_decision": gate.get("decision"), "consistency_warnings": warnings,
         "lens_verdicts": {r["evaluator_display"]: r.get("verdict", "FAILED") for r in lenses},
         "skipped_lenses": [s["lens"] for s in analysis["skipped_lenses"]],
@@ -234,17 +239,23 @@ def run_one(flow: str, case: dict, rep: int, out: Path) -> str:
     return " ".join(f"{k}={v}" for k, v in grade.items())
 
 
-def print_baselines(rows: list[dict], metric_id: str) -> None:
-    """The same attempts answered by trivial strategies: the floor the metric must beat."""
-    base = constant_baselines([r["meta"]["expected"] for r in rows])
-    n = base["n"]
+def print_baselines(rows: list[dict]) -> None:
+    """The same attempts answered by trivial strategies: the floor the metrics must beat."""
+    n = len(rows)
     if not n:
         return
-    best = max(base["always"], key=base["always"].get)
-    print(f"  reference ({metric_id}, same {n} attempts):")
-    print(f"    always RISKY      {base['always']['RISKY']}/{n} = {base['always']['RISKY'] / n:.0%}")
-    print(f"    best constant     always {best}: {base['always'][best]}/{n} = {base['always'][best] / n:.0%}")
-    print(f"    random verdict    {base['random']:.1f}/{n} = {base['random'] / n:.0%} (expected value)")
+    labelled = labelled_baselines([r["meta"]["primary"] for r in rows])
+    acceptable = constant_baselines([r["meta"]["expected"] for r in rows])
+    best = max(labelled["always"], key=lambda v: labelled["always"][v]["primary_hits"])
+    cheapest = min(labelled["always"], key=lambda v: labelled["always"][v]["mean_cost"])
+    print(f"  reference (trivial answers on the same {n} attempts):")
+    for verdict in dict.fromkeys(("RISKY", best, cheapest)):
+        c = labelled["always"][verdict]
+        print(f"    {'always ' + verdict:<24} primary {c['primary_hits']}/{n} = {c['primary_hits'] / n:.0%}, "
+              f"acceptable {acceptable['always'][verdict]}/{n}, error cost {c['mean_cost']:.2f}")
+    r = labelled["random"]
+    print(f"    {'random verdict':<24} primary {r['primary_hits'] / n:.0%}, "
+          f"acceptable {acceptable['random'] / n:.0%}, error cost {r['mean_cost']:.2f} (expected values)")
 
 
 def print_stability(rows: list[dict]) -> None:
@@ -272,12 +283,24 @@ def print_stability(rows: list[dict]) -> None:
         print(f"    {lens:<26} {flipped}/{total}")
 
 
-def summarize(flow: str, out: Path) -> None:
+def summarize(flow: str, out: Path, cases: dict[str, dict] | None = None) -> None:
+    """
+    Print the summary of a variant. Pipeline rows are regraded against the current
+    case labels (`cases`, default: eval/pipeline/cases.json), so runs made under old
+    labels stay comparable; rows of removed cases are left out.
+    """
     rows = read_jsonl(out / "results.jsonl")
     errors = read_jsonl(out / "errors.jsonl")
-    print(f"\n{flow}: {len(rows)} scored rows, {len(errors)} errors")
+    dropped = 0
+    if flow == "pipeline":
+        if cases is None:
+            cases = {c["id"]: c for c in load_cases("pipeline", None)}
+        regraded = rescore(rows, cases)
+        dropped, rows = len(rows) - len(regraded), regraded
+    print(f"\n{flow}: {len(rows)} scored rows, {len(errors)} errors"
+          + (f" ({dropped} rows of removed cases left out)" if dropped else ""))
     for metric in METRICS[flow]:
-        values = [r["grade"][metric["id"]] for r in rows]
+        values = [r["grade"][metric["id"]] for r in rows if metric["id"] in r["grade"]]
         if flow == "gate" and metric["id"] == "false_reject":
             values = [r["grade"]["false_reject"] for r in rows if "ANALYZABLE" in r["meta"]["expected"]]
         if flow == "gate" and metric["id"] == "false_accept":
@@ -286,12 +309,15 @@ def summarize(flow: str, out: Path) -> None:
         lo, hi = wilson(passes, n)
         print(f"  {metric['label']:<13} {passes}/{n} = {passes / n if n else 0:.0%}  "
               f"(95% CI {lo:.0%}-{hi:.0%})")
-    if flow == "pipeline":
-        print_baselines(rows, METRICS[flow][0]["id"])
+    if flow == "pipeline" and rows:
+        mean_cost = sum(r["grade"]["error_cost"] for r in rows) / len(rows)
+        print(f"  error cost    {mean_cost:.2f} mean per attempt (0 = primary verdict; see ERROR_COST)")
+        print_baselines(rows)
         print_stability(rows)
     cost = sum(r["cost_usd"] or 0 for r in rows) + sum(e.get("cost_usd") or 0 for e in errors)
     print(f"  cost          ${cost:.2f} (including failed attempts)")
-    failing = [r for r in rows if not r["grade"][METRICS[flow][0]["id"]]]
+    miss_metric = "in_range" if flow == "pipeline" else METRICS[flow][0]["id"]
+    failing = [r for r in rows if not r["grade"][miss_metric]]
     for r in failing:
         print(f"  MISS {r['prompt_id']} rep{r['rep']}: {json.dumps(r['meta'], ensure_ascii=False)[:300]}")
 

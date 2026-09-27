@@ -1,0 +1,31 @@
+Technical translation of machine manuals for small Lithuanian manufacturers that export.
+
+WHO: small and mid-sized machine builders and metalworking companies in Lithuania
+(20-200 employees) that sell equipment to Germany and Scandinavia. Every machine they
+export needs an operating manual and safety documentation in the buyer's language.
+
+PROBLEM: these companies either pay large translation agencies, which charge about
+0.14 EUR per word and take three to four weeks, or ask engineers to translate
+manuals themselves, which costs engineering time and produces errors that customers
+complain about.
+
+SOLUTION: Lithuanian-to-German and Lithuanian-to-English translation of technical
+manuals by a translator who is a mechanical engineer, using a translation-memory tool
+so that repeated text (safety sections, standard components) is translated once and
+reused across manuals.
+
+PRICE: 0.09 EUR per new word, repeated text free of charge. A typical manual has
+15,000-25,000 words, of which about a third repeats earlier manuals.
+
+FOUNDER: a mechanical engineer with 8 years at a Kaunas machine builder and a
+certified German translator, who has translated manuals part-time for two years.
+
+CURRENT CLIENTS: 4 manufacturers send manuals regularly, about 2,800 EUR per month in
+total over the last 6 months. Two more have asked for quotes after a recommendation.
+
+COSTS: translation-memory software licence about 40 EUR per month, professional
+liability insurance about 600 EUR per year, works from home.
+
+PLAN: go full-time next month, take on the two companies that asked for quotes, and
+reach 6-8 regular clients within a year through recommendations and the national
+engineering industry association, where the founder is already a member.

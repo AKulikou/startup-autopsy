@@ -1,0 +1,17 @@
+A resale marketplace for concert and sports tickets in the EU with dynamic pricing.
+
+PROBLEM: fans who cannot attend an event are stuck with tickets; buyers of sold-out
+events have to trust strangers on social media and often get scammed.
+
+SOLUTION: a marketplace where sellers list tickets and the price is set
+automatically from demand: as the event approaches and demand grows, the listed
+price rises, often to 2-4 times the face value for popular events. Buyers get a
+guarantee: if a ticket does not work at the entrance, they get their money back.
+
+REVENUE: 12% commission from the seller and a 5% service fee from the buyer.
+
+MARKETS AT LAUNCH: France, Belgium and Italy, because they have large
+concert and football audiences.
+
+TARGET: 20,000 tickets resold in the first year at an average price of 140 EUR,
+which gives about 476,000 EUR in revenue.

@@ -30,13 +30,57 @@ def grade_gate(decision: str, injection_suspected: bool, expected: list[str],
     }
 
 
-def grade_pipeline(verdict: str, expected: list[str], consistency_warnings: list[str],
+# Cost of answering `answer` when the case's primary verdict is `truth`. Asymmetric
+# on purpose: missing a blocker (a positive answer to a not-viable idea) costs far
+# more than erring on the cautious side. The numbers are a starting convention from
+# the 2026-09-27 review, to be revisited, not a measured loss.
+ERROR_COST = {
+    "NOT_VIABLE":       {"NOT_VIABLE": 0, "RISKY": 2, "NEEDS_VALIDATION": 2, "VIABLE_IF": 5, "VIABLE": 5},
+    "RISKY":            {"NOT_VIABLE": 1, "RISKY": 0, "NEEDS_VALIDATION": 1, "VIABLE_IF": 2, "VIABLE": 3},
+    "NEEDS_VALIDATION": {"NOT_VIABLE": 2, "RISKY": 1, "NEEDS_VALIDATION": 0, "VIABLE_IF": 1, "VIABLE": 2},
+    "VIABLE_IF":        {"NOT_VIABLE": 3, "RISKY": 1, "NEEDS_VALIDATION": 1, "VIABLE_IF": 0, "VIABLE": 1},
+    "VIABLE":           {"NOT_VIABLE": 4, "RISKY": 2, "NEEDS_VALIDATION": 1, "VIABLE_IF": 1, "VIABLE": 0},
+}
+
+
+def allowed_verdicts(case: dict) -> list[str]:
+    """The primary verdict plus its acceptable neighbours."""
+    return [case["primary"], *case.get("acceptable", [])]
+
+
+def grade_pipeline(verdict: str, case: dict, consistency_warnings: list[str],
                    lens_statuses: list[str]) -> dict:
+    """
+    primary_hit: the verdict is the case's primary verdict (the headline metric)
+    in_range: the verdict is the primary one or an acceptable neighbour
+    error_cost: ERROR_COST of this verdict against the primary one (lower is better)
+    """
     return {
-        "in_range": int(verdict in expected),
+        "primary_hit": int(verdict == case["primary"]),
+        "in_range": int(verdict in allowed_verdicts(case)),
+        "error_cost": ERROR_COST[case["primary"]][verdict],
         "consistent": int(not consistency_warnings),
         "all_lenses_ok": int(all(status == "success" for status in lens_statuses)),
     }
+
+
+def rescore(rows: list[dict], cases: dict[str, dict]) -> list[dict]:
+    """
+    Regrade stored pipeline rows against the current case labels, so a run made
+    under old labels can be compared with new runs. Rows of cases that no longer
+    exist are dropped; the stored verdict, lens results and costs are kept.
+    """
+    rescored = []
+    for row in rows:
+        case = cases.get(row["prompt_id"])
+        if case is None:
+            continue
+        grade = {**row["grade"], **{k: v for k, v in grade_pipeline(
+            row["meta"]["verdict"], case, [], []).items() if k in ("primary_hit", "in_range", "error_cost")}}
+        meta = {**row["meta"], "primary": case["primary"], "acceptable": case.get("acceptable", []),
+                "expected": allowed_verdicts(case)}
+        rescored.append({**row, "grade": grade, "meta": meta})
+    return rescored
 
 
 def wilson(passes: int, n: int) -> tuple[float, float]:
@@ -61,6 +105,24 @@ def constant_baselines(expected_per_row: list[list[str]]) -> dict:
     always = {v: sum(v in expected for expected in expected_per_row) for v in VERDICTS}
     random_hits = sum(len(set(expected) & set(VERDICTS)) / len(VERDICTS) for expected in expected_per_row)
     return {"n": n, "always": always, "random": random_hits}
+
+
+def labelled_baselines(primaries: list[str]) -> dict:
+    """
+    Trivial answerers against primary labels: per constant verdict, primary hits
+    and mean error cost; for a uniformly random verdict, the expected values.
+    """
+    n = len(primaries)
+    if not n:
+        return {"n": 0, "always": {}, "random": {"primary_hits": 0.0, "mean_cost": 0.0}}
+    always = {
+        v: {"primary_hits": sum(p == v for p in primaries),
+            "mean_cost": sum(ERROR_COST[p][v] for p in primaries) / n}
+        for v in VERDICTS
+    }
+    random = {"primary_hits": n / len(VERDICTS),
+              "mean_cost": sum(sum(ERROR_COST[p].values()) / len(VERDICTS) for p in primaries) / n}
+    return {"n": n, "always": always, "random": random}
 
 
 # --- stability across reps -------------------------------------------------

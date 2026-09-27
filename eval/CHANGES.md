@@ -13,6 +13,35 @@ can be measured in several variants.
 Entry format: date, commit, what changed, expected effect, how it was checked
 so far, and the eval result once there is one.
 
+## 2026-09-27 — eval labels: one primary verdict per case, error costs, pairs
+
+- **Change:** `eval/pipeline/cases.json` gives every case one `primary` verdict and
+  optional `acceptable` neighbours instead of a wide expected range; `must_find` /
+  `must_not` statements record the flaw planted in a case (graded by a judge, next
+  entry); `pair_of` links minimal pairs. New cases: `pair_ticket_resale_fr_be_it`
+  (NOT_VIABLE) and `pair_ticket_resale_de` (RISKY), `pair_arithmetic_correct`
+  (VIABLE_IF, pair of the arithmetic error), `pair_good_b2b_invoice_reminders_hype`
+  (same facts in hype language, VIABLE), `good_technical_translation` (VIABLE):
+  23 cases. The headline metric is `primary_hit`; `in_range` (primary or
+  acceptable) and a mean `error_cost` from an asymmetric matrix (`ERROR_COST` in
+  `eval/grading.py`: a positive verdict on a not-viable idea costs 5, erring
+  cautious costs 1-2) come next. Summaries regrade stored rows against the current
+  labels, so old runs stay comparable.
+- **Labels are provisional:** set by the developer from the case notes; a blind
+  second annotation by the author is pending (`eval/pipeline/annotation_sheet.md`).
+  Notable choices: fitness tracker primary RISKY (commitment-contract products
+  exist, so the core is contested, not clearly illegal); NFT puddles primary
+  RISKY (weak demand is not an impossibility); arithmetic error primary RISKY
+  (loses money as described, fixable by price or volume; VIABLE_IF no longer
+  acceptable); ticket resale primary NOT_VIABLE with RISKY acceptable, pending the
+  rule for a blocker that covers part of the plan; the German pair assumes
+  above-face resale is legal in Germany (to confirm).
+- **Baseline regraded** (same 34 attempts, 17 of the 23 cases): primary hit
+  16/34 = 47% (CI 31-63%), acceptable 28/34 = 82%, error cost 0.71. Always RISKY:
+  primary 35%, acceptable 71%, error cost 1.00; random: 20%, 42%, 1.69. The system
+  now clears the constant by 12 points on the headline and by 0.29 in error cost;
+  the intervals still overlap at 34 attempts.
+
 ## 2026-09-27 — experiment A: how much instability comes from the synthesis
 
 - **Setup:** one fresh pipeline run (variant `expA_lenses`, batch, Sonnet 4.6,

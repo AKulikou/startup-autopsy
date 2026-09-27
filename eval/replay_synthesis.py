@@ -32,7 +32,7 @@ sys.path.insert(0, str(ROOT))
 
 from core.claude_client import use_batches  # noqa: E402
 from core.token_summary import estimate_cost  # noqa: E402
-from eval.grading import stability  # noqa: E402
+from eval.grading import allowed_verdicts, grade_pipeline, stability  # noqa: E402
 from synthesis.synthesizer import Synthesizer  # noqa: E402
 
 PIPELINE_DIR = ROOT / ".claude" / "hillclimb" / "pipeline"
@@ -57,16 +57,18 @@ def load_inputs(trace: list[dict]) -> dict:
             "original_verdict": original["verdict"], "original_confidence": original["confidence"]}
 
 
-def replay_row(case_id: str, rep: int, inputs: dict, expected: list[str]) -> dict:
+def replay_row(case_id: str, rep: int, inputs: dict, case: dict) -> dict:
     synthesis = Synthesizer(inputs["idea"], inputs["lenses"], inputs["input_note"]).synthesize()
     row = {"prompt_id": case_id, "rep": rep, "status": synthesis["status"]}
     row["cost_usd"] = estimate_cost(synthesis.get("input_tokens", 0), synthesis.get("output_tokens", 0))
     if synthesis["status"] != "success":
         row["error"] = synthesis["error"]
         return row
-    row["grade"] = {"in_range": int(synthesis["verdict"] in expected)}
+    grade = grade_pipeline(synthesis["verdict"], case, [], [])
+    row["grade"] = {k: grade[k] for k in ("primary_hit", "in_range", "error_cost")}
     row["meta"] = {"verdict": synthesis["verdict"], "confidence": synthesis["confidence"],
-                   "expected": expected, "summary": synthesis["summary"]}
+                   "primary": case["primary"], "expected": allowed_verdicts(case),
+                   "summary": synthesis["summary"]}
     return row
 
 
@@ -128,17 +130,18 @@ def main() -> None:
         if wanted and case_id not in wanted:
             continue
         inputs = load_inputs(json.loads(trace_path.read_text(encoding="utf-8")))
-        expected = cases[case_id]["expected"]
+        case = cases[case_id]
         if (case_id, "original") not in done:
             with results.open("a", encoding="utf-8") as f:
                 original = {
                     "prompt_id": case_id, "rep": "original", "status": "success", "cost_usd": 0,
-                    "grade": {"in_range": int(inputs["original_verdict"] in expected)},
-                    "meta": {"verdict": inputs["original_verdict"],
-                             "confidence": inputs["original_confidence"], "expected": expected},
+                    "grade": {"in_range": int(inputs["original_verdict"] in allowed_verdicts(case))},
+                    "meta": {"verdict": inputs["original_verdict"], "primary": case["primary"],
+                             "confidence": inputs["original_confidence"],
+                             "expected": allowed_verdicts(case)},
                 }
                 f.write(json.dumps(original, ensure_ascii=False) + "\n")
-        jobs += [(case_id, rep, inputs, expected) for rep in range(args.reps) if (case_id, rep) not in done]
+        jobs += [(case_id, rep, inputs, case) for rep in range(args.reps) if (case_id, rep) not in done]
 
     print(f"{len(jobs)} syntheses to run from {args.source}")
     if args.batch:

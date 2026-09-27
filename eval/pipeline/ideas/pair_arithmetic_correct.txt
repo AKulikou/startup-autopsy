@@ -1,0 +1,17 @@
+An online booking and reminder system for independent physiotherapists in Poland.
+
+PROBLEM: physiotherapists who work alone lose 10-15% of appointments to no-shows
+and spend time answering booking calls between patients.
+
+SOLUTION: a booking page, automatic SMS reminders the day before, and a simple
+patient history log, set up in 15 minutes.
+
+PRICE: 30 EUR per month per physiotherapist.
+
+MARKET: about 70,000 physiotherapists work in Poland; roughly a third work
+independently.
+
+PLAN AND NUMBERS: we will sign up 200 physiotherapists in the first year through
+professional associations and conferences. 200 clients x 30 EUR = 6,000 EUR per
+month, which makes the business profitable from month six, since our costs are
+about 3,000 EUR per month (one developer part-time, SMS costs, marketing).
