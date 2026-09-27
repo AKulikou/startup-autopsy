@@ -123,9 +123,15 @@ These define what a "correct" report is — apply them when editing prompts or s
 ## Roadmap
 
 - **Phase 2 (done):** 3 evaluators, CLI, Markdown reports, heuristic synthesis.
-- **Phase 3 (current):** Claude-based synthesis replacing keyword heuristics; structured
-  evaluator output; parallel evaluation; remaining and domain-specific lenses; error handling.
-- **Phase 4 (started):** MCP server (`mcp_server.py`) and a user skill for it (`skills/startup-autopsy/`), done; JSON export (`report.json`) done; optional web UI, persistence, PDF export.
+- **Phase 3 (done):** Claude-based synthesis, structured output, parallel lenses, domain
+  lenses, error handling; eval with primary labels, error costs, judge, pairs, second annotation.
+- **Phase 4 (done so far):** MCP server and user skill, JSON export, translation, batch eval, CI.
+- **v1.0 scope (fixed; the project stops there):** (1) synthesis fix for soft blockers and the
+  risky / needs-validation boundary, measured before/after with the eval and the synthesis
+  replay; (2) a minimal local web UI (idea form, input-check hint, live stage progress,
+  report view, downloads; FastAPI + plain HTML/JS; no accounts, history or hosting);
+  (3) README first screen with the before/after table and the testing strategy; (4) publish
+  with green CI. Anything else goes to "Ideas for later" in the README, not into v1.0.
 - **Next project:** Stock Autopsy — the same multi-lens approach applied to public
   companies, with every number taken from official filings.
 
