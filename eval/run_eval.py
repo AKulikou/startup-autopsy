@@ -30,7 +30,6 @@ that already have a row, so an interrupted run can simply be restarted.
 import argparse
 import json
 import logging
-import math
 import sys
 import threading
 import time
@@ -46,6 +45,15 @@ from core.analysis_runner import AnalysisRunner  # noqa: E402
 from core.claude_client import use_batches  # noqa: E402
 from core.idea_input import InvalidIdeaError, prepare_idea  # noqa: E402
 from core.token_summary import estimate_cost  # noqa: E402
+from eval.grading import (  # noqa: E402
+    calibration,
+    constant_baselines,
+    grade_gate,
+    grade_pipeline,
+    lens_flip_rates,
+    stability,
+    wilson,
+)
 from gate.idea_gate import GATE_PRINCIPLES, IdeaGate  # noqa: E402
 from synthesis.synthesizer import consistency_warnings  # noqa: E402
 
@@ -127,14 +135,7 @@ def run_gate_case(case: dict) -> tuple[dict, list[dict], dict]:
             gate["decision"], gate["injection_suspected"], usage_of(gate), gate["reason"]
         )
 
-    expected = set(case["expected"])
-    rejected = decision != "ANALYZABLE"
-    grade = {
-        "correct": int(decision in expected),
-        "false_reject": int("ANALYZABLE" in expected and rejected),
-        "false_accept": int("ANALYZABLE" not in expected and not rejected),
-        "injection_ok": int(injection == case.get("expect_injection", False)),
-    }
+    grade = grade_gate(decision, injection, case["expected"], case.get("expect_injection", False))
     trace = [
         {"role": "system", "content": GATE_PRINCIPLES},
         {"role": "user", "content": text or "(empty)"},
@@ -165,17 +166,14 @@ def run_pipeline_case(case: dict) -> tuple[dict, list[dict], dict]:
     # Covers "not viable without 'Do not pursue' first" and "positive overall
     # although a lens found the idea not viable".
     warnings = consistency_warnings(synthesis, lenses)
-    grade = {
-        "in_range": int(verdict in case["expected"]),
-        "consistent": int(not warnings),
-        "all_lenses_ok": int(all(r["status"] == "success" for r in lenses)),
-    }
+    grade = grade_pipeline(verdict, case["expected"], warnings, [r["status"] for r in lenses])
 
-    trace = [{"role": "user", "content": text}]
+    # Full lens results, including the analysis text the synthesis reads, so the
+    # synthesis can be replayed on exactly these inputs (eval/replay_synthesis.py).
+    trace = [{"role": "user", "content": text, "input_note": analysis["input_note"]}]
     for lens in lenses:
-        body = {k: v for k, v in lens.items() if k not in ("analysis",)}
         trace.append({"role": "tool_result", "name": lens["evaluator_display"],
-                      "content": json.dumps(body, ensure_ascii=False, indent=2)})
+                      "content": json.dumps(lens, ensure_ascii=False, indent=2)})
     trace.append({"role": "assistant", "content": json.dumps(
         {k: synthesis[k] for k in ("verdict", "confidence", "confidence_reason", "summary",
                                    "deciding_factors", "killer_risks", "what_holds_up", "conflicts",
@@ -236,39 +234,40 @@ def run_one(flow: str, case: dict, rep: int, out: Path) -> str:
     return " ".join(f"{k}={v}" for k, v in grade.items())
 
 
-def wilson(passes: int, n: int) -> tuple[float, float]:
-    if n == 0:
-        return 0.0, 0.0
-    z, p = 1.96, passes / n
-    centre = (p + z * z / (2 * n)) / (1 + z * z / n)
-    half = z * math.sqrt(p * (1 - p) / n + z * z / (4 * n * n)) / (1 + z * z / n)
-    return max(0.0, centre - half), min(1.0, centre + half)
+def print_baselines(rows: list[dict], metric_id: str) -> None:
+    """The same attempts answered by trivial strategies: the floor the metric must beat."""
+    base = constant_baselines([r["meta"]["expected"] for r in rows])
+    n = base["n"]
+    if not n:
+        return
+    best = max(base["always"], key=base["always"].get)
+    print(f"  reference ({metric_id}, same {n} attempts):")
+    print(f"    always RISKY      {base['always']['RISKY']}/{n} = {base['always']['RISKY'] / n:.0%}")
+    print(f"    best constant     always {best}: {base['always'][best]}/{n} = {base['always'][best] / n:.0%}")
+    print(f"    random verdict    {base['random']:.1f}/{n} = {base['random'] / n:.0%} (expected value)")
 
 
-def print_calibration(rows: list[dict]) -> None:
-    """
-    Does the synthesis's self-reported confidence mean anything? Per level: how
-    often the verdict is in the expected range, and how often another rep of the
-    same idea gave the same verdict. A useful HIGH is both more often right and
-    more often stable than MEDIUM and LOW.
-    """
-    verdicts_by_case: dict[str, list[str]] = {}
-    for r in rows:
-        verdicts_by_case.setdefault(r["prompt_id"], []).append(r["meta"]["verdict"])
-
+def print_stability(rows: list[dict]) -> None:
+    stab = stability(rows)
+    if not stab["cases"]:
+        print("  stability: n/a (needs at least 2 reps of a case)")
+        return
+    print(f"  stability across reps ({stab['cases']} cases, {stab['attempts']} attempts):")
+    print(f"    modal agreement   {stab['modal_agreement']:.0%} of attempts gave "
+          "their case's most common verdict")
+    print(f"    verdict changed   {len(stab['changed_cases'])}/{stab['cases']} cases: "
+          f"{', '.join(stab['changed_cases']) or '-'}")
+    print(f"    cross-side flips  {len(stab['cross_side_cases'])}/{stab['cases']} cases "
+          f"(not viable <-> viable if/viable): {', '.join(stab['cross_side_cases']) or '-'}")
+    print(f"    ordinal spread    {stab['mean_ordinal_spread']:.2f} (mean distance between reps' verdicts)")
     print("  calibration (synthesis confidence):")
-    for level in ("HIGH", "MEDIUM", "LOW"):
-        level_rows = [r for r in rows if r["meta"]["confidence"] == level]
-        if not level_rows:
-            continue
-        right = sum(r["grade"]["in_range"] for r in level_rows)
-        comparable = [r for r in level_rows if len(verdicts_by_case[r["prompt_id"]]) > 1]
-        stable = sum(
-            verdicts_by_case[r["prompt_id"]].count(r["meta"]["verdict"]) > 1 for r in comparable
-        )
-        stability = f"{stable}/{len(comparable)}" if comparable else "n/a (1 rep)"
-        print(f"    {level:<7} n={len(level_rows):<3} in range {right}/{len(level_rows)}, "
-              f"same verdict in another rep {stability}")
+    for level, c in calibration(rows).items():
+        agree = f"{c['all_reps_agree']}/{c['comparable']}" if c["comparable"] else "n/a"
+        print(f"    {level:<7} n={c['n']:<3} in range {c['in_range']}/{c['n']}, "
+              f"all reps of the case agree {agree}")
+    print("  lens verdict changed between reps (cases):")
+    for lens, (flipped, total) in sorted(lens_flip_rates(rows).items(), key=lambda kv: -kv[1][0]):
+        print(f"    {lens:<26} {flipped}/{total}")
 
 
 def summarize(flow: str, out: Path) -> None:
@@ -286,7 +285,8 @@ def summarize(flow: str, out: Path) -> None:
         print(f"  {metric['label']:<13} {passes}/{n} = {passes / n if n else 0:.0%}  "
               f"(95% CI {lo:.0%}-{hi:.0%})")
     if flow == "pipeline":
-        print_calibration(rows)
+        print_baselines(rows, METRICS[flow][0]["id"])
+        print_stability(rows)
     cost = sum(r["cost_usd"] or 0 for r in rows) + sum(e.get("cost_usd") or 0 for e in errors)
     print(f"  cost          ${cost:.2f} (including failed attempts)")
     failing = [r for r in rows if not r["grade"][METRICS[flow][0]["id"]]]
@@ -303,6 +303,8 @@ def main() -> None:
     parser.add_argument("--variant", default="baseline")
     parser.add_argument("--cases", help="comma-separated case ids (default: all)")
     parser.add_argument("--concurrency", type=int)
+    parser.add_argument("--summary-only", action="store_true",
+                        help="recompute the summary of an existing variant without running anything")
     parser.add_argument("--batch", action="store_true",
                         help="send requests through the Message Batches API (half price, slower)")
     args = parser.parse_args()
@@ -313,6 +315,11 @@ def main() -> None:
 
     flow_dir = ROOT / ".claude" / "hillclimb" / args.flow
     out = flow_dir / args.variant
+    if args.summary_only:
+        if not (out / "results.jsonl").exists():
+            raise SystemExit(f"No results for {args.flow}/{args.variant}")
+        summarize(args.flow, out)
+        return
     (out / "traces").mkdir(parents=True, exist_ok=True)
     (flow_dir / "_state.json").write_text(json.dumps(
         {"metrics": METRICS[args.flow], "perf_fields": PERF_FIELDS, "prices": {}}, indent=2),

@@ -303,12 +303,21 @@ ruff check .                               # lint, targeting Python 3.10
 python -m eval.run_eval gate --reps 3      # eval of the input check (~$0.25)
 python -m eval.run_eval pipeline --reps 2  # eval of the whole pipeline (~$14)
 python -m eval.run_eval pipeline --reps 2 --batch  # the same at half price, via Message Batches (slower)
+python -m eval.run_eval pipeline --variant baseline --summary-only  # recompute a summary, no API calls
 python -m eval.trigger.run_trigger         # does the skill trigger on the right requests (Claude Code login)
 ```
 
 The unit tests replace Claude with a scripted fake and cover the guards around
 the model: malformed-answer detection and retry, input checks, parallel lenses,
-report rendering and cost. The eval runs the real pipeline over reviewed cases
+report rendering and cost. The eval's own grading and summary logic
+(`eval/grading.py`) has unit tests too. GitHub Actions runs ruff and pytest on
+Python 3.10 and 3.14 for every push.
+
+Every pipeline eval summary shows, next to the score, what trivial answerers would
+get on the same attempts (always one verdict, a random verdict), and how stable the
+verdict is across reps: modal agreement, cases that changed verdict, flips between
+"not viable" and a positive verdict, calibration of the synthesis's confidence,
+and how often each lens changed its verdict. The eval runs the real pipeline over reviewed cases
 in `eval/` and grades the outcomes (see `eval/run_eval.py`). With `--batch`, every
 request goes through the Message Batches API (`core/batch_client.py`): tokens
 cost half, each pipeline stage waits for its batch, and the pipeline code is
