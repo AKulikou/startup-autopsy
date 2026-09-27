@@ -82,12 +82,14 @@ def test_stability_separates_neighbour_changes_from_cross_side_flips():
     assert stab["cross_side_cases"] == ["flip"]
     assert stab["modal_agreement"] == pytest.approx(4 / 6)
     assert stab["mean_ordinal_spread"] == pytest.approx((0 + 1 + 3) / 3)
+    assert stab["pairwise_disagreement"] == pytest.approx((0 + 1 + 1) / 3)
 
 
 def test_modal_agreement_over_more_than_two_reps():
     verdicts = ["RISKY", "RISKY", "RISKY", "NEEDS_VALIDATION", "RISKY"]
     rows = [row("c", i, v) for i, v in enumerate(verdicts)]
     assert stability(rows)["modal_agreement"] == pytest.approx(4 / 5)
+    assert stability(rows)["pairwise_disagreement"] == pytest.approx(4 / 10)
 
 
 def test_calibration_counts_right_and_unanimous_attempts_per_level():

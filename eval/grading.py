@@ -80,11 +80,13 @@ def stability(rows: list[dict]) -> dict:
     modal_agreement: share of attempts that gave their case's most common verdict
     changed_cases: cases with more than one distinct verdict
     cross_side_cases: cases whose reps reach both the negative and the positive side
+    pairwise_disagreement: share of pairs of reps with different verdicts, averaged over
+        cases; unlike changed_cases it does not grow with the number of reps
     mean_ordinal_spread: mean pairwise distance between reps' verdicts, averaged over cases
     """
     cases = {k: v for k, v in _by_case(rows).items() if len(v) > 1}
     attempts = modal = 0
-    changed, cross_side, spreads = [], [], []
+    changed, cross_side, spreads, disagreements = [], [], [], []
     for case_id, case_rows in sorted(cases.items()):
         verdicts = [r["meta"]["verdict"] for r in case_rows]
         counts = Counter(verdicts)
@@ -96,6 +98,7 @@ def stability(rows: list[dict]) -> dict:
         if {"negative", "positive"} <= sides:
             cross_side.append(case_id)
         pairs = list(combinations(verdicts, 2))
+        disagreements.append(sum(a != b for a, b in pairs) / len(pairs))
         spreads.append(sum(abs(VERDICT_ORDER[a] - VERDICT_ORDER[b]) for a, b in pairs) / len(pairs))
     return {
         "cases": len(cases),
@@ -103,6 +106,7 @@ def stability(rows: list[dict]) -> dict:
         "modal_agreement": modal / attempts if attempts else 0.0,
         "changed_cases": changed,
         "cross_side_cases": cross_side,
+        "pairwise_disagreement": sum(disagreements) / len(disagreements) if disagreements else 0.0,
         "mean_ordinal_spread": sum(spreads) / len(spreads) if spreads else 0.0,
     }
 

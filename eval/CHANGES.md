@@ -13,6 +13,36 @@ can be measured in several variants.
 Entry format: date, commit, what changed, expected effect, how it was checked
 so far, and the eval result once there is one.
 
+## 2026-09-27 — experiment A: how much instability comes from the synthesis
+
+- **Setup:** one fresh pipeline run (variant `expA_lenses`, batch, Sonnet 4.6,
+  default settings) of the six cases whose verdict changed in the baseline:
+  api_monitor, automatic_cv_update, borderline_arithmetic_error,
+  forged_review_board, meeting_schedule, nft_puddle_photos (5/6 in range, 1.23
+  USD). Then `eval/replay_synthesis.py`: the synthesis 4 more times on each
+  run's fixed lens results (batch, 1.41 USD). 30 syntheses, 5 per case.
+- **Result (synthesis alone, lens results fixed):** modal agreement 80%;
+  verdict changed in 4/6 cases; 0 cross-side flips; pair disagreement 0.33.
+  - stable: api_monitor NEEDS_VALIDATION x5, borderline_arithmetic_error
+    NEEDS_VALIDATION x5; their baseline changes came from the lenses.
+  - unstable on identical inputs: automatic_cv_update RISKY 3 / NEEDS_VALIDATION 2;
+    nft_puddle_photos RISKY 3 / NEEDS_VALIDATION 2; meeting_schedule RISKY 4 /
+    NEEDS_VALIDATION 1; forged_review_board RISKY 4 / NOT_VIABLE 1.
+- **Reading:** the synthesis is a real source of instability on its own, mainly
+  at the RISKY / NEEDS_VALIDATION boundary (7 of 8 minority verdicts). For
+  comparison, the full pipeline's pair disagreement over all 17 baseline cases is
+  0.53; on these six (picked because they changed) it was 1.0 with 2 reps. So
+  roughly: a large share of the instability survives with the lenses held fixed,
+  and the rest comes from the lenses. Small sample (6 cases x 5), picked for
+  instability: a direction, not a precise split.
+- **Implication for the plan:** fixing the synthesis (step 4) matters for
+  stability, not only for soft blockers. The RISKY / NEEDS_VALIDATION boundary
+  is the one to define sharply (the review's "two axes" point: evidence vs
+  outcome). Synthesis-only changes can be measured cheaply with this replay
+  (about 0.06 USD per synthesis in batch).
+- **Added:** pair disagreement in summaries (share of pairs of runs with
+  different verdicts; comparable across numbers of reps).
+
 ## 2026-09-27 — grader tested, constant baseline and stability in the summary
 
 - **Change:** grading moved to `eval/grading.py` with unit tests; summaries show

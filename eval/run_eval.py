@@ -259,6 +259,8 @@ def print_stability(rows: list[dict]) -> None:
           f"{', '.join(stab['changed_cases']) or '-'}")
     print(f"    cross-side flips  {len(stab['cross_side_cases'])}/{stab['cases']} cases "
           f"(not viable <-> viable if/viable): {', '.join(stab['cross_side_cases']) or '-'}")
+    print(f"    pair disagreement {stab['pairwise_disagreement']:.2f} (share of pairs of runs "
+          "with different verdicts)")
     print(f"    ordinal spread    {stab['mean_ordinal_spread']:.2f} (mean distance between reps' verdicts)")
     print("  calibration (synthesis confidence):")
     for level, c in calibration(rows).items():
