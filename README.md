@@ -333,7 +333,14 @@ reports; an input check; conditional domain lenses with their own knowledge
 packs; an MCP server with a user skill; unit tests and an eval set.
 
 Measured baseline (Sonnet 4.6, six lenses, 17 cases × 2 runs): 85% of runs gave a
-verdict in the expected range. The input check passes all 93 of its eval cases.
+verdict in the expected range. That metric is weak: a constant answer "always
+risky" would score 71% on the same attempts, because most expected ranges include
+"risky". The eval is being redesigned around one primary verdict per case,
+weighted error costs and checks that the report finds the flaw planted in the
+case. Stability of the same baseline: 74% of runs gave their case's most common
+verdict; 9 of 17 cases changed verdict between runs, all between neighbouring
+verdicts, none between "not viable" and a positive one. The input check passes
+all 93 of its eval cases.
 
 Known limitations:
 

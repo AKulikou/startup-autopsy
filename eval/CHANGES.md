@@ -13,6 +13,32 @@ can be measured in several variants.
 Entry format: date, commit, what changed, expected effect, how it was checked
 so far, and the eval result once there is one.
 
+## 2026-09-27 — grader tested, constant baseline and stability in the summary
+
+- **Change:** grading moved to `eval/grading.py` with unit tests; summaries show
+  constant and random reference scores and verdict stability; `--summary-only`
+  recomputes a summary for free. Pipeline traces now keep the full lens results.
+  No prompt or model change.
+- **Baseline recomputed** (same 34 attempts, no new API calls):
+  - in range 29/34 = 85% (CI 70-94%); **always RISKY 24/34 = 71%**, random
+    verdict 44%. The in-range metric barely separates the system from a
+    constant, because RISKY is allowed in 13 of 18 cases. It also hid the soft
+    blocker problem: RISKY on an illegal core counted as a hit.
+  - stability: modal agreement 74%; verdict changed in 9/17 cases; **0
+    cross-side flips** (all changes between neighbours; two RISKY <-> NOT_VIABLE,
+    both with HIGH confidence in both reps); mean ordinal spread 0.53.
+  - calibration: HIGH in range 15/16 but all reps agreeing only 8/16; MEDIUM
+    11/15 and 8/15; LOW 3/3 and 0/3. HIGH does not predict stability.
+  - lens flip rates: Launch Expert 11/17, Profitable App Designer 6/17, Reality
+    Auditor 6/17, Churn Eliminator 4/17, No-Code Stack Master 3/17, Viral 3/17.
+- **Correction:** until this change, traces dropped the lens `analysis` text
+  that the synthesis reads, so baseline traces cannot replay the synthesis on
+  identical inputs (the review bundle said they could). Replays need traces
+  written from now on.
+- **Source:** external review of 2026-09-27 (three parts plus a summary); its
+  plan is the working plan: grader and baselines, stability decomposition
+  (synthesis replay), eval redesign, synthesis fix, citations, report, README.
+
 ## 2026-09-27 — eval through Message Batches (`--batch`)
 
 - **Change:** `run_eval.py --batch` sends every request through the Message
