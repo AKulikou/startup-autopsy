@@ -35,7 +35,9 @@ something this tool analyzes.
 
 Tell the user the full analysis takes about 3 minutes and costs about 0.40 USD,
 and run it when they agree. Pass a short `name` (it becomes the results folder
-name). Set `analyze_if_vague` only if the user explicitly wants to go ahead
+name). If the user writes in a language other than English, pass it as
+`language` (for example `Lithuanian`): a translated copy of the report is saved
+next to the English one. Set `analyze_if_vague` only if the user explicitly wants to go ahead
 with a description the check found too vague - the report will then say its
 conclusions rest on assumptions.
 
@@ -67,7 +69,9 @@ model's knowledge, not from live sources. When a verdict hinges on one of them
 - a regulation that may ban the model, a competitor that may already offer it -
 tell the user to verify that fact before acting on it.
 
-Answer in the user's language; the report itself is in English.
+Answer in the user's language. The report itself is in English; when
+`translated_report_path` is set, show that path too, as the report in the
+user's language.
 
 ## If the tools are not available
 

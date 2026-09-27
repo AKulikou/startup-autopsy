@@ -24,7 +24,6 @@ from config import (
     REPORT_TRANSLATION,
     THINKING,
     TRANSLATE_LENS_REPORTS,
-    TRANSLATION_MODEL,
     WEB_SEARCH,
 )
 from core.idea_input import InvalidIdeaError, prepare_idea
@@ -32,7 +31,7 @@ from core.idea_processor import IdeaProcessor
 from core.json_export import build_json
 from core.report_builder import build_report
 from core.token_summary import call_cost, estimate_cost, format_cost, log_token_summary
-from core.translator import translate_markdown
+from core.translator import needs_translation, translate_run
 from evaluators.evaluator import Evaluator
 from evaluators.lenses import Lens, select_lenses
 from evaluators.schemas import confidence_label, verdict_label
@@ -83,15 +82,20 @@ class AnalysisRunner:
         self.save(idea_name, analysis, started_at)
         return analysis["synthesis"]["status"] == "success"
 
-    def save(self, idea_name: str, analysis: dict, started_at: datetime) -> Path:
+    def save(
+        self, idea_name: str, analysis: dict, started_at: datetime, language: str | None = None
+    ) -> Path:
         """
-        Write the reports of a finished analysis (and translated copies, if
-        configured) into a new run directory, log the token summary, and
-        return the path of report.md.
+        Write the reports of a finished analysis into a new run directory, add
+        translated copies, log the token summary, and return the path of report.md.
+
+        Args:
+            language: Language of the translated copy; None falls back to
+                REPORT_TRANSLATION from .env, and English means no translation.
         """
         results, synthesis = analysis["lenses"], analysis["synthesis"]
         run_dir = self.processor.create_run_dir(idea_name, started_at)
-        lens_paths = self._save_reports(results, run_dir, idea_name, started_at)
+        self._save_reports(results, run_dir, idea_name, started_at)
         report_path = self.processor.save_report(
             run_dir,
             build_report(idea_name, started_at, synthesis, results, analysis["input_note"],
@@ -99,10 +103,10 @@ class AnalysisRunner:
         )
         self.processor.save_json(run_dir, build_json(idea_name, started_at, analysis))
         logger.info(f"Report: {report_path}")
+        language = language or REPORT_TRANSLATION
         translations = []
-        if REPORT_TRANSLATION:
-            to_translate = [report_path] + (lens_paths if TRANSLATE_LENS_REPORTS else [])
-            translations = self._translate_reports(to_translate, REPORT_TRANSLATION)
+        if needs_translation(language):
+            translations = translate_run(run_dir, language, lens_reports=TRANSLATE_LENS_REPORTS)
         checks = [analysis["gate"]] + ([analysis["lens_fit"]] if analysis["lens_fit"] else [])
         log_token_summary(checks + results + [synthesis] + translations)
         return report_path
@@ -294,41 +298,6 @@ class AnalysisRunner:
                 logger.debug(f"Saved {result['evaluator_display']} report: {path}")
                 paths.append(path)
         return paths
-
-    @staticmethod
-    def _translate_reports(paths: list[Path], language: str) -> list[dict]:
-        """
-        Write <name>.<language>.md next to each English report. A failed
-        translation is logged and skipped; the English report is unaffected.
-        """
-        suffix = language.strip().lower().replace(" ", "_")
-        logger.info(f"[Translation] ... started: {len(paths)} report(s) into {language}")
-
-        def translate(path: Path) -> dict:
-            outcome = translate_markdown(path.read_text(encoding="utf-8"), language)
-            outcome["evaluator_display"] = f"Translation of {path.name}"
-            if outcome["status"] == "success":
-                path.with_name(f"{path.stem}.{suffix}.md").write_text(outcome["text"], encoding="utf-8")
-            return outcome
-
-        with ThreadPoolExecutor(max_workers=len(paths)) as pool:
-            outcomes = list(pool.map(translate, paths))
-
-        for outcome in outcomes:
-            if outcome["status"] != "success":
-                logger.warning(f"[Translation] {outcome['evaluator_display']} FAILED: {outcome['error']}")
-        done = [o for o in outcomes if o["status"] == "success"]
-        if done:
-            input_tokens = sum(o["input_tokens"] for o in done)
-            output_tokens = sum(o["output_tokens"] for o in done)
-            logger.info(
-                f"[Translation] ... done: {len(done)} of {len(paths)} report(s), "
-                f"{input_tokens}/{output_tokens} tokens, "
-                f"{format_cost(estimate_cost(input_tokens, output_tokens, TRANSLATION_MODEL))} "
-                f"({TRANSLATION_MODEL}); "
-                f"main report: report.{suffix}.md"
-            )
-        return outcomes
 
     def _run_synthesis(
         self, idea_content: str, results: list[dict], input_note: str | None

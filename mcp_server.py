@@ -27,10 +27,12 @@ ROOT = Path(__file__).resolve().parent
 RESULTS_DIR = ROOT / "results"
 sys.path.insert(0, str(ROOT))
 
+from config import REPORT_TRANSLATION  # noqa: E402
 from core.analysis_runner import AnalysisRunner  # noqa: E402
 from core.idea_input import InvalidIdeaError, prepare_idea  # noqa: E402
 from core.idea_processor import IdeaProcessor  # noqa: E402
 from core.result_writer import JSON_FILENAME  # noqa: E402
+from core.translator import needs_translation, translated_path  # noqa: E402
 from evaluators.schemas import confidence_label, verdict_label  # noqa: E402
 from gate.idea_gate import NEXT_STEP_HINT, IdeaGate  # noqa: E402
 from gate.schemas import gate_decision_label  # noqa: E402
@@ -70,6 +72,9 @@ class IdeaAnalysis(BaseModel):
     report_json_path: str | None = Field(
         None, description="report.json: the same analysis as structured data."
     )
+    translated_report_path: str | None = Field(
+        None, description="The report translated into the requested language, if one was made."
+    )
     error: str | None = None
 
 
@@ -105,7 +110,9 @@ def check_idea_sync(idea: str) -> IdeaCheck:
     return _gate_check(IdeaGate(text).check())
 
 
-def analyze_idea_sync(idea: str, name: str, analyze_if_vague: bool) -> IdeaAnalysis:
+def analyze_idea_sync(
+    idea: str, name: str, analyze_if_vague: bool, language: str | None = None
+) -> IdeaAnalysis:
     started_at = datetime.now()
     try:
         text, _ = prepare_idea(idea)
@@ -119,13 +126,17 @@ def analyze_idea_sync(idea: str, name: str, analyze_if_vague: bool) -> IdeaAnaly
     if not analysis["analyzed"]:
         return IdeaAnalysis(analyzed=False, check=check)
 
-    report_path = runner.save(_run_name(name), analysis, started_at).resolve()
+    report_path = runner.save(_run_name(name), analysis, started_at, language=language).resolve()
     synthesis = analysis["synthesis"]
     result = IdeaAnalysis(
         analyzed=True, check=check,
         report_markdown=report_path.read_text(encoding="utf-8"), report_path=str(report_path),
         report_json_path=str(report_path.with_name(JSON_FILENAME)),
     )
+    effective_language = language or REPORT_TRANSLATION
+    if needs_translation(effective_language):
+        translated = translated_path(report_path, effective_language)
+        result.translated_report_path = str(translated) if translated.exists() else None
     if synthesis["status"] != "success":
         result.error = f"The synthesis failed ({synthesis['error']}); the report has no overall verdict."
         return result
@@ -153,7 +164,9 @@ async def check_idea(idea: str) -> IdeaCheck:
     annotations=ToolAnnotations(title="Analyze a business idea", read_only_hint=False,
                                 idempotent_hint=False, open_world_hint=True),
 )
-async def analyze_idea(idea: str, name: str = "mcp_idea", analyze_if_vague: bool = False) -> IdeaAnalysis:
+async def analyze_idea(
+    idea: str, name: str = "mcp_idea", analyze_if_vague: bool = False, language: str | None = None
+) -> IdeaAnalysis:
     """
     Run the full Startup Autopsy analysis of a business idea: an input check, several
     independent lenses in parallel, and a synthesis that decides the overall verdict
@@ -161,15 +174,18 @@ async def analyze_idea(idea: str, name: str = "mcp_idea", analyze_if_vague: bool
     confidence, deciding factors, killer risks, conflicts and next steps.
 
     Takes about 3 minutes and costs about 0.40 USD. The report is saved under
-    results/ and returned in full as report_markdown.
+    results/ and returned in full as report_markdown (always in English).
 
     Args:
         idea: The idea as the founder describes it: product, customer, pricing, plans.
         name: Short name for the results folder.
         analyze_if_vague: Analyze even if the input check finds the idea too vague;
             the report then says its conclusions rest on the lenses' assumptions.
+        language: The user's language when it is not English (for example Lithuanian):
+            a translated copy of the report is saved next to it (one extra cheap call)
+            and its path returned as translated_report_path. Omit for the server default.
     """
-    return await anyio.to_thread.run_sync(analyze_idea_sync, idea, name, analyze_if_vague)
+    return await anyio.to_thread.run_sync(analyze_idea_sync, idea, name, analyze_if_vague, language)
 
 
 def setup_logging() -> Path:

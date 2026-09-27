@@ -189,14 +189,22 @@ inside the idea text, which the analysis must ignore).
 The API key is read from `.env` (`ANTHROPIC_API_KEY`). The program stops at
 startup if the key is missing or malformed.
 
-**Reports in another language.** The analysis always runs in English, and the
-English reports are the source of truth. To also get a translated copy, add
-`REPORT_TRANSLATION=Russian` (or any language) to `.env`: each run then writes
-`report.russian.md` next to `report.md` with one extra call to Claude Haiku 4.5
-(`TRANSLATION_MODEL`), the cheapest model: about a third of the $0.12 the same
-translation cost on Sonnet 4.6.
-`TRANSLATE_LENS_REPORTS=true` translates the lens reports too. The eval never
-translates.
+**Reports in other languages.** The analysis always runs in English, and the
+English reports are the source of truth. A translated copy can be added in any
+language Claude writes (Lithuanian, German, Japanese, ...) with one extra call to
+Claude Haiku 4.5 (`TRANSLATION_MODEL`), the cheapest model: about a third of the
+$0.12 the same translation cost on Sonnet 4.6.
+
+- CLI: add `REPORT_TRANSLATION=Lithuanian` to `.env`; each run then writes
+  `report.lithuanian.md` next to `report.md`. `TRANSLATE_LENS_REPORTS=true`
+  translates the lens reports too.
+- MCP: `analyze_idea` takes a `language` argument, so Claude passes the user's
+  language itself; the path of the translation comes back as
+  `translated_report_path`. Without the argument the `.env` setting applies.
+
+Translation is a separate step over a finished run (`core/translator.py`,
+`translate_run`): an existing translation is reused, not paid for again, and a
+failed one never affects the English report. The eval never translates.
 
 **Experiments.** Six `.env` switches change model behavior. They stay off
 until the pipeline eval shows they help (see [eval/CHANGES.md](eval/CHANGES.md)):
@@ -329,7 +337,10 @@ Next:
 2. A firmer synthesis on certain blockers, and more stable verdicts, both
    measured by the eval.
 3. Re-analysis of an improved idea that shows what changed since the last report.
-4. A local web UI; later, optional PDF export and persistence.
+4. A local web UI with the report language chosen per user: the page renders
+   `report.json`, so the translation will cover its text fields (verdict codes
+   stay as codes) and interface labels come from a small dictionary. Later,
+   optional PDF export and persistence.
 5. Stock Autopsy: a follow-up project that applies the same multi-lens approach
    to public companies, with every number taken from official filings.
 

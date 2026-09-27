@@ -5,7 +5,7 @@ from conftest import lens_result, synthesis_result
 
 from core import token_summary
 from core.report_builder import build_report
-from core.result_writer import lens_report_path
+from core.result_writer import ResultWriter, lens_report_path
 from evaluators.schemas import confidence_label, verdict_label, verdict_meaning
 from gate.schemas import gate_decision_label
 from synthesis.synthesizer import consistency_warnings
@@ -100,3 +100,11 @@ def test_report_lists_lenses_skipped_by_the_input_check():
                           skipped_lenses=skipped)
     assert "- **Viral Product Designer:** A local bakery has no network effect." in report
     assert "Not run" not in build_report("idea", datetime(2026, 9, 25), synthesis_row(), [])
+
+
+def test_runs_started_in_the_same_second_get_separate_directories(tmp_path):
+    writer = ResultWriter(str(tmp_path))
+    started = datetime(2026, 9, 27, 12, 0, 0)
+    first, second = writer.create_run_dir("meals", started), writer.create_run_dir("meals", started)
+    assert first.name == "2026-09-27_12-00-00_meals"
+    assert second.name == "2026-09-27_12-00-00_meals_2"

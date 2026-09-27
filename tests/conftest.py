@@ -104,7 +104,7 @@ class FakeClaude:
             SynthesisResult: lambda kwargs: response(synthesis_result()),
         }
         # Plain-text requests (translation): returns the "translated" text.
-        self.create_handler = lambda kwargs: text_response("ПЕРЕВЕДЁННЫЙ ОТЧЁТ")
+        self.create_handler = lambda kwargs: text_response("IŠVERSTA ATASKAITA")
         self.messages = SimpleNamespace(parse=self._parse, create=self._create)
 
     def _create(self, **kwargs):

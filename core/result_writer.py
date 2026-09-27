@@ -50,10 +50,20 @@ class ResultWriter:
         self.results_dir.mkdir(parents=True, exist_ok=True)
 
     def create_run_dir(self, idea_name: str, started_at: datetime) -> Path:
-        """Create and return the directory for one analysis run."""
-        run_dir = self.results_dir / f"{started_at.strftime('%Y-%m-%d_%H-%M-%S')}_{idea_name}"
-        run_dir.mkdir(parents=True, exist_ok=False)
-        return run_dir
+        """
+        Create and return the directory for one analysis run. Two runs of the same
+        idea started in the same second (parallel MCP calls) get _2, _3, ... so a
+        finished, paid-for analysis is never lost to a name clash.
+        """
+        base = f"{started_at.strftime('%Y-%m-%d_%H-%M-%S')}_{idea_name}"
+        for attempt in range(1, 100):
+            run_dir = self.results_dir / (base if attempt == 1 else f"{base}_{attempt}")
+            try:
+                run_dir.mkdir(parents=True, exist_ok=False)
+                return run_dir
+            except FileExistsError:
+                continue
+        raise FileExistsError(f"No free run directory name for {base}")
 
     def save_result(self, run_dir: Path, idea_name: str, started_at: datetime, result: dict) -> Path:
         """

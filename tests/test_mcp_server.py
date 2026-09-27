@@ -7,6 +7,7 @@ import pytest
 from conftest import gate_result, response
 
 import mcp_server
+from core import analysis_runner
 from evaluators.schemas import EvaluatorResult
 from gate.schemas import GateResult
 
@@ -84,3 +85,29 @@ def test_reports_land_in_the_project_whatever_folder_the_client_runs_in(
     assert report.parent.parent == results_dir
     assert Path(result["report_json_path"]).is_absolute()
     assert not (elsewhere / "results").exists()
+
+
+@pytest.fixture
+def no_default_translation(monkeypatch):
+    """Ignore REPORT_TRANSLATION from the developer's .env."""
+    monkeypatch.setattr(analysis_runner, "REPORT_TRANSLATION", None)
+    monkeypatch.setattr(mcp_server, "REPORT_TRANSLATION", None)
+
+
+def test_analyze_idea_translates_into_the_requested_language(
+    fake_claude, results_dir, no_default_translation
+):
+    result = call("analyze_idea", idea=IDEA, name="meals", language="Lithuanian")
+    translated = Path(result["translated_report_path"])
+    assert translated == Path(result["report_path"]).with_name("report.lithuanian.md")
+    assert translated.read_text(encoding="utf-8").startswith("IŠVERSTA ATASKAITA")
+    assert "## Verdict:" in result["report_markdown"]  # the returned report stays English
+
+
+def test_analyze_idea_without_a_language_makes_no_translation(
+    fake_claude, results_dir, no_default_translation
+):
+    for name, arguments in (("default", {}), ("english", {"language": "English"})):
+        result = call("analyze_idea", idea=IDEA, name=name, **arguments)
+        assert result["translated_report_path"] is None
+    assert [r for r in fake_claude.requests if r["output_format"] is None] == []

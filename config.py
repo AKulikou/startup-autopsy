@@ -89,7 +89,8 @@ EXTRA_LENSES = tuple(
 
 # Optional translated copies of the reports, for readers who prefer another
 # language. The analysis always runs in English and the English reports stay the
-# source of truth. Set in .env, e.g. REPORT_TRANSLATION=Russian; unset = English only.
+# source of truth. Set in .env, e.g. REPORT_TRANSLATION=Lithuanian (any language);
+# unset = English only. The MCP server can also take the language per call.
 REPORT_TRANSLATION = os.getenv("REPORT_TRANSLATION", "").strip() or None
 # Translation only restates a finished report, so the cheapest model is enough.
 TRANSLATION_MODEL = "claude-haiku-4-5"
