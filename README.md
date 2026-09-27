@@ -304,6 +304,7 @@ python -m eval.run_eval gate --reps 3      # eval of the input check (~$0.25)
 python -m eval.run_eval pipeline --reps 2  # eval of the whole pipeline (~$14)
 python -m eval.run_eval pipeline --reps 2 --batch  # the same at half price, via Message Batches (slower)
 python -m eval.run_eval pipeline --variant baseline --summary-only  # recompute a summary, no API calls
+python -m eval.replay_synthesis --source <variant> --reps 4 --batch  # the synthesis alone, on fixed lens results
 python -m eval.trigger.run_trigger         # does the skill trigger on the right requests (Claude Code login)
 ```
 

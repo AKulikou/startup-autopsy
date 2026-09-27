@@ -25,6 +25,7 @@ python -m eval.run_eval gate --reps 3          # eval: input check (~$0.25)
 python -m eval.run_eval pipeline --reps 2      # eval: whole pipeline (~$14, paid)
 python -m eval.run_eval pipeline --reps 2 --batch  # same via Message Batches (~$7, slower)
 python -m eval.run_eval pipeline --variant baseline --summary-only  # recompute a summary, free
+python -m eval.replay_synthesis --source <variant> --reps 4 --batch  # synthesis only, on a run's fixed lens results
 python -m eval.trigger.run_trigger --effort low # skill trigger test (~15 min, Claude Code login, no API key)
 ```
 
@@ -55,6 +56,7 @@ test at the default and the low effort level; accept a change only if it is no w
 - `core/json_export.py` — builds `report.json`: the same analysis as structured data (codes, not display words; failed calls kept with their error)
 - `core/idea_processor.py`, `file_manager.py`, `result_writer.py` — idea I/O and Markdown output
 - `skills/startup-autopsy/` — user-facing Agent Skill for the MCP tools (install into ~/.claude/skills); not auto-loaded in this repo
+- `eval/replay_synthesis.py` — reruns the synthesis on the lens results stored in pipeline traces (traces from 2026-09-27 on); measures synthesis-only instability and synthesis-only changes cheaply
 - `eval/grading.py` — pure grading and summary functions of the eval (constant baselines, stability, calibration, lens flip rates), unit-tested; `eval/run_eval.py` uses them
 - `.github/workflows/ci.yml` — ruff + pytest on Python 3.10 and 3.14 (placeholder API key; tests use the fake client)
 - `eval/trigger/` — trigger test for that skill: `queries.json` (should / should not trigger) and `run_trigger.py` (runs `claude -p`, model and effort as parameters, checks the frontmatter first)
