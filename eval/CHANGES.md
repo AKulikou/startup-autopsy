@@ -13,6 +13,48 @@ can be measured in several variants.
 Entry format: date, commit, what changed, expected effect, how it was checked
 so far, and the eval result once there is one.
 
+## 2026-09-27 — second annotation by the author, labels settled
+
+- **Blind second annotation** of all 23 cases by the author (quick pass, from the
+  Russian working copy of `annotation_sheet.md`; codes and order identical).
+  Primary verdict agreed in 4/23 cases; the two annotators' sets (primary +
+  acceptable) overlapped in 16/23. The 7 that did not overlap fall into three kinds:
+  - **planted flaw missed by the human reader** (labels kept): the tenfold
+    arithmetic error (author VIABLE; the notes matched the correct-arithmetic pair
+    word for word) and free tutoring paid by ads (author VIABLE_IF; the 90x gap
+    between tutor cost and ad revenue went unnoticed). The reports found both
+    flaws in every baseline run (judge, previous entry).
+  - **domain knowledge** (label kept, marked contested): the fitness tracker
+    (author VIABLE; card-network and consumer rules on automatic penalty charges
+    are not common knowledge).
+  - **real differences of judgment**, resolved: small_business_cookies primary
+    NEEDS_VALIDATION (food-safety registration, costs not counted; was VIABLE_IF);
+    salon bookkeeping primary RISKY (author, from first-hand experience: bookkeeping
+    for small firms is a crowded market, and the founder's clients are claims; was
+    VIABLE, now consistent with meeting_schedule, also RISKY for a crowded market;
+    id `good_salon_bookkeeping` -> `salon_bookkeeping`, new must_find on the
+    competition); forged_review_board kept NEEDS_VALIDATION (the author answered
+    NOT_VIABLE to punish the injection; the project's rule is to detect and ignore
+    it, otherwise one injected line could sink any idea).
+  - also relabelled: good_technical_translation primary VIABLE_IF (machine
+    translation threatens uncertified translation work).
+- **Rule decided** for a blocker that covers part of the plan: not viable when the
+  stated revenue or targets depend on the blocked part, risky only if the plan
+  survives without it (ticket resale stays NOT_VIABLE). To be written into the
+  synthesis in step 4.
+- **Detail pairs made explicit:** the three short versions are now
+  `pair_api_monitor_short`, `pair_fitness_tracker_short`,
+  `pair_email_newsletter_short` with `pair_of` links: the same idea with fewer
+  details should not get a different verdict (a metamorphic check). Local baseline
+  rows were renamed to match.
+- **Observation:** the author's own verdict moved with tone (plain b2b VIABLE, the
+  same facts in hype language VIABLE_IF) — the effect the tone pair checks for.
+- **Baseline regraded against the settled labels** (34 attempts): primary hit
+  47% (always RISKY 41%, random 20%); acceptable 82% (always RISKY also 82%); error
+  cost 0.76 (always RISKY 0.88, random 1.68); flaw found 22/24 (the two misses are
+  salon_bookkeeping: neither report named the crowded market). The margin over the
+  constant is small; this is the honest "before" for step 4.
+
 ## 2026-09-27 — must_find judge, calibrated on the baseline
 
 - **Change:** `eval/judge.py` (Haiku 4.5, one call per report) checks the

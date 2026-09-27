@@ -231,3 +231,14 @@ def test_a_trace_without_lens_analysis_is_refused():
              {"role": "assistant", "content": json.dumps({"verdict": "RISKY", "confidence": "LOW"})}]
     with pytest.raises(TraceError, match="predates full lens results"):
         load_inputs(trace)
+
+
+def test_offline_judge_results_fill_in_missing_grades_only():
+    rows = [row("a", 0, "RISKY"), row("b", 0, "RISKY")]
+    rows[1]["grade"]["flaw_found"] = 0
+    judged = [{"prompt_id": "a", "rep": 0, "status": "success", "flaw_found": 1},
+              {"prompt_id": "b", "rep": 0, "status": "success", "flaw_found": 1, "must_not_ok": 1},
+              {"prompt_id": "c", "rep": 0, "status": "error"}]
+    merged = run_eval.merge_offline_judge(rows, judged)
+    assert merged[0]["grade"]["flaw_found"] == 1
+    assert merged[1]["grade"]["flaw_found"] == 0 and merged[1]["grade"]["must_not_ok"] == 1

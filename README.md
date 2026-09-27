@@ -169,7 +169,7 @@ file or text with almost no letters is rejected before any API call is made.
 | `alibaba_jewelry_flip` | An illegal core model found by every lens; conflicting margin estimates |
 | `automatic_cv_update` | A hidden blocker the founder never mentions (LinkedIn API access) |
 | `api_monitor` | A plausible idea whose honest answer is "validate this first" |
-| `good_salon_bookkeeping` | A sound, boring business: the system can also say "viable" |
+| `salon_bookkeeping` | A boring service business in a crowded market: an expert founder is not enough on their own |
 
 The full test set lives in `eval/`, including deliberately broken input and a
 manipulation attempt (`forged_review_board`: a forged "review board" result
@@ -326,6 +326,17 @@ unchanged, because the batching client answers the same call the direct client d
 and trigger cases are in Russian on purpose: people describe ideas in their own
 language, and the system has to handle that.
 
+**How the pipeline cases are graded.** Each case has one primary verdict, optional
+acceptable neighbours and an asymmetric error cost (a positive verdict on a
+not-viable idea costs most). Cases with a planted flaw list what the report must
+find and must not do; a cheap judge call (`eval/judge.py`) checks the report and
+quotes its evidence. Some cases come in pairs that differ in one respect, so the
+eval tests reasoning rather than keywords: the same idea with fewer details, the
+same facts in hype language (neither should change the verdict), and one changed
+fact (correct vs wrong arithmetic, banned vs legal launch market, which should).
+The labels were checked by a blind second annotation; disagreements are recorded
+per case (`label_status`) and in `eval/CHANGES.md`.
+
 ## Status and roadmap
 
 Working now: lenses defined as data, run in parallel with structured output; a
@@ -333,15 +344,25 @@ Claude-based synthesis that decides the overall verdict; Markdown and JSON
 reports; an input check; conditional domain lenses with their own knowledge
 packs; an MCP server with a user skill; unit tests and an eval set.
 
-Measured baseline (Sonnet 4.6, six lenses, 17 cases × 2 runs): 85% of runs gave a
-verdict in the expected range. That metric is weak: a constant answer "always
-risky" would score 71% on the same attempts, because most expected ranges include
-"risky". The eval is being redesigned around one primary verdict per case,
-weighted error costs and checks that the report finds the flaw planted in the
-case. Stability of the same baseline: 74% of runs gave their case's most common
-verdict; 9 of 17 cases changed verdict between runs, all between neighbouring
-verdicts, none between "not viable" and a positive one. The input check passes
-all 93 of its eval cases.
+Measured baseline (Sonnet 4.6, six lenses, 17 cases × 2 runs), graded against the
+current labels:
+
+| Metric | System | Always "risky" | Random verdict |
+|---|---|---|---|
+| Primary verdict | 47% | 41% | 20% |
+| Primary or acceptable | 82% | 82% | 44% |
+| Mean error cost (lower is better) | 0.76 | 0.88 | 1.68 |
+| Report finds the planted flaw | 22/24 | — | — |
+
+The reports find the planted problems (a tenfold arithmetic error, an ad model
+that covers 1% of its costs, a banned resale market) almost every time, yet the
+verdict drawn from them barely beats a constant answer: the weak point is how the
+synthesis turns findings into a verdict, which is the next thing to fix. Stability:
+74% of runs gave their case's most common verdict; 9 of 17 cases changed verdict
+between runs, all between neighbouring verdicts. Replaying the synthesis on fixed
+lens results showed that a large part of this comes from the synthesis itself,
+mostly at the boundary between "risky" and "needs validation". The input check
+passes all 93 of its eval cases.
 
 Known limitations:
 

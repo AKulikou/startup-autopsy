@@ -296,6 +296,20 @@ def print_stability(rows: list[dict]) -> None:
         print(f"    {lens:<26} {flipped}/{total}")
 
 
+def merge_offline_judge(rows: list[dict], judged: list[dict]) -> list[dict]:
+    """
+    Add flaw_found / must_not_ok from an offline judge run (eval/judge.py, judge.jsonl)
+    to rows that were graded before the judge existed. Grades already in a row win.
+    """
+    by_key = {(j["prompt_id"], j["rep"]): j for j in judged if j.get("status") == "success"}
+    merged = []
+    for row in rows:
+        judge = by_key.get((row["prompt_id"], row["rep"]), {})
+        extra = {k: judge[k] for k in ("flaw_found", "must_not_ok") if k in judge and k not in row["grade"]}
+        merged.append({**row, "grade": {**row["grade"], **extra}} if extra else row)
+    return merged
+
+
 def summarize(flow: str, out: Path, cases: dict[str, dict] | None = None) -> None:
     """
     Print the summary of a variant. Pipeline rows are regraded against the current
@@ -310,6 +324,7 @@ def summarize(flow: str, out: Path, cases: dict[str, dict] | None = None) -> Non
             cases = {c["id"]: c for c in load_cases("pipeline", None)}
         regraded = rescore(rows, cases)
         dropped, rows = len(rows) - len(regraded), regraded
+        rows = merge_offline_judge(rows, read_jsonl(out / "judge.jsonl"))
     print(f"\n{flow}: {len(rows)} scored rows, {len(errors)} errors"
           + (f" ({dropped} rows of removed cases left out)" if dropped else ""))
     for metric in METRICS[flow]:
@@ -319,6 +334,8 @@ def summarize(flow: str, out: Path, cases: dict[str, dict] | None = None) -> Non
         if flow == "gate" and metric["id"] == "false_accept":
             values = [r["grade"]["false_accept"] for r in rows if "ANALYZABLE" not in r["meta"]["expected"]]
         n, passes = len(values), sum(values)
+        if not n:
+            continue
         lo, hi = wilson(passes, n)
         print(f"  {metric['label']:<13} {passes}/{n} = {passes / n if n else 0:.0%}  "
               f"(95% CI {lo:.0%}-{hi:.0%})")
