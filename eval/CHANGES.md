@@ -13,6 +13,28 @@ can be measured in several variants.
 Entry format: date, commit, what changed, expected effect, how it was checked
 so far, and the eval result once there is one.
 
+## 2026-09-27 — must_find judge, calibrated on the baseline
+
+- **Change:** `eval/judge.py` (Haiku 4.5, one call per report) checks the
+  synthesis output against a case's `must_find` / `must_not` statements with a
+  verbatim quote as evidence. Pipeline eval metrics `flaw_found` and
+  `must_not_ok`; also runs offline on stored traces. No change to the analysis.
+- **Baseline judged offline** (26 reports of the 13 baseline cases that have
+  statements, 0.075 USD): flaw found 22/22, no forbidden statement 8/8.
+  **Reading:** the reports find the planted flaw every time, including ticket
+  resale ('France (loi n°2012-348 ...) ... restricting commercial ticket resale
+  above face value') and the tenfold arithmetic error; the misses are in the
+  verdict the synthesis draws from what it found, not in detection. This points
+  the fix at the synthesis rules (step 4), not at the lenses. The metric is
+  saturated on the baseline, so it guards against regressions; harder statements
+  (the garden delivery cost, which one run lost) are needed to make it discriminate.
+- **Judge calibration:** all 13 rep-0 decisions checked by hand, all correct
+  (quotes contain the finding; the one retry was a misnumbered answer caught by
+  the validator). Negative check: three reports judged against another case's
+  statements (salon vs arithmetic error, api monitor vs ticket resale,
+  newsletter vs LinkedIn API): every statement correctly absent. Small sample:
+  enough to trust the direction, not a measured error rate.
+
 ## 2026-09-27 — eval labels: one primary verdict per case, error costs, pairs
 
 - **Change:** `eval/pipeline/cases.json` gives every case one `primary` verdict and
