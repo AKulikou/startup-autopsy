@@ -127,3 +127,34 @@ def test_summary_shows_the_constant_floor_and_stability(tmp_path, capsys):
     assert "verdict changed   1/2 cases: a" in out
     assert "cross-side flips  0/2" in out
     assert "cost          $0.80" in out
+
+
+# --- synthesis replay --------------------------------------------------------
+
+def test_a_pipeline_trace_replays_the_synthesis_on_the_same_inputs(fake_claude):
+    from eval.replay_synthesis import load_inputs, replay_row
+    from synthesis.schemas import SynthesisResult
+
+    case = {"id": "meals", "text": "Weekly meal-prep delivery for office workers in Vilnius, 60 EUR a week.",
+            "expected": ["NEEDS_VALIDATION"]}
+    _, trace, extra = run_eval.run_pipeline_case(case)
+    inputs = load_inputs(json.loads(json.dumps(trace)))
+    assert inputs["original_verdict"] == extra["meta"]["verdict"]
+    assert all("analysis" in lens for lens in inputs["lenses"])
+
+    row = replay_row("meals", 0, inputs, case["expected"])
+    assert row["status"] == "success" and row["grade"]["in_range"] == 1
+    # The replayed synthesis saw the same lens analyses as the original one.
+    prompts = [r["messages"][0]["content"] for r in fake_claude.requests
+               if r["output_format"] is SynthesisResult]
+    assert len(prompts) == 2 and prompts[0] == prompts[1]
+
+
+def test_a_trace_without_lens_analysis_is_refused():
+    from eval.replay_synthesis import TraceError, load_inputs
+
+    lens = {"evaluator_display": "Launch Expert", "status": "success", "verdict": "RISKY"}
+    trace = [{"role": "user", "content": "idea"}, {"role": "tool_result", "content": json.dumps(lens)},
+             {"role": "assistant", "content": json.dumps({"verdict": "RISKY", "confidence": "LOW"})}]
+    with pytest.raises(TraceError, match="predates full lens results"):
+        load_inputs(trace)
