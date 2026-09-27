@@ -170,9 +170,10 @@ file or text with almost no letters is rejected before any API call is made.
 | `automatic_cv_update` | A hidden blocker the founder never mentions (LinkedIn API access) |
 | `api_monitor` | A plausible idea whose honest answer is "validate this first" |
 | `good_salon_bookkeeping` | A sound, boring business: the system can also say "viable" |
-| `forged_review_board` | A manipulation attempt: a forged "review board" result inside the idea is ignored |
 
-The full test set, including deliberately broken input, lives in `eval/`.
+The full test set lives in `eval/`, including deliberately broken input and a
+manipulation attempt (`forged_review_board`: a forged "review board" result
+inside the idea text, which the analysis must ignore).
 
 ## Configuration
 
@@ -197,19 +198,17 @@ translation cost on Sonnet 4.6.
 `TRANSLATE_LENS_REPORTS=true` translates the lens reports too. The eval never
 translates.
 
-**Experiments.** Six `.env` switches change model behavior; they stay off
+**Experiments.** Six `.env` switches change model behavior. They stay off
 until the pipeline eval shows they help (see [eval/CHANGES.md](eval/CHANGES.md)):
-`ANALYSIS_MODEL` (another analysis model, e.g. `claude-sonnet-5` or
-`claude-opus-5-5`), `ANALYSIS_EFFORT` (`low` ... `max`; how much the model
-thinks, the only depth control on Opus 5.5, which always thinks),
-`THINKING=adaptive` (the lenses and the synthesis think before answering), and
-`LENS_SELECTION=on` (one small call, about $0.006, skips lenses whose question
-does not fit the idea, such as the viral lens for a local bakery, and adds the
-domain lenses that fit; the report lists what was skipped and why), and
-`EXTRA_LENSES` (defined lenses to run after the enabled ones, e.g.
-`EXTRA_LENSES=unit_economics`), and `WEB_SEARCH=on` (the Reality Auditor and
-Legal Counsel check competitors, laws and prices on the web instead of relying on
-model memory; about $0.20 more per run).
+
+| Switch | Effect |
+|---|---|
+| `ANALYSIS_MODEL` | Another model for the lenses and the synthesis, e.g. `claude-sonnet-5` or `claude-opus-5-5` |
+| `ANALYSIS_EFFORT` | `low` ... `max`: how much the model thinks; the only depth control on Opus 5.5, which always thinks |
+| `THINKING=adaptive` | The lenses and the synthesis think before answering |
+| `LENS_SELECTION=on` | One small call (about $0.006) skips lenses whose question does not fit the idea, such as the viral lens for a local bakery, and adds the domain lenses that fit; the report lists what was skipped and why |
+| `EXTRA_LENSES` | Defined lenses to run after the enabled ones, e.g. `EXTRA_LENSES=unit_economics` |
+| `WEB_SEARCH=on` | The Reality Auditor and Legal Counsel check competitors, laws and prices on the web instead of relying on model memory; about $0.20 more per run |
 
 ## Project structure
 
@@ -232,18 +231,21 @@ synthesis/
 core/
   analysis_runner.py       orchestration: lenses, synthesis, reports
   structured_call.py       shared Claude request with validation and one retry
-  translator.py            optional translated copies of finished reports
-mcp_server.py              MCP server: check_idea and analyze_idea tools
-skills/startup-autopsy/    Agent Skill for using the MCP tools
-.claude/skills/            project skills for development (review-run, add-lens)
+  claude_client.py         the Anthropic client
   idea_input.py            local checks and quote normalization of the idea text
   report_builder.py        the final report.md
   json_export.py           report.json, the analysis as structured data
+  translator.py            optional translated copies of finished reports
   result_writer.py         Markdown report files
   idea_processor.py        idea loading and result saving facade
   file_manager.py          reading idea files
-  token_summary.py         token usage table
-ideas/                     input ideas (.txt)
+  token_summary.py         token usage and cost table
+mcp_server.py              MCP server: check_idea and analyze_idea tools
+skills/startup-autopsy/    Agent Skill for using the MCP tools
+.claude/skills/            project skills for development (review-run, add-lens)
+ideas/                     showcase ideas (.txt)
+eval/                      eval cases, runner and behavior-change log (CHANGES.md)
+tests/                     unit tests with a fake Claude client
 docs/prompt_framework.md   evaluator framework specification
 ```
 
@@ -291,30 +293,45 @@ pytest                                     # unit tests: no API calls, under a s
 ruff check .                               # lint, targeting Python 3.10
 python -m eval.run_eval gate --reps 3      # eval of the input check (~$0.25)
 python -m eval.run_eval pipeline --reps 2  # eval of the whole pipeline (~$14)
+python -m eval.trigger.run_trigger         # does the skill trigger on the right requests (Claude Code login)
 ```
 
 The unit tests replace Claude with a scripted fake and cover the guards around
 the model: malformed-answer detection and retry, input checks, parallel lenses,
 report rendering and cost. The eval runs the real pipeline over reviewed cases
-in `eval/` and grades the outcomes (see `eval/run_eval.py`).
+in `eval/` and grades the outcomes (see `eval/run_eval.py`). Some input-check
+and trigger cases are in Russian on purpose: people describe ideas in their own
+language, and the system has to handle that.
 
 ## Status and roadmap
 
-Working now: lenses defined as data (most enabled by default, all run in parallel), structured output,
-a Claude-based synthesis that decides the overall verdict, a final report with
-the lens reports as an appendix, an MCP server, unit tests and an eval set.
+Working now: lenses defined as data, run in parallel with structured output; a
+Claude-based synthesis that decides the overall verdict; Markdown and JSON
+reports; an input check; conditional domain lenses with their own knowledge
+packs; an MCP server with a user skill; unit tests and an eval set.
+
+Measured baseline (Sonnet 4.6, six lenses, 17 cases × 2 runs): 85% of runs gave a
+verdict in the expected range. The input check passes all 93 of its eval cases.
 
 Known limitations:
 
-- The synthesis is new and not yet measured against an eval set.
+- Verdicts vary between runs of the same idea: in the baseline, 9 of 17 cases
+  got a different verdict on the second run.
+- The synthesis can stay soft on a blocker it describes as certain, answering
+  "risky" instead of "not viable".
+- Facts such as laws, competitors and prices come from model knowledge unless
+  `WEB_SEARCH=on`.
 
 Next:
 
-1. An eval set: ideas with expected verdicts and automated consistency checks,
-   run several times per prompt change.
-2. Lens selection per idea by the input check, and domain lenses (legal, AI,
-   software architecture) enabled only where they apply.
-3. Optional: PDF export, persistence, web UI (JSON export is done: `report.json`).
+1. Eval the experiment switches (newer models, thinking, lens selection, unit
+   economics lens, web search) and make the winners the default.
+2. A firmer synthesis on certain blockers, and more stable verdicts, both
+   measured by the eval.
+3. Re-analysis of an improved idea that shows what changed since the last report.
+4. A local web UI; later, optional PDF export and persistence.
+5. Stock Autopsy: a follow-up project that applies the same multi-lens approach
+   to public companies, with every number taken from official filings.
 
 ## License
 

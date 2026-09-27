@@ -119,6 +119,8 @@ These define what a "correct" report is — apply them when editing prompts or s
 - **Phase 3 (current):** Claude-based synthesis replacing keyword heuristics; structured
   evaluator output; parallel evaluation; remaining and domain-specific lenses; error handling.
 - **Phase 4 (started):** MCP server (`mcp_server.py`) and a user skill for it (`skills/startup-autopsy/`), done; JSON export (`report.json`) done; optional web UI, persistence, PDF export.
+- **Next project:** Stock Autopsy — the same multi-lens approach applied to public
+  companies, with every number taken from official filings.
 
 ## Known issues
 

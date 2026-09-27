@@ -6,11 +6,26 @@ eval (`python -m eval.run_eval pipeline --reps 2 --variant <name>`, about 14 USD
 per pass) runs when budget allows, not after every change, so this log is how its results
 are read: which changes a pass covers, and what each was expected to do.
 
-Experiments sit behind switches in `.env` (`ANALYSIS_MODEL`, `THINKING`), so one
-code version can be measured in several variants.
+Experiments sit behind switches in `.env` (`ANALYSIS_MODEL`, `ANALYSIS_EFFORT`,
+`THINKING`, `LENS_SELECTION`, `EXTRA_LENSES`, `WEB_SEARCH`), so one code version
+can be measured in several variants.
 
 Entry format: date, commit, what changed, expected effect, how it was checked
 so far, and the eval result once there is one.
+
+## 2026-09-27 — eval cases renamed, two pipeline ideas translated
+
+- **Change:** pipeline case ids `zz_cookies_ru` → `small_business_cookies` and
+  `zz_forged_lens` → `forged_review_board`; `garden_tool_rental_ru` →
+  `garden_tool_rental`. The cookies and garden ideas are now in English (the
+  gate eval keeps its Russian cases, including the same cookies text, as
+  language coverage). `forged_review_board.txt` moved from `ideas/` to
+  `eval/pipeline/ideas/`: it is a test case, not a showcase idea.
+- **Expected effect:** none on the other cases. The `small_business_cookies`
+  baseline was measured on the Russian text, so a verdict change there can come
+  from the language, not from a later change. The local baseline results were
+  renamed to the new ids so comparisons still line up.
+- **Checked:** pytest and ruff; no API calls.
 
 ## 2026-09-26 — Opus 5.5 support and an effort switch
 
@@ -94,9 +109,9 @@ so far, and the eval result once there is one.
   shift.
 - **Eval:** variant `unit_economics`: `EXTRA_LENSES=unit_economics python -m eval.run_eval
   pipeline --reps 2 --variant unit_economics`. New pipeline case
-  `garden_tool_rental_ru` (expected Risky or Needs validation) is not in the
+  `garden_tool_rental` (expected Risky or Needs validation) is not in the
   baseline: compare the 17 shared cases, and run the new case on the baseline
-  settings too (`--cases garden_tool_rental_ru --variant baseline`).
+  settings too (`--cases garden_tool_rental --variant baseline`).
 
 ## 2026-09-26 — 'What holds up' in the synthesis
 
