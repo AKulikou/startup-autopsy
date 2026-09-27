@@ -57,6 +57,7 @@ from eval.grading import (  # noqa: E402
     stability,
     wilson,
 )
+from eval.judge import judge_report  # noqa: E402
 from gate.idea_gate import GATE_PRINCIPLES, IdeaGate  # noqa: E402
 from synthesis.synthesizer import consistency_warnings  # noqa: E402
 
@@ -75,6 +76,8 @@ METRICS = {
     "pipeline": [
         {"id": "primary_hit", "label": "primary hit", "kind": "binary"},
         {"id": "in_range", "label": "acceptable", "kind": "binary"},
+        {"id": "flaw_found", "label": "flaw found", "kind": "binary"},
+        {"id": "must_not_ok", "label": "no forbidden", "kind": "binary"},
         {"id": "consistent", "label": "consistent", "kind": "binary"},
         {"id": "all_lenses_ok", "label": "lenses ok", "kind": "binary"},
     ],
@@ -171,6 +174,12 @@ def run_pipeline_case(case: dict) -> tuple[dict, list[dict], dict]:
     # although a lens found the idea not viable".
     warnings = consistency_warnings(synthesis, lenses)
     grade = grade_pipeline(verdict, case, warnings, [r["status"] for r in lenses])
+    # Did the report find the planted flaw? Only for cases with must_find/must_not;
+    # a failed judge call leaves the metric out rather than guessing it.
+    judged = judge_report(case, synthesis)
+    for metric in ("flaw_found", "must_not_ok"):
+        if metric in judged:
+            grade[metric] = judged[metric]
 
     # Full lens results, including the analysis text the synthesis reads, so the
     # synthesis can be replayed on exactly these inputs (eval/replay_synthesis.py).
@@ -190,6 +199,8 @@ def run_pipeline_case(case: dict) -> tuple[dict, list[dict], dict]:
         "gate_decision": gate.get("decision"), "consistency_warnings": warnings,
         "lens_verdicts": {r["evaluator_display"]: r.get("verdict", "FAILED") for r in lenses},
         "skipped_lenses": [s["lens"] for s in analysis["skipped_lenses"]],
+        "judge": {k: judged[k] for k in ("status", "checks", "error") if k in judged},
+        "judge_cost_usd": judged.get("cost_usd", 0.0),
     }}
     return grade, trace, extra
 
@@ -233,7 +244,9 @@ def run_one(flow: str, case: dict, rep: int, out: Path) -> str:
         "prompt_id": case["id"], "rep": rep, "prompt": case["text"],
         "tags": [case["category"]], "status": "ok", "grade": grade, **RUN_SETTINGS,
         "usage": usage, "in_tokens": usage["input_tokens"], "out_tokens": usage["output_tokens"],
-        "cost_usd": estimate_cost(usage["input_tokens"], usage["output_tokens"]),
+        # The judge runs on a cheaper model, so its cost is priced separately.
+        "cost_usd": estimate_cost(usage["input_tokens"], usage["output_tokens"])
+        + extra.get("meta", {}).get("judge_cost_usd", 0.0),
         "latency_s": round(time.monotonic() - started, 1), **extra,
     })
     return " ".join(f"{k}={v}" for k, v in grade.items())

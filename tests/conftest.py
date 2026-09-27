@@ -4,6 +4,7 @@ for it and answers each structured request according to the test's script.
 """
 
 import os
+import re
 from types import SimpleNamespace
 
 # config.py refuses to import without a plausible key; tests never use it.
@@ -11,7 +12,10 @@ os.environ.setdefault("ANTHROPIC_API_KEY", "sk-ant-test-key-not-used")
 
 import pytest
 
+from core import claude_client as claude_client_module
 from core import translator as translator_module
+from eval import judge as judge_module
+from eval.judge import JudgeResult, StatementCheck
 from evaluators import evaluator as evaluator_module
 from evaluators.schemas import EvaluatorResult
 from gate import idea_gate as gate_module
@@ -90,6 +94,16 @@ def text_response(text, stop_reason="end_turn", input_tokens=3000, output_tokens
     )
 
 
+def judge_answer(kwargs, present: bool = False):
+    """Answer every statement listed in a judge request with the same `present`."""
+    listed = re.findall(r"^(\d+)\. \[(must_find|must_not)\]", kwargs["messages"][0]["content"], re.M)
+    return response(JudgeResult(checks=[
+        StatementCheck(index=int(i), kind=kind, present=present,
+                       evidence="'quoted text'" if present else "none")
+        for i, kind in listed
+    ]))
+
+
 class FakeClaude:
     """
     Answers messages.parse() by output schema. Each handler takes the request
@@ -102,6 +116,7 @@ class FakeClaude:
             GateResult: lambda kwargs: response(gate_result()),
             EvaluatorResult: lambda kwargs: response(lens_result()),
             SynthesisResult: lambda kwargs: response(synthesis_result()),
+            JudgeResult: judge_answer,
         }
         # Plain-text requests (translation): returns the "translated" text.
         self.create_handler = lambda kwargs: text_response("IŠVERSTA ATASKAITA")
@@ -123,6 +138,16 @@ class FakeClaude:
 def fake_claude(monkeypatch) -> FakeClaude:
     """Replace the shared Anthropic client in every module that makes API calls."""
     fake = FakeClaude()
-    for module in (evaluator_module, synthesizer_module, gate_module, lens_fit_module, translator_module):
+    for module in (evaluator_module, synthesizer_module, gate_module, lens_fit_module, translator_module,
+                   judge_module):
         monkeypatch.setattr(module, "get_client", lambda: fake)
     return fake
+
+
+@pytest.fixture(autouse=True)
+def no_real_client(monkeypatch):
+    """A module that calls get_client() without being patched above fails loudly
+    instead of reaching the real API."""
+    def refuse():
+        raise RuntimeError("a test reached the real Anthropic client; patch its module in fake_claude")
+    monkeypatch.setattr(claude_client_module, "_direct_client", refuse)
