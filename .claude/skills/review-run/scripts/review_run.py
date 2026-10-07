@@ -66,6 +66,7 @@ def check_log(log: Path) -> None:
         ("Failed calls", "FAILED"),
         ("Rate limits (429)", " 429"),
         ("Code consistency warnings", "Synthesis: overall verdict"),
+        ("Search claims without a search", "says it searched the web but made no search"),
     ]:
         hits = [line for line in lines if pattern in line]
         print(f"- **{label}:** {len(hits)}")

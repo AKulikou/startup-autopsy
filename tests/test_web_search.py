@@ -74,3 +74,45 @@ def test_effort_is_sent_only_when_set(fake_claude, monkeypatch):
     default, low = fake_claude.calls(EvaluatorResult)
     assert "output_config" not in default
     assert low["output_config"] == {"effort": "low"}
+
+
+SEEN_CLAIMS = [
+    "I searched for current platform eligibility policies.",
+    "**Verified current platforms (searched May 2026):**",
+    "On Code4rena status: search results suggest a restructuring.",
+    "### AI Risk Assessment\n\nSearched for current state of AI in smart-contract auditing.",
+]
+
+
+@pytest.mark.parametrize("claim", SEEN_CLAIMS)
+def test_a_search_claim_without_a_search_is_found(claim):
+    result = {**lens_result(analysis="A long analysis. " * 50 + claim).model_dump(), "web_searches": 0}
+    assert evaluator_module.unbacked_search_claim(result)
+
+
+def test_a_search_claim_backed_by_a_search_is_fine():
+    result = {**lens_result(analysis=SEEN_CLAIMS[0] * 40).model_dump(), "web_searches": 2}
+    assert evaluator_module.unbacked_search_claim(result) is None
+
+
+@pytest.mark.parametrize("text", [
+    "The founder searched for a niche and found none.",
+    "Customers rarely search for this; research suggests low demand.",
+])
+def test_other_mentions_of_searching_are_not_claims(text):
+    result = {**lens_result(analysis=text * 40).model_dump(), "web_searches": 0}
+    assert evaluator_module.unbacked_search_claim(result) is None
+
+
+def test_an_unbacked_search_claim_is_kept_as_a_warning_in_the_result(fake_claude, search_on):
+    claim = lens_result(analysis="A thorough lens analysis. " * 80 + "I searched for this.")
+    fake_claude.handlers[EvaluatorResult] = lambda kwargs: response(claim, web_searches=0)
+    result = Evaluator(lens("reality_auditor"), IDEA).evaluate()
+    assert result["status"] == "success"
+    assert len(result["warnings"]) == 1
+    assert "made no search" in result["warnings"][0]
+    assert "I searched for this." in result["warnings"][0]
+
+
+def test_a_plain_result_has_no_warnings(fake_claude):
+    assert Evaluator(lens("reality_auditor"), IDEA).evaluate()["warnings"] == []

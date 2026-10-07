@@ -6,6 +6,7 @@ ANALYSIS_STANDARDS supply the tone; the EvaluatorResult schema defines the outpu
 """
 
 import logging
+import re
 import time
 
 from config import (
@@ -31,6 +32,18 @@ WEB_SEARCH_GUIDANCE = (
     "prices - instead of relying on memory, and name the source in the analysis. "
     "A fact you could not confirm is marked as unverified."
 )
+
+# A lens can write that it searched the web when it made no search (seen with
+# WEB_SEARCH on: "Verified current platforms (searched May 2026)" and zero searches
+# billed). The claim makes model knowledge look checked, so it is reported, not hidden.
+SEARCH_CLAIM = re.compile(
+    r"\b(?:I|we)\s+(?:have\s+|also\s+)?searched\b"
+    r"|\bsearch\s+results?\s+(?:show|suggest|indicate|confirm)"
+    r"|\(searched\b"
+    r"|^\W*searched\s+(?:for|the)\b",
+    re.IGNORECASE | re.MULTILINE,
+)
+SEARCH_CLAIM_CONTEXT = 60
 
 # Length bounds also catch field bleed: when a field breaks off at a stray double
 # quote, the rest of the text lands in the next field (seen: a full analysis in
@@ -59,6 +72,26 @@ def validate_result(result: EvaluatorResult) -> list[str]:
     if not result.next_steps:
         problems.append("no next_steps")
     return problems
+
+
+def unbacked_search_claim(result: dict) -> str | None:
+    """
+    For a lens result that made no web search, return the passage where it
+    nevertheless claims to have searched; None if there is no such claim.
+    """
+    if result.get("web_searches"):
+        return None
+    fields = [result[name] for name in EvaluatorResult.model_fields]
+    texts = [field for field in fields if isinstance(field, str)] + [
+        item for field in fields if isinstance(field, list) for item in field if isinstance(item, str)
+    ]
+    for text in texts:
+        match = SEARCH_CLAIM.search(text)
+        if match:
+            start = max(0, match.start() - SEARCH_CLAIM_CONTEXT)
+            passage = text[start:match.end() + SEARCH_CLAIM_CONTEXT]
+            return " ".join(passage.replace('"', "'").split())
+    return None
 
 
 class Evaluator:
@@ -127,7 +160,7 @@ class Evaluator:
                 effort=ANALYSIS_EFFORT,
                 tools=[WEB_SEARCH_TOOL] if self.web_search else None,
             )
-            return {
+            result = {
                 "evaluator": self.lens.key,
                 "evaluator_display": self.lens.name,
                 "status": "success",
@@ -137,7 +170,17 @@ class Evaluator:
                 "output_tokens": response.output_tokens,
                 "web_searches": response.web_searches,
                 "duration_s": time.monotonic() - started,
+                "warnings": [],
             }
+            claim = unbacked_search_claim(result)
+            if claim:
+                warning = (
+                    f'says it searched the web but made no search ("{claim}"); '
+                    "facts it presents as checked come from model knowledge"
+                )
+                logger.warning(f"{self.lens.name}: {warning}")
+                result["warnings"].append(warning)
+            return result
         except Exception as e:
             logger.debug(f"{self.lens.name}: evaluation failed", exc_info=True)
             return {

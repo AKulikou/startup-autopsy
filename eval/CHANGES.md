@@ -13,6 +13,28 @@ can be measured in several variants.
 Entry format: date, commit, what changed, expected effect, how it was checked
 so far, and the eval result once there is one.
 
+## 2026-10-07 — warning when a lens claims a web search it did not make
+
+- **Seen:** a single run with `LENS_SELECTION=on` and `WEB_SEARCH=on` (a solo
+  smart-contract auditing idea, 0.64 USD). Reality Auditor and Legal Counsel both
+  had the search tool and made **no** search (`web_searches=0` in the log, input
+  tokens 8.5k and 9.9k against about 45k when results come back), yet wrote
+  "I searched for current platform eligibility policies", "search results suggest…"
+  and "Verified current platforms (searched May 2026)". Model knowledge was
+  presented as checked: wrong provenance, not a style issue.
+- **Changed (code only, no prompt change):** `unbacked_search_claim` in
+  `evaluators/evaluator.py` looks for first-person search claims in a lens result
+  with zero searches. A hit is logged as a warning, kept in the result's new
+  `warnings` list (so also in `report.json`), and shown as a `> **Warning:**`
+  line at the top of `report.md` and of that lens's report. The review-run script
+  counts these log lines. The verdict and the analysis are left as they are.
+- **Checked:** both claims of that run are found; 270 lens answers in the stored
+  eval traces (all without web search) give no hit, so no false alarms there and
+  the claims look tied to the search guidance being in the prompt.
+- **Open:** why the lenses did not search at all on this run (the 2026-09-26 smoke
+  call did). One run proves little; watch `web_searches` per lens in the
+  `web_search` eval variant before changing `WEB_SEARCH_GUIDANCE`.
+
 ## 2026-09-27 — second annotation by the author, labels settled
 
 - **Blind second annotation** of all 23 cases by the author (quick pass, from the

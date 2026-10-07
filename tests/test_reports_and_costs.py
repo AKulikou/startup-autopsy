@@ -108,3 +108,17 @@ def test_runs_started_in_the_same_second_get_separate_directories(tmp_path):
     first, second = writer.create_run_dir("meals", started), writer.create_run_dir("meals", started)
     assert first.name == "2026-09-27_12-00-00_meals"
     assert second.name == "2026-09-27_12-00-00_meals_2"
+
+
+def test_a_lens_warning_shows_in_both_reports(tmp_path):
+    warned = {**lens_row("Reality Auditor"), "tokens_used": 1, "input_tokens": 1, "output_tokens": 0,
+              "warnings": ["says it searched the web but made no search"]}
+    report = build_report("idea", datetime(2026, 9, 25), synthesis_row(), [warned, lens_row("Launch Expert")])
+    assert "> **Warning:** Reality Auditor says it searched the web but made no search." in report
+    assert report.count("**Warning:**") == 1
+
+    writer = ResultWriter(str(tmp_path))
+    started = datetime(2026, 9, 25)
+    path = writer.save_result(writer.create_run_dir("idea", started), "idea", started, warned)
+    lens_report = path.read_text(encoding="utf-8")
+    assert "> **Warning:** this lens says it searched the web but made no search." in lens_report

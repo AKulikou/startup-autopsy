@@ -96,13 +96,16 @@ class ResultWriter:
             f"{i}. {step}" for i, step in enumerate(result["next_steps"], start=1)
         )
         red_flags = "\n".join(f"- {flag}" for flag in result["out_of_lens_red_flags"]) or "None reported."
+        warnings = "".join(
+            f"\n> **Warning:** this lens {warning}.\n" for warning in result.get("warnings", ())
+        )
 
         return f"""# Startup Autopsy — {result['evaluator_display']}
 
 - **Idea:** {idea_name}
 - **Analyzed:** {timestamp}
 - **Tokens used:** {result['tokens_used']} (input {result['input_tokens']}, output {result['output_tokens']})
-
+{warnings}
 ---
 
 ## Lens Verdict: {verdict_label(result['verdict'])}

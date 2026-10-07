@@ -31,6 +31,9 @@ def build_report(
     )
     if input_note:
         header += f"\n\n> **Input check:** {input_note}"
+    for r in lens_results:
+        for warning in r.get("warnings", ()):
+            header += f"\n\n> **Warning:** {r['evaluator_display']} {warning}."
 
     if synthesis["status"] != "success":
         body = (
