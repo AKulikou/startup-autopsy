@@ -10,6 +10,9 @@ logs/
 # Results
 results/
 
+# Personal ideas: analyzed locally, never published
+ideas/private/
+
 # Environment variables
 *.env
 .env.*
