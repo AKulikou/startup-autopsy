@@ -59,8 +59,9 @@ so far, and the eval result once there is one.
   survivorship or failed similar attempts, so these cases show no effect of the
   rule either way.
 - **Decision (2026-10-14): reverted.** No lens or synthesis mentioned
-  survivorship in 6 traces; the rule is inert on these cases. The patch is kept
-  in `..\startup-autopsy-patches` for a case with success-story arguments.
+  survivorship in 6 traces; the rule is inert on these cases. Kept in history
+  for a case with success-story arguments: `git show d99912a --
+  evaluators/lenses.py docs/prompt_framework.md | git apply` brings it back.
 
 ## 2026-10-14 — Reality Auditor: four kinds of competition
 
@@ -97,7 +98,7 @@ so far, and the eval result once there is one.
   low switching costs as a point in the idea's favour, not as a saturated market.
   One run decides nothing; `good_b2b_invoice_reminders` and the pipeline eval of
   this commit alone were not run before the next commit landed.
-- **Targeted eval (2026-10-14, variant `p0001_targeted`, commit 8e9f8fb in a
+- **Targeted eval (2026-10-14, variant `p0001_targeted`, commit 3848d14 in a
   worktree, `--reps 2 --batch`, 1.20 USD):**
 
   | Case | Baseline | p0001_targeted |
@@ -125,6 +126,18 @@ so far, and the eval result once there is one.
 - **Next hypothesis for `salon_bookkeeping`:** market crowding in Vilnius is a
   fact the model may not know without live data; test `WEB_SEARCH=on` on
   `salon_bookkeeping`, 2 reps. Label unchanged.
+- **Hypothesis test (2026-10-14, variant `websearch_salon`, `WEB_SEARCH=on`, code
+  after the revert, 2 reps, not batched, 1.01 USD):** flaw found 1/2, verdict
+  VIABLE_IF/MEDIUM in both, `must_not_ok` 2/2. The split follows the searches:
+  rep1 made 3 searches and cited "127 listed bookkeeping providers in Vilnius,
+  about 71 EUR/month on average" (paslaugos.lt), so the report priced the idea
+  at 2.1x the market and the judge found the flaw (its Reality Auditor said
+  NEEDS_VALIDATION; the synthesis stayed VIABLE_IF). Rep0 made no search while
+  writing "I searched below to confirm" (`unbacked_search_claim` warning fired),
+  used model-knowledge prices and missed the flaw like every run without search
+  (0/5). Supports the hypothesis that the miss is missing live data, not the
+  question; the open problem is that the lens does not always use the tool it
+  has. The 127 / 71 EUR figures were not checked by hand. One run each way.
 
 ## 2026-10-07 — warning when a lens claims a web search it did not make
 
