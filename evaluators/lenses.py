@@ -40,6 +40,9 @@ Standards for your analysis:
 - Be specific: name concrete customer segments, tools, competitors and channels
   ("EU day traders with €5k+ portfolios", not "active traders").
 - Separate what is possible from what is probable.
+- A success story is not evidence on its own. For every comparable business you cite
+  as proof that this can work, consider how many similar attempts failed and why
+  (survivorship bias).
 - Focus on risks that can kill the project, not on minor improvements.
 - Distinguish "the idea is flawed" from "the idea is not yet validated".
 - If the idea description lacks information you need, say what is missing and

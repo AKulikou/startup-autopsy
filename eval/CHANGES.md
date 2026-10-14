@@ -13,6 +13,27 @@ can be measured in several variants.
 Entry format: date, commit, what changed, expected effect, how it was checked
 so far, and the eval result once there is one.
 
+## 2026-10-14 — shared standards: survivorship bias
+
+- **Why:** a lens can argue from a success story ("X built this and grew to ...")
+  without the attempts that failed, which makes an idea look more promising than
+  the evidence supports. No measured case yet: this is a preventive rule, so it
+  must earn its place in the eval.
+- **Changed (prompt, all lenses):** one line in `ANALYSIS_STANDARDS` — a success
+  story is not evidence on its own; for every comparable business cited as proof,
+  consider how many similar attempts failed and why. Same principle added to
+  `docs/prompt_framework.md`. Adapted from Anthropic's knowledge-work-plugins
+  (`data/skills/validate-data`, common analysis pitfalls; Apache 2.0), rewritten.
+- **Expected:** fewer verdicts carried by a single success example; no change in
+  `flaw_found`.
+- **Risk to watch:** a shared line moves every lens, so it can make the whole
+  pipeline more cautious. Watch `primary_hit` and `error_cost` on the `good_`
+  cases (`good_b2b_invoice_reminders`, `good_technical_translation`): a shift
+  from viable to risky there means the rule costs more than it gives.
+- **Evaluate separately** from the Reality Auditor change below (separate commit),
+  otherwise the eval cannot tell which change moved the verdicts.
+- **Checked so far:** pytest, ruff and `check_lenses.py` only.
+
 ## 2026-10-14 — Reality Auditor: four kinds of competition
 
 - **Seen:** in the regraded baseline the planted flaw was missed in 2 of 24
