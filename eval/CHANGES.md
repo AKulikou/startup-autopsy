@@ -50,6 +50,14 @@ so far, and the eval result once there is one.
 - **Evaluate separately** from the Reality Auditor change below (separate commit),
   otherwise the eval cannot tell which change moved the verdicts.
 - **Checked so far:** pytest, ruff and `check_lenses.py` only.
+- **Targeted eval (2026-10-14, variant `p0002_targeted`, both commits,
+  `--reps 2 --batch`, 1.20 USD):** `good_b2b_invoice_reminders` VIABLE_IF x2
+  (as baseline; Reality Auditor VIABLE_IF and NEEDS_VALIDATION),
+  `good_technical_translation` VIABLE_IF x2 (its primary label; no baseline, the
+  case was added later), `salon_bookkeeping` VIABLE_IF x2, flaw found 0/2. No
+  case became more cautious. No lens and no synthesis in the six traces mentions
+  survivorship or failed similar attempts, so these cases show no effect of the
+  rule either way.
 
 ## 2026-10-14 — Reality Auditor: four kinds of competition
 
@@ -86,6 +94,26 @@ so far, and the eval result once there is one.
   low switching costs as a point in the idea's favour, not as a saturated market.
   One run decides nothing; `good_b2b_invoice_reminders` and the pipeline eval of
   this commit alone were not run before the next commit landed.
+- **Targeted eval (2026-10-14, variant `p0001_targeted`, commit 8e9f8fb in a
+  worktree, `--reps 2 --batch`, 1.20 USD):**
+
+  | Case | Baseline | p0001_targeted |
+  |---|---|---|
+  | `salon_bookkeeping` | VIABLE_IF x2, flaw found 0/2 | VIABLE_IF x2, flaw found 0/2 |
+  | `meeting_schedule` | NEEDS_VALIDATION, RISKY; flaw found 2/2 | RISKY, **NOT_VIABLE** (outside the range); flaw found 2/2, `must_not_ok` 2/2 |
+  | `good_b2b_invoice_reminders` | VIABLE_IF x2 | VIABLE_IF x2 |
+
+  Target not reached: with this commit `salon_bookkeeping` is 0/3 (0/5 with the
+  two reps of the next variant). The Reality Auditor names competitors in every
+  run, but no report calls the market crowded; the judge is right on the
+  wording ("saturation" means the founder's capacity, "commodity" a churn risk).
+  The watched risk shows at lens level: the Reality Auditor's own verdict moved
+  down on the good case (NEEDS_VALIDATION in 2/2, baseline VIABLE_IF 2/2) and on
+  `meeting_schedule` (NOT_VIABLE once, baseline RISKY 2/2). The synthesis
+  absorbed it on the good case and followed it once on `meeting_schedule`,
+  where NOT_VIABLE rests on free incumbents plus a false technical assumption
+  (Google Contacts holds no time zones) and churn economics, so `must_not` held.
+  Two reps per case: a direction, not a measurement.
 
 ## 2026-10-07 — warning when a lens claims a web search it did not make
 
