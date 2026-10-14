@@ -58,6 +58,9 @@ so far, and the eval result once there is one.
   case became more cautious. No lens and no synthesis in the six traces mentions
   survivorship or failed similar attempts, so these cases show no effect of the
   rule either way.
+- **Decision (2026-10-14): reverted.** No lens or synthesis mentioned
+  survivorship in 6 traces; the rule is inert on these cases. The patch is kept
+  in `..\startup-autopsy-patches` for a case with success-story arguments.
 
 ## 2026-10-14 — Reality Auditor: four kinds of competition
 
@@ -114,6 +117,14 @@ so far, and the eval result once there is one.
   where NOT_VIABLE rests on free incumbents plus a false technical assumption
   (Google Contacts holds no time zones) and churn economics, so `must_not` held.
   Two reps per case: a direction, not a measurement.
+- **Decision (2026-10-14): reverted.** `salon_bookkeeping` flaw found 0/5; on
+  the three targeted cases the error cost equals the baseline (7 vs 7 over 6
+  runs); one verdict out of range (`meeting_schedule` NOT_VIABLE); the Reality
+  Auditor stricter on `good_b2b_invoice_reminders` (NEEDS_VALIDATION 2/2,
+  baseline VIABLE_IF 2/2).
+- **Next hypothesis for `salon_bookkeeping`:** market crowding in Vilnius is a
+  fact the model may not know without live data; test `WEB_SEARCH=on` on
+  `salon_bookkeeping`, 2 reps. Label unchanged.
 
 ## 2026-10-07 — warning when a lens claims a web search it did not make
 

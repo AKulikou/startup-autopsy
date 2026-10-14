@@ -14,8 +14,6 @@ an evaluator in `evaluators/`, keep it consistent with the principles described 
 - **Assumptions over numbers.** Every estimate states the assumptions behind it and
   what would change it. A number without context is a defect.
 - **Possible ≠ probable.** Separate what could happen from what is likely to happen.
-- **Successes come with their failures.** A comparable business that succeeded is
-  evidence only next to the similar attempts that failed (survivorship bias).
 - **Specificity.** Replace vague segments with concrete ones
   ("active traders" → "EU day traders with €5k+ portfolios").
 - **Killer risks first.** Focus on risks that end the project, not nice-to-haves.
@@ -98,8 +96,8 @@ the same folder installs unchanged as a skill in Claude Code or claude.ai.
 ### How a prompt is assembled
 
 - **System prompt:** the lens role, the shared `ANALYSIS_STANDARDS`
-  (honesty, numbers with context, specificity, possible vs probable, survivorship
-  bias, flawed vs unvalidated, missing information), and the lens focus.
+  (honesty, numbers with context, specificity, flawed vs unvalidated, missing
+  information), and the lens focus.
 - **User message:** the lens questions as a numbered list, followed by the idea.
 - **Output:** `EvaluatorResult` (`evaluators/schemas.py`) via structured outputs.
 

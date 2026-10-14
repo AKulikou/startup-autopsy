@@ -40,9 +40,6 @@ Standards for your analysis:
 - Be specific: name concrete customer segments, tools, competitors and channels
   ("EU day traders with €5k+ portfolios", not "active traders").
 - Separate what is possible from what is probable.
-- A success story is not evidence on its own. For every comparable business you cite
-  as proof that this can work, consider how many similar attempts failed and why
-  (survivorship bias).
 - Focus on risks that can kill the project, not on minor improvements.
 - Distinguish "the idea is flawed" from "the idea is not yet validated".
 - If the idea description lacks information you need, say what is missing and
@@ -197,10 +194,7 @@ LENSES: tuple[Lens, ...] = (
         ),
         questions=(
             "Which parts of the idea depend on unrealistic assumptions?",
-            "Who already solves this problem today: direct competitors, products that solve "
-            "it differently, larger players who could add it as a feature, and the customer's "
-            "current workaround (a spreadsheet, a freelancer, doing nothing)? Why would a "
-            "customer switch, and what does switching cost them?",
+            "Who already solves this problem, and why would a customer switch?",
             "What is the true timeline to a first working version, not the ideal case?",
             "What evidence in the first weeks would justify continuing, and what would "
             "justify stopping?",
