@@ -13,6 +13,29 @@ can be measured in several variants.
 Entry format: date, commit, what changed, expected effect, how it was checked
 so far, and the eval result once there is one.
 
+## 2026-10-14 — Reality Auditor: four kinds of competition
+
+- **Seen:** in the regraded baseline the planted flaw was missed in 2 of 24
+  reports, both `salon_bookkeeping`: neither report named the crowded market.
+  In both baseline traces the Reality Auditor's stored result does not mention
+  competition at all (keyword check: competit*, crowded, saturated, incumbent,
+  alternative*; the only "switching" is a next step about interviewing leads who
+  did not convert), although its question is "Who already solves this problem".
+- **Changed (prompt):** the Reality Auditor's competition question now names four
+  kinds: direct competitors, products that solve the problem differently, larger
+  players who could add it as a feature, and the customer's current workaround (a
+  spreadsheet, a freelancer, doing nothing); it also asks what switching costs the
+  customer. Taxonomy adapted from Anthropic's knowledge-work-plugins
+  (`product-management/skills/competitive-brief`, Apache 2.0), rewritten.
+- **Expected:** `flaw_found` on `salon_bookkeeping` (crowded market) and the same
+  finding on `meeting_schedule`; no change elsewhere.
+- **Risk to watch:** competition weighed too heavily. `salon_bookkeeping` has
+  `must_not` "Calls the idea not viable because of competition alone"; watch it
+  and the verdicts of the `good_` cases.
+- **Checked so far:** pytest, ruff and `check_lenses.py` only. Not evaluated yet:
+  run the gate eval and one or two single-idea runs (`salon_bookkeeping`,
+  `good_b2b_invoice_reminders`), then the pipeline eval when budget allows.
+
 ## 2026-10-07 — warning when a lens claims a web search it did not make
 
 - **Seen:** a single run with `LENS_SELECTION=on` and `WEB_SEARCH=on` (a solo

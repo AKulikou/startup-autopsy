@@ -194,7 +194,10 @@ LENSES: tuple[Lens, ...] = (
         ),
         questions=(
             "Which parts of the idea depend on unrealistic assumptions?",
-            "Who already solves this problem, and why would a customer switch?",
+            "Who already solves this problem today: direct competitors, products that solve "
+            "it differently, larger players who could add it as a feature, and the customer's "
+            "current workaround (a spreadsheet, a freelancer, doing nothing)? Why would a "
+            "customer switch, and what does switching cost them?",
             "What is the true timeline to a first working version, not the ideal case?",
             "What evidence in the first weeks would justify continuing, and what would "
             "justify stopping?",
