@@ -14,7 +14,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-from config import MAX_TOKENS, TRANSLATION_MODEL
+from config import MAX_TOKENS, TRANSLATION_EFFORT, TRANSLATION_MODEL
 from core.claude_client import get_client
 from core.result_writer import LENSES_DIR, REPORT_FILENAME
 from core.token_summary import estimate_cost, format_cost
@@ -43,6 +43,7 @@ def translate_markdown(markdown: str, language: str) -> dict:
         response = get_client().messages.create(
             model=TRANSLATION_MODEL,
             max_tokens=MAX_TOKENS,
+            output_config={"effort": TRANSLATION_EFFORT},
             system=TRANSLATION_PROMPT.format(language=language),
             messages=[{"role": "user", "content": markdown}],
         )

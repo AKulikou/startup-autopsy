@@ -37,6 +37,8 @@ MODEL_PRICING_PER_MTOK: dict[str, tuple[float, float]] = {
     "claude-sonnet-4-6": (3.00, 15.00),
     "claude-sonnet-5": (2.00, 10.00),
     "claude-haiku-4-5": (1.00, 5.00),
+    # Prompts up to 100K tokens; longer prompts cost 0.50 / 2.50 (a report is far below).
+    "claude-haiku-5-5": (0.10, 0.50),
 }
 
 # Thinking before answering, for the lenses and the synthesis (the input check is
@@ -93,7 +95,9 @@ EXTRA_LENSES = tuple(
 # unset = English only. The MCP server can also take the language per call.
 REPORT_TRANSLATION = os.getenv("REPORT_TRANSLATION", "").strip() or None
 # Translation only restates a finished report, so the cheapest model is enough.
-TRANSLATION_MODEL = "claude-haiku-4-5"
+# Haiku 5.5 thinks by default (effort medium); low effort keeps thinking short.
+TRANSLATION_MODEL = "claude-haiku-5-5"
+TRANSLATION_EFFORT = "low"
 # Also translate the per-lens reports (about six more calls per run).
 TRANSLATE_LENS_REPORTS = os.getenv("TRANSLATE_LENS_REPORTS", "").strip().lower() in ("1", "true", "yes")
 

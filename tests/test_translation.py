@@ -1,6 +1,7 @@
 """Optional report translation: off by default, never touches the English reports."""
 
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 from conftest import text_response
@@ -51,7 +52,8 @@ def test_main_report_is_translated_next_to_the_english_one(fake_claude, run_idea
     assert list((run_dir / "lenses").glob("*.lithuanian.md")) == []
     assert len(text_calls(fake_claude)) == 1
     assert "Lithuanian" in text_calls(fake_claude)[0]["system"]
-    assert text_calls(fake_claude)[0]["model"] == "claude-haiku-4-5"
+    assert text_calls(fake_claude)[0]["model"] == "claude-haiku-5-5"
+    assert text_calls(fake_claude)[0]["output_config"] == {"effort": "low"}
     assert text_calls(fake_claude)[0]["messages"][0]["content"] == english
 
 
@@ -76,6 +78,15 @@ def test_truncated_translation_is_an_error_not_a_half_report(fake_claude):
     outcome = translate_markdown("# Report", "Lithuanian")
     assert outcome["status"] == "error" and "max_tokens" in outcome["error"]
     assert outcome["output_tokens"] == 4000  # billed even though unusable
+
+
+def test_thinking_blocks_before_the_text_are_not_part_of_the_translation(fake_claude):
+    # Haiku 5.5 thinks by default; its thinking blocks come back with empty text.
+    answer = text_response("Ataskaita")
+    answer.content.insert(0, SimpleNamespace(type="thinking", thinking="", signature="sig"))
+    fake_claude.create_handler = lambda kw: answer
+    outcome = translate_markdown("# Report", "Lithuanian")
+    assert outcome["status"] == "success" and outcome["text"] == "Ataskaita\n"
 
 
 def test_the_eval_path_never_translates(fake_claude, monkeypatch):

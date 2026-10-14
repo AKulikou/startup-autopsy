@@ -13,6 +13,23 @@ can be measured in several variants.
 Entry format: date, commit, what changed, expected effect, how it was checked
 so far, and the eval result once there is one.
 
+## 2026-10-14 — translation on Haiku 5.5
+
+- **Changed (model, translation only):** `TRANSLATION_MODEL` from
+  `claude-haiku-4-5` to `claude-haiku-5-5` with effort `low` (Haiku 5.5 thinks
+  by default at medium). Prices checked on the pricing page 2026-10-14: 0.10 /
+  0.50 USD per MTok for prompts up to 100K tokens (Haiku 4.5: 1 / 5). The
+  analysis, the input check and the eval judge stay on their models: the
+  translation never reaches the eval (`analyze()` does not translate), and the
+  judge is calibrated against the author's annotation.
+- **Expected:** the same translations at about a tenth of the cost; no change in
+  any verdict.
+- **Checked:** pytest (new test: thinking blocks before the text are ignored),
+  ruff. One live translation of a 21k-character report into Russian: 7,360 in /
+  9,448 out tokens, 35 s, 0.0055 USD (the same token counts on Haiku 4.5 would
+  be about 0.05 USD). Same headings, bullets and tables as the Haiku 4.5 copy;
+  every number kept, decimals written with a comma as Russian does.
+
 ## 2026-10-14 — shared standards: survivorship bias
 
 - **Why:** a lens can argue from a success story ("X built this and grew to ...")

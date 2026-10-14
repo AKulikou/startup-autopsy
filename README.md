@@ -192,8 +192,8 @@ startup if the key is missing or malformed.
 **Reports in other languages.** The analysis always runs in English, and the
 English reports are the source of truth. A translated copy can be added in any
 language Claude writes (Lithuanian, German, Japanese, ...) with one extra call to
-Claude Haiku 4.5 (`TRANSLATION_MODEL`), the cheapest model: about a third of the
-$0.12 the same translation cost on Sonnet 4.6.
+Claude Haiku 5.5 (`TRANSLATION_MODEL`, low effort), the cheapest model: about a
+cent per report.
 
 - CLI: add `REPORT_TRANSLATION=Lithuanian` to `.env`; each run then writes
   `report.lithuanian.md` next to `report.md`. `TRANSLATE_LENS_REPORTS=true`
