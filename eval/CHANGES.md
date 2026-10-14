@@ -56,6 +56,19 @@ so far, and the eval result once there is one.
 - **Checked so far:** pytest, ruff and `check_lenses.py` only. Not evaluated yet:
   run the gate eval and one or two single-idea runs (`salon_bookkeeping`,
   `good_b2b_invoice_reminders`), then the pipeline eval when budget allows.
+- **Result (2026-10-14, variant `p0001_competition`, before the survivorship-bias
+  commit):** gate `--reps 3` unchanged (93/93 correct, 0 false reject, 0 false
+  accept, 0.23 USD). One pipeline run of `salon_bookkeeping` (0.40 USD): the lens
+  changed, the report did not pass. The Reality Auditor now covers all four kinds
+  of competition (baseline: no mention at all) and names a cheaper freelance
+  bookkeeper as its killer risk; the synthesis keeps that as a finding and adds
+  "indistinguishable from the generic competitors" (Churn Eliminator), but never
+  calls the market crowded, so the judge still gives `flaw_found` 0 (baseline
+  0/2). Verdict VIABLE_IF as in both baseline reps, confidence HIGH (baseline
+  MEDIUM); `must_not_ok` 1. The lens treats competition as specific threats and
+  low switching costs as a point in the idea's favour, not as a saturated market.
+  One run decides nothing; `good_b2b_invoice_reminders` and the pipeline eval of
+  this commit alone were not run before the next commit landed.
 
 ## 2026-10-07 — warning when a lens claims a web search it did not make
 
