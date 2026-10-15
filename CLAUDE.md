@@ -129,7 +129,8 @@ These define what a "correct" report is — apply them when editing prompts or s
 - **v1.0 scope (fixed; the project stops there):** (1) synthesis fix for soft blockers and the
   risky / needs-validation boundary, measured before/after with the eval and the synthesis
   replay; (2) a minimal local web UI (idea form, input-check hint, live stage progress,
-  report view, downloads; FastAPI + plain HTML/JS; no accounts, history or hosting);
+  report view, downloads; FastAPI + plain HTML/JS; no accounts, history or hosting; agreed
+  design in docs/web_ui.md);
   (3) README first screen with the before/after table and the testing strategy; (4) publish
   with green CI. Anything else goes to "Ideas for later" in the README, not into v1.0.
 - **Next project:** Stock Autopsy — the same multi-lens approach applied to public
