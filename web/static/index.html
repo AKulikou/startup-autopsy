@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Startup Autopsy</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f4a8a'/%3E%3Cpath d='M9 17l4 4 10-11' stroke='white' stroke-width='3.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/static/tokens.css">
+  <link rel="stylesheet" href="/static/app.css">
+  <script type="module" src="/static/app.js"></script>
+</head>
+<body>
+  <header class="page-header">
+    <h1>Startup Autopsy</h1>
+    <p class="tagline">A brutally honest look at a business idea: several independent analyses,
+      then one overall verdict with the risks that would kill it.</p>
+  </header>
+
+  <main>
+    <!-- 1. Input -->
+    <section id="input-view" aria-labelledby="input-heading">
+      <h2 id="input-heading" class="visually-hidden">Describe the idea</h2>
+      <div class="examples">
+        <span class="examples-label">Try an example:</span>
+        <div id="examples" class="chips"></div>
+      </div>
+      <label for="idea" class="field-label">The idea</label>
+      <textarea id="idea" rows="12" maxlength="20000"
+        placeholder="What you would sell, to whom, at what price, and how you plan to get the first customers."></textarea>
+      <div id="input-message" class="notice" hidden></div>
+      <div class="actions">
+        <div id="language-picker"></div>
+        <div class="analyze">
+          <button id="analyze" class="primary" type="button">Analyze</button>
+          <span class="muted">About 3 minutes; about 0.40 USD of API calls.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. Live analysis -->
+    <section id="live-view" aria-labelledby="live-heading" hidden>
+      <div class="live-header">
+        <h2 id="live-heading">Analyzing</h2>
+        <span id="elapsed" class="muted" aria-live="off"></span>
+      </div>
+      <ol class="stages" aria-live="polite">
+        <li id="stage-input-check" class="stage is-running">
+          <span class="stage-name">Input check</span>
+          <span class="stage-text">Checking that the idea is specific enough to analyze…</span>
+        </li>
+        <li id="stage-lens-fit" class="stage" hidden>
+          <span class="stage-name">Choosing analyses</span>
+          <span class="stage-text"></span>
+        </li>
+      </ol>
+      <div id="cards" class="cards" aria-live="polite"></div>
+      <ol class="stages" aria-live="polite">
+        <li id="stage-synthesis" class="stage">
+          <span class="stage-name">Overall verdict</span>
+          <span class="stage-text">Waits for the analyses.</span>
+        </li>
+        <li id="stage-translation" class="stage" hidden>
+          <span class="stage-name">Translation</span>
+          <span class="stage-text"></span>
+        </li>
+      </ol>
+      <div id="live-message" class="notice is-error" hidden></div>
+    </section>
+
+    <!-- 3 and 4. Result and downloads -->
+    <section id="result-view" aria-labelledby="result-heading" hidden>
+      <h2 id="result-heading" class="visually-hidden">Result</h2>
+      <div id="result"></div>
+      <div class="actions">
+        <button id="again" class="secondary" type="button">Analyze another idea</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="page-footer muted">
+    Runs on this computer only. The analysis comes from Claude models and model knowledge,
+    not live sources; treat numbers as estimates to check.
+  </footer>
+</body>
+</html>

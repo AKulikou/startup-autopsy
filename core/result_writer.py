@@ -22,6 +22,12 @@ JSON_FILENAME = "report.json"
 LENSES_DIR = "lenses"
 
 
+def run_name(text: str, fallback: str) -> str:
+    """A safe directory-name fragment for a run, e.g. 'Meal prep / Vilnius!' -> 'meal_prep_vilnius'."""
+    slug = re.sub(r"[^a-z0-9]+", "_", text.lower()).strip("_")
+    return slug[:50].rstrip("_") or fallback
+
+
 def lens_report_path(evaluator_name: str) -> str:
     """
     Path of a lens report relative to the run directory, also used for links.

@@ -19,6 +19,7 @@ CLI (`main.py`) calling the Anthropic API directly.
 python -m venv venv && venv\Scripts\activate   # Windows
 pip install -r requirements-dev.txt            # app + pytest
 python main.py                                 # interactive: pick an idea from ideas/
+python -m web                                  # local web UI at http://127.0.0.1:8000
 pytest                                         # unit tests, fake Claude client, no API calls
 ruff check .                                   # lint (config in pyproject.toml, target Python 3.10)
 python -m eval.run_eval gate --reps 3          # eval: input check (~$0.25)
@@ -40,6 +41,7 @@ test at the default and the low effort level; accept a change only if it is no w
 
 - `main.py` — CLI entry point, logging setup, idea selection
 - `mcp_server.py` — MCP server (`check_idea`, `analyze_idea`) over stdio; logs only to file, never to stdout
+- `web/` — local web UI (design: docs/web_ui.md): `app.py` FastAPI routes + host/origin checks, `runs.py` one run at a time in a thread, `view.py` result in words, `examples.py`, `languages.py`; `static/` page split into small reusable files (`tokens.css`, `events.js` SSE, `cards.js`, `languages.js`, `markdown.js`) and `app.js`
 - `config.py` — API key check, model, token limit, enabled lenses
 - `evaluators/lenses.py` — all lenses as data (role, focus, questions) + shared `ANALYSIS_STANDARDS`
 - `evaluators/evaluator.py` — `Evaluator`: builds prompts from a lens, calls Claude with structured output
@@ -51,6 +53,7 @@ test at the default and the low effort level; accept a change only if it is no w
 - `gate/idea_gate.py` — `IdeaGate`: one Claude call that decides NOT_AN_IDEA / TOO_VAGUE / ANALYZABLE before the lenses run (`gate/schemas.py` — `GateResult`)
 - `core/idea_input.py` — local checks before any API call (empty or letterless input is rejected; straight double quotes become typographic)
 - `core/analysis_runner.py` — orchestrates load → lenses → synthesis → reports → token stats
+- `core/progress.py` — `ProgressEvent`: optional progress callback of `AnalysisRunner` (stage, lens, status, verdict in words, cost); the CLI passes none
 - `core/translator.py` — optional translated copies of finished reports in any language (`translate_run`; `REPORT_TRANSLATION` in `.env`, or `language` in the MCP call); the analysis stays English
 - `core/report_builder.py` — builds `report.md` (synthesis first, lens results as appendix)
 - `core/json_export.py` — builds `report.json`: the same analysis as structured data (codes, not display words; failed calls kept with their error)
@@ -130,7 +133,7 @@ These define what a "correct" report is — apply them when editing prompts or s
   risky / needs-validation boundary, measured before/after with the eval and the synthesis
   replay; (2) a minimal local web UI (idea form, input-check hint, live stage progress,
   report view, downloads; FastAPI + plain HTML/JS; no accounts, history or hosting; agreed
-  design in docs/web_ui.md);
+  design in docs/web_ui.md; done 2026-10-15, `python -m web`);
   (3) README first screen with the before/after table and the testing strategy; (4) publish
   with green CI. Anything else goes to "Ideas for later" in the README, not into v1.0.
 - **Next project:** Stock Autopsy — the same multi-lens approach applied to public

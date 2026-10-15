@@ -146,6 +146,21 @@ the synthesis (about a minute and a half), so a run takes about 3 minutes. One r
 on `claude-sonnet-4-6` costs roughly $0.30–0.40, depending on the length of the idea
 and of the answers.
 
+### Web UI
+
+```bash
+python -m web                     # then open http://127.0.0.1:8000
+```
+
+One local page: type an idea or start from an example, watch each lens card light
+up with its verdict as it finishes, then read the overall verdict, killer risks,
+what holds up, conflicts between lenses and next steps; each lens opens in full on
+click. `report.md`, `report.json` and an optional translated copy can be
+downloaded. If the input check finds the idea too vague, the page says what is
+missing and offers to analyze it anyway. One analysis runs at a time (each one is
+paid for), and the page shows its estimated cost when it ends. The server binds to
+this machine only; design notes are in [docs/web_ui.md](docs/web_ui.md).
+
 ## Adding your own idea
 
 Create a text file in `ideas/`, for example `ideas/my_idea.txt`. Plain prose is
@@ -201,6 +216,11 @@ cent per report.
 - MCP: `analyze_idea` takes a `language` argument, so Claude passes the user's
   language itself; the path of the translation comes back as
   `translated_report_path`. Without the argument the `.env` setting applies.
+- Web UI: the "Add translation" checkbox and a list of ten languages; the
+  `.env` setting does not apply there.
+
+Each translated copy starts with a line saying it is a machine translation of the
+English original.
 
 Translation is a separate step over a finished run (`core/translator.py`,
 `translate_run`): an existing translation is reused, not paid for again, and a
@@ -238,6 +258,7 @@ synthesis/
   schemas.py               SynthesisResult: the synthesis output schema
 core/
   analysis_runner.py       orchestration: lenses, synthesis, reports
+  progress.py              progress events for a live view (the web UI)
   structured_call.py       shared Claude request with validation and one retry
   claude_client.py         the Anthropic client (direct, or batching for the eval)
   batch_client.py          sends requests through the Message Batches API at half price
@@ -250,6 +271,7 @@ core/
   file_manager.py          reading idea files
   token_summary.py         token usage and cost table
 mcp_server.py              MCP server: check_idea and analyze_idea tools
+web/                       local web UI: FastAPI app (app.py), runs, result view, static page
 skills/startup-autopsy/    Agent Skill for using the MCP tools
 .claude/skills/            project skills for development (review-run, add-lens)
 ideas/                     showcase ideas (.txt)
@@ -342,7 +364,7 @@ per case (`label_status`) and in `eval/CHANGES.md`.
 Working now: lenses defined as data, run in parallel with structured output; a
 Claude-based synthesis that decides the overall verdict; Markdown and JSON
 reports; an input check; conditional domain lenses with their own knowledge
-packs; an MCP server with a user skill; unit tests and an eval set.
+packs; an MCP server with a user skill; a local web UI; unit tests and an eval set.
 
 Measured baseline (Sonnet 4.6, six lenses, 17 cases × 2 runs), graded against the
 current labels:
@@ -380,11 +402,7 @@ Next:
 2. A firmer synthesis on certain blockers, and more stable verdicts, both
    measured by the eval.
 3. Re-analysis of an improved idea that shows what changed since the last report.
-4. A local web UI with the report language chosen per user: the page renders
-   `report.json`, so the translation will cover its text fields (verdict codes
-   stay as codes) and interface labels come from a small dictionary. Later,
-   optional PDF export and persistence.
-5. Stock Autopsy: a follow-up project that applies the same multi-lens approach
+4. Stock Autopsy: a follow-up project that applies the same multi-lens approach
    to public companies, with every number taken from official filings.
 
 ## License

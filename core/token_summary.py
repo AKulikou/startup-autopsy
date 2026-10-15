@@ -45,6 +45,11 @@ def call_cost(result: dict) -> float | None:
     return cost + result.get("web_searches", 0) * WEB_SEARCH_PRICE
 
 
+def billed_cost(result: dict) -> float | None:
+    """call_cost() for any call result; None when its tokens are unknown (some failed calls)."""
+    return call_cost(result) if "input_tokens" in result else None
+
+
 def format_cost(cost: float | None) -> str:
     return "cost n/a" if cost is None else f"est. cost ${cost:.4f}"
 

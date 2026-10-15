@@ -4,7 +4,8 @@ Runs the full analysis of one business idea: input check, lenses, synthesis, rep
 The lenses run in parallel threads (they are independent API calls), so their
 "done" lines arrive in completion order. Results are still passed to the
 synthesis in the configured lens order. Progress goes to the log one line per
-event (INFO); the reports themselves are written only to files (Markdown, plus report.json).
+event (INFO), and to an optional progress callback as ProgressEvents (the web UI);
+the reports themselves are written only to files (Markdown, plus report.json).
 """
 
 import logging
@@ -29,8 +30,9 @@ from config import (
 from core.idea_input import InvalidIdeaError, prepare_idea
 from core.idea_processor import IdeaProcessor
 from core.json_export import build_json
+from core.progress import ProgressCallback, ProgressEvent
 from core.report_builder import build_report
-from core.token_summary import call_cost, estimate_cost, format_cost, log_token_summary
+from core.token_summary import billed_cost, call_cost, estimate_cost, format_cost, log_token_summary
 from core.translator import needs_translation, translate_run
 from evaluators.evaluator import Evaluator
 from evaluators.lenses import Lens, select_lenses
@@ -50,18 +52,22 @@ class AnalysisRunner:
         self,
         processor: IdeaProcessor,
         confirm_vague_idea: Callable[[dict], bool] | None = None,
+        on_progress: ProgressCallback | None = None,
     ):
         """
         Args:
             processor: Idea input and result output
             confirm_vague_idea: Asked whether to analyze an idea the input check found
                 too vague; without it such ideas are not analyzed. The CLI asks the user.
+            on_progress: Called with a ProgressEvent as each stage or lens starts and
+                ends, from the thread that runs the analysis. The CLI passes none.
         """
         self.processor = processor
         self.lenses = select_lenses(
             ENABLED_LENSES + EXTRA_LENSES + (DOMAIN_LENSES if LENS_SELECTION else ())
         )
         self.confirm_vague_idea = confirm_vague_idea
+        self.on_progress = on_progress
 
     def run(self, idea_name: str) -> bool:
         """
@@ -106,7 +112,14 @@ class AnalysisRunner:
         language = language or REPORT_TRANSLATION
         translations = []
         if needs_translation(language):
+            self._emit(ProgressEvent("translation", "started", label=language))
             translations = translate_run(run_dir, language, lens_reports=TRANSLATE_LENS_REPORTS)
+            for outcome in translations:
+                ok = outcome["status"] == "success"
+                self._emit(ProgressEvent(
+                    "translation", "done" if ok else "failed", label=outcome["evaluator_display"],
+                    text=None if ok else outcome["error"], cost_usd=billed_cost(outcome),
+                ))
         checks = [analysis["gate"]] + ([analysis["lens_fit"]] if analysis["lens_fit"] else [])
         log_token_summary(checks + results + [synthesis] + translations)
         return report_path
@@ -137,6 +150,15 @@ class AnalysisRunner:
         return {"analyzed": True, "gate": gate, "input_note": input_note, "lens_fit": lens_fit,
                 "lenses": lenses, "skipped_lenses": skipped, "synthesis": synthesis}
 
+    def _emit(self, event: ProgressEvent) -> None:
+        """Pass an event to the progress callback; a failing callback never stops a paid run."""
+        if self.on_progress is None:
+            return
+        try:
+            self.on_progress(event)
+        except Exception:
+            logger.warning(f"Progress callback failed on {event.stage} {event.status}", exc_info=True)
+
     def _load_idea(self, idea_name: str) -> str | None:
         raw_content = self.processor.load_idea(idea_name)
         if raw_content is None:
@@ -163,11 +185,19 @@ class AnalysisRunner:
         return idea_content
 
     def _run_gate(self, idea_content: str) -> dict:
+        self._emit(ProgressEvent("input_check", "started", label=GATE_LABEL))
         gate = IdeaGate(idea_content).check()
         duration = f"{gate['duration_s']:.0f}s"
         if gate["status"] == "success":
             logger.info(f"[{GATE_LABEL}] ... done in {duration}: {gate_decision_label(gate['decision'])}")
             logger.debug(f"{GATE_LABEL}: decision code {gate['decision']}")
+            self._emit(ProgressEvent("input_check", "done", label=GATE_LABEL,
+                                     text=gate_decision_label(gate["decision"]),
+                                     cost_usd=billed_cost(gate)))
+        else:
+            self._emit(ProgressEvent("input_check", "failed", label=GATE_LABEL,
+                                     text=f"{gate['error']}; continuing without the input check",
+                                     cost_usd=billed_cost(gate)))
         return gate
 
     def _gate_allows(self, gate: dict) -> bool:
@@ -231,9 +261,13 @@ class AnalysisRunner:
         candidates = tuple(lens for lens in self.lenses if lens.applies_to)
         if not LENS_SELECTION or not candidates:
             return None, self.lenses, []
+        self._emit(ProgressEvent("lens_fit", "started", label=LENS_FIT_LABEL))
         fit = LensFitCheck(idea_content, candidates).check()
         if fit["status"] != "success":
             logger.warning(f"[{LENS_FIT_LABEL}] ... FAILED: {fit['error']}; running every lens")
+            self._emit(ProgressEvent("lens_fit", "failed", label=LENS_FIT_LABEL,
+                                     text=f"{fit['error']}; running every lens",
+                                     cost_usd=billed_cost(fit)))
             return fit, self.lenses, []
         misfits = {f["lens"]: f["reason"] for f in fit["lens_fit"] if not f["applies"]}
         to_run = tuple(lens for lens in self.lenses if lens.key not in misfits)
@@ -243,8 +277,15 @@ class AnalysisRunner:
             f"[{LENS_FIT_LABEL}] ... done in {fit['duration_s']:.0f}s: "
             f"{len(to_run)} of {len(self.lenses)} lenses fit this idea"
         )
+        self._emit(ProgressEvent("lens_fit", "done", label=LENS_FIT_LABEL,
+                                 text=f"{len(to_run)} of {len(self.lenses)} lenses fit this idea",
+                                 cost_usd=billed_cost(fit)))
         for entry in skipped:
             logger.info(f"[{LENS_FIT_LABEL}] skipping {entry['lens']}: {entry['reason']}")
+        for lens in self.lenses:
+            if lens.key in misfits:
+                self._emit(ProgressEvent("lens", "skipped", key=lens.key, label=lens.name,
+                                         text=misfits[lens.key]))
         return fit, to_run, skipped
 
     def _run_evaluators(
@@ -260,16 +301,29 @@ class AnalysisRunner:
             futures = {}
             for index, lens in enumerate(lenses):
                 logger.info(f"{prefixes[index]} ... started")
+                self._emit(ProgressEvent("lens", "started", key=lens.key, label=lens.name, text=lens.focus))
                 futures[pool.submit(Evaluator(lens, idea_content, input_note).evaluate)] = index
             for finished, future in enumerate(as_completed(futures), start=1):
                 index = futures[future]
                 results[index] = future.result()  # evaluate() never raises
                 self._log_lens_result(prefixes[index], results[index], finished, total)
+                self._emit(self._lens_event(lenses[index], results[index]))
 
         elapsed = time.monotonic() - started
         busy = sum(r["duration_s"] for r in results)
         logger.info(f"Lenses finished in {elapsed:.0f}s (sum of lens times {busy:.0f}s)")
         return results
+
+    @staticmethod
+    def _lens_event(lens: Lens, result: dict) -> ProgressEvent:
+        if result["status"] != "success":
+            return ProgressEvent("lens", "failed", key=lens.key, label=lens.name,
+                                 text=result["error"], cost_usd=billed_cost(result))
+        return ProgressEvent(
+            "lens", "done", key=lens.key, label=lens.name, text=result["summary"],
+            verdict=result["verdict"], verdict_text=verdict_label(result["verdict"]),
+            confidence_text=confidence_label(result["confidence"]), cost_usd=billed_cost(result),
+        )
 
     @staticmethod
     def _log_lens_result(prefix: str, result: dict, finished: int, total: int) -> None:
@@ -306,9 +360,12 @@ class AnalysisRunner:
         if not succeeded:
             error = "no lens succeeded, nothing to synthesize"
             logger.error(f"[{SYNTHESIS_LABEL}] skipped: {error}")
+            self._emit(ProgressEvent("synthesis", "skipped", label=SYNTHESIS_LABEL, text=error))
             return {"evaluator_display": SYNTHESIS_LABEL, "status": "error", "error": error}
 
         logger.info(f"[{SYNTHESIS_LABEL}] ... started ({succeeded} of {len(results)} lenses)")
+        self._emit(ProgressEvent("synthesis", "started", label=SYNTHESIS_LABEL,
+                                 text=f"{succeeded} of {len(results)} lenses"))
         synthesis = Synthesizer(idea_content, results, input_note).synthesize()
         duration = f"{synthesis['duration_s']:.0f}s"
         if synthesis["status"] == "success":
@@ -319,6 +376,14 @@ class AnalysisRunner:
                 f"{len(synthesis['conflicts'])} conflicts, "
                 f"{synthesis['input_tokens']}/{synthesis['output_tokens']} tokens, {format_cost(cost)}"
             )
+            self._emit(ProgressEvent(
+                "synthesis", "done", label=SYNTHESIS_LABEL, text=synthesis["summary"],
+                verdict=synthesis["verdict"], verdict_text=verdict_label(synthesis["verdict"]),
+                confidence_text=confidence_label(synthesis["confidence"]),
+                cost_usd=billed_cost(synthesis),
+            ))
         else:
             logger.error(f"[{SYNTHESIS_LABEL}] ... FAILED in {duration}: {synthesis['error']}")
+            self._emit(ProgressEvent("synthesis", "failed", label=SYNTHESIS_LABEL,
+                                     text=synthesis["error"], cost_usd=billed_cost(synthesis)))
         return synthesis

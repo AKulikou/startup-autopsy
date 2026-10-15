@@ -29,6 +29,13 @@ companies, products, laws and regulations. Keep the analyst names (such as
 'Reality Auditor') in English. Output only the translated document.
 """
 
+# Put above every translated copy, in English, so a reader of any language sees
+# which file is the source of truth.
+MACHINE_TRANSLATION_NOTE = (
+    "> Machine translation into {language} of the English original ({original}). "
+    "Numbers and structure are kept; if the two differ, the English original is authoritative.\n\n"
+)
+
 
 def translate_markdown(markdown: str, language: str) -> dict:
     """
@@ -105,7 +112,8 @@ def translate_run(run_dir: Path, language: str, lens_reports: bool = False) -> l
         outcome = translate_markdown(path.read_text(encoding="utf-8"), language)
         outcome["evaluator_display"] = f"Translation of {path.name}"
         if outcome["status"] == "success":
-            translated_path(path, language).write_text(outcome["text"], encoding="utf-8")
+            note = MACHINE_TRANSLATION_NOTE.format(language=language, original=path.name)
+            translated_path(path, language).write_text(note + outcome["text"], encoding="utf-8")
         return outcome
 
     with ThreadPoolExecutor(max_workers=len(todo)) as pool:

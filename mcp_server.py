@@ -10,7 +10,6 @@ to logs/mcp_server_<timestamp>.log only.
 """
 
 import logging
-import re
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -31,7 +30,7 @@ from config import REPORT_TRANSLATION  # noqa: E402
 from core.analysis_runner import AnalysisRunner  # noqa: E402
 from core.idea_input import InvalidIdeaError, prepare_idea  # noqa: E402
 from core.idea_processor import IdeaProcessor  # noqa: E402
-from core.result_writer import JSON_FILENAME  # noqa: E402
+from core.result_writer import JSON_FILENAME, run_name  # noqa: E402
 from core.translator import needs_translation, translated_path  # noqa: E402
 from evaluators.schemas import confidence_label, verdict_label  # noqa: E402
 from gate.idea_gate import NEXT_STEP_HINT, IdeaGate  # noqa: E402
@@ -96,12 +95,6 @@ def _gate_check(gate: dict) -> IdeaCheck:
     )
 
 
-def _run_name(name: str) -> str:
-    """A safe directory-name fragment for the results folder."""
-    slug = re.sub(r"[^a-z0-9]+", "_", name.lower()).strip("_")
-    return slug[:50] or "mcp_idea"
-
-
 def check_idea_sync(idea: str) -> IdeaCheck:
     try:
         text, _ = prepare_idea(idea)
@@ -126,7 +119,7 @@ def analyze_idea_sync(
     if not analysis["analyzed"]:
         return IdeaAnalysis(analyzed=False, check=check)
 
-    report_path = runner.save(_run_name(name), analysis, started_at, language=language).resolve()
+    report_path = runner.save(run_name(name, "mcp_idea"), analysis, started_at, language=language).resolve()
     synthesis = analysis["synthesis"]
     result = IdeaAnalysis(
         analyzed=True, check=check,

@@ -48,7 +48,9 @@ def test_main_report_is_translated_next_to_the_english_one(fake_claude, run_idea
     ok, run_dir = run_idea("Lithuanian")
     english = (run_dir / "report.md").read_text(encoding="utf-8")
     assert "## Verdict:" in english
-    assert (run_dir / "report.lithuanian.md").read_text(encoding="utf-8").startswith("IŠVERSTA ATASKAITA")
+    translated = (run_dir / "report.lithuanian.md").read_text(encoding="utf-8")
+    assert translated.startswith("> Machine translation into Lithuanian of the English original (report.md).")
+    assert translated.endswith("IŠVERSTA ATASKAITA\n")
     assert list((run_dir / "lenses").glob("*.lithuanian.md")) == []
     assert len(text_calls(fake_claude)) == 1
     assert "Lithuanian" in text_calls(fake_claude)[0]["system"]

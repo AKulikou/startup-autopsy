@@ -100,7 +100,7 @@ def test_analyze_idea_translates_into_the_requested_language(
     result = call("analyze_idea", idea=IDEA, name="meals", language="Lithuanian")
     translated = Path(result["translated_report_path"])
     assert translated == Path(result["report_path"]).with_name("report.lithuanian.md")
-    assert translated.read_text(encoding="utf-8").startswith("IŠVERSTA ATASKAITA")
+    assert translated.read_text(encoding="utf-8").endswith("IŠVERSTA ATASKAITA\n")
     assert "## Verdict:" in result["report_markdown"]  # the returned report stays English
 
 
