@@ -128,14 +128,18 @@ These define what a "correct" report is — apply them when editing prompts or s
 - **Phase 2 (done):** 3 evaluators, CLI, Markdown reports, heuristic synthesis.
 - **Phase 3 (done):** Claude-based synthesis, structured output, parallel lenses, domain
   lenses, error handling; eval with primary labels, error costs, judge, pairs, second annotation.
-- **Phase 4 (done so far):** MCP server and user skill, JSON export, translation, batch eval, CI.
-- **v1.0 scope (fixed; the project stops there):** (1) synthesis fix for soft blockers and the
-  risky / needs-validation boundary, measured before/after with the eval and the synthesis
-  replay; (2) a minimal local web UI (idea form, input-check hint, live stage progress,
-  report view, downloads; FastAPI + plain HTML/JS; no accounts, history or hosting; agreed
-  design in docs/web_ui.md; done 2026-10-15, `python -m web`);
-  (3) README first screen with the before/after table and the testing strategy; (4) publish
-  with green CI. Anything else goes to "Ideas for later" in the README, not into v1.0.
+- **Phase 4 (done):** MCP server and user skill, JSON export, translation, batch eval, CI,
+  and a minimal local web UI (idea form, input-check hint, live stage progress, report
+  view, translation, downloads; FastAPI + plain HTML/JS; no accounts, history or hosting;
+  agreed design in docs/web_ui.md; `python -m web`).
+- **v1.0 (released):** the state above, published with green CI and a README that states
+  the testing strategy on its first screen, the measured baseline and the known
+  limitations.
+- **v1.1 (planned):** the synthesis fix for soft blockers and the risky / needs-validation
+  boundary, measured before/after with the eval and the synthesis replay, and the
+  before/after table on the README's first screen. It was in the v1.0 scope and moved
+  here so v1.0 could ship without another paid eval cycle. Anything else goes to "Next"
+  in the README and to the issues, not into v1.1.
 - **Next project:** Stock Autopsy — the same multi-lens approach applied to public
   companies, with every number taken from official filings.
 
@@ -145,7 +149,8 @@ These define what a "correct" report is — apply them when editing prompts or s
   between two reps in the baseline); judge prompt changes by the eval, not one run.
 - The synthesis can stay soft on a blocker it describes as certain (calls the core
   illegal, yet says RISKY rather than NOT_VIABLE).
-- Facts (laws, competitors, prices) come from model knowledge, not live sources, unless
-  `WEB_SEARCH=on` (Reality Auditor and Legal Counsel only; off by default).
+- Facts (laws, competitors, prices, precedents) come from model knowledge, not live
+  sources, unless `WEB_SEARCH=on` (off by default; it reaches the Reality Auditor, and
+  Legal Counsel only when `LENS_SELECTION=on` runs it).
 - Experiments behind `.env` switches (`ANALYSIS_MODEL`, `ANALYSIS_EFFORT`, `THINKING`, `LENS_SELECTION`, `EXTRA_LENSES`, `WEB_SEARCH`)
   are off by default until the pipeline eval decides; see `eval/CHANGES.md`.

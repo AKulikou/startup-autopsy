@@ -12,6 +12,30 @@ steps. "Do not pursue this" is a valid next step.
 The goal is to answer one question before you spend months building:
 **what would need to be true for this to work, and how cheaply can I find out?**
 
+## How it is tested
+
+The model's answers vary from run to run, so the project is tested at two levels:
+
+- **Unit tests** replace Claude with a scripted fake and cover the code around the
+  model: malformed answers and their retry, the input check, parallel lenses, the
+  reports, translation, the web API and cost. No API calls; they run in seconds, in
+  CI on Python 3.10 and 3.14.
+- **An eval** runs the real pipeline over 23 labelled ideas (the published baseline
+  below ran 17 of them twice each). Every case has one primary verdict, acceptable
+  neighbours and an asymmetric error cost; the labels were checked by a blind second
+  annotation. Scores are shown next to what a constant and a random answer would get,
+  together with how stable the verdict is. The input check has its own eval (31
+  cases, run three times each).
+- **Planted flaws and pairs:** a judge call checks whether the report finds the flaw
+  planted in a case, and paired cases differ in one respect (fewer details, hype
+  language, or one changed fact), so the eval tests reasoning rather than keywords.
+- **Every prompt or model change** is logged in [eval/CHANGES.md](eval/CHANGES.md)
+  with its expected effect and, where it was evaluated, its measurement; changes that
+  showed no gain were reverted.
+
+Commands are under [Testing](#testing); results and limitations under
+[Status and roadmap](#status-and-roadmap).
+
 ## Example
 
 Abridged from a real run on [`ideas/alibaba_jewelry_flip.txt`](ideas/alibaba_jewelry_flip.txt):
@@ -386,7 +410,7 @@ synthesis turns findings into a verdict, which is the next thing to fix. Stabili
 between runs, all between neighbouring verdicts. Replaying the synthesis on fixed
 lens results showed that a large part of this comes from the synthesis itself,
 mostly at the boundary between "risky" and "needs validation". The input check
-passes all 93 of its eval cases.
+passed all 93 runs of its eval (31 cases, three runs each).
 
 Known limitations:
 
@@ -394,15 +418,16 @@ Known limitations:
   got a different verdict on the second run.
 - The synthesis can stay soft on a blocker it describes as certain, answering
   "risky" instead of "not viable".
-- Facts such as laws, competitors and prices come from model knowledge unless
-  `WEB_SEARCH=on`.
+- Facts such as laws, competitors, prices and precedents come from model knowledge
+  unless `WEB_SEARCH=on`, so a named competitor or precedent can be wrong.
 
 Next:
 
-1. Eval the experiment switches (newer models, thinking, lens selection, unit
+1. **v1.1:** a firmer synthesis on certain blockers and a sharper line between
+   "risky" and "needs validation", measured before and after with the eval and the
+   synthesis replay; the before/after table goes on this page.
+2. Eval the experiment switches (newer models, thinking, lens selection, unit
    economics lens, web search) and make the winners the default.
-2. A firmer synthesis on certain blockers, and more stable verdicts, both
-   measured by the eval.
 3. Re-analysis of an improved idea that shows what changed since the last report.
 4. Stock Autopsy: a follow-up project that applies the same multi-lens approach
    to public companies, with every number taken from official filings.

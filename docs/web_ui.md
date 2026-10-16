@@ -1,4 +1,4 @@
-# Web UI (v1.0, step A) — agreed design
+# Web UI (v1.0) — agreed design
 
 Agreed with the owner on 2026-10-15, before any code. Scope stays inside the v1.0
 Definition of Done: a minimal local web UI (FastAPI + plain HTML/JS, server-sent
