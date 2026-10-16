@@ -9,7 +9,16 @@ from conftest import text_response
 from core import analysis_runner
 from core.analysis_runner import AnalysisRunner
 from core.idea_processor import IdeaProcessor
-from core.translator import translate_markdown, translate_run, translated_path
+from core.translator import (
+    TRANSLATION_PROMPT,
+    UNTRANSLATED_NOTE,
+    looks_untranslated,
+    split_sections,
+    translate_document,
+    translate_markdown,
+    translate_run,
+    translated_path,
+)
 
 IDEA = "Weekly meal-prep delivery for office workers in Vilnius, 60 EUR a week, ordered online."
 
@@ -52,11 +61,14 @@ def test_main_report_is_translated_next_to_the_english_one(fake_claude, run_idea
     assert translated.startswith("> Machine translation into Lithuanian of the English original (report.md).")
     assert translated.endswith("IŠVERSTA ATASKAITA\n")
     assert list((run_dir / "lenses").glob("*.lithuanian.md")) == []
-    assert len(text_calls(fake_claude)) == 1
-    assert "Lithuanian" in text_calls(fake_claude)[0]["system"]
-    assert text_calls(fake_claude)[0]["model"] == "claude-haiku-5-5"
-    assert text_calls(fake_claude)[0]["output_config"] == {"effort": "low"}
-    assert text_calls(fake_claude)[0]["messages"][0]["content"] == english
+    calls = text_calls(fake_claude)
+    # One call per level-2 section; together they cover the whole English report.
+    assert len(calls) == len(split_sections(english)) > 1
+    assert sorted(c["messages"][0]["content"] for c in calls) == sorted(split_sections(english))
+    assert "".join(split_sections(english)) == english
+    assert all("Lithuanian" in c["system"] for c in calls)
+    assert {c["model"] for c in calls} == {"claude-haiku-5-5"}
+    assert all(c["output_config"] == {"effort": "low"} for c in calls)
 
 
 def test_lens_reports_are_translated_only_when_asked(fake_claude, run_idea):
@@ -122,3 +134,89 @@ def test_a_second_language_is_added_next_to_the_first(fake_claude, run_idea):
 
 def test_translated_file_name_comes_from_the_language_name():
     assert translated_path(Path("run/report.md"), " Lithuanian ") == Path("run/report.lithuanian.md")
+
+
+# Section by section: headings translated, no section quietly left in English.
+
+REPORT = (
+    "# Startup Autopsy — meals\n\n- **Model:** claude-sonnet-4-6\n\n"
+    "## Verdict: Needs validation\n\nThe demand for weekly meal delivery is real but unproven "
+    "among office workers, and the price has not been tested with paying customers yet.\n\n"
+    "## Appendix: How the Verdict Was Reached\n\nEvery lens agreed that willingness to pay is the "
+    "deciding question, while the delivery logistics look manageable for a small team at first. "
+    "The revenue lens doubted the price, the launch lens doubted the first week, and the reality "
+    "check asked for ten paying customers before any further spending on the kitchen.\n"
+)
+
+
+def fake_translator(untranslated_first: int = 0):
+    """Answers each section with a 'translation'; the first N answers return it unchanged."""
+    answers = {"left": untranslated_first}
+
+    def handler(kwargs):
+        source = kwargs["messages"][0]["content"]
+        if answers["left"] > 0 and "Appendix" in source:
+            answers["left"] -= 1
+            return text_response(source)
+        heading = source.splitlines()[0]
+        return text_response(f"{heading} (LT)\n\nIšversta dalis.")
+
+    return handler
+
+
+def test_the_prompt_asks_for_headings_to_be_translated_too():
+    assert "including headings" in TRANSLATION_PROMPT
+
+
+def test_a_report_splits_before_each_level_two_heading():
+    parts = split_sections(REPORT)
+    assert [p.splitlines()[0] for p in parts] == [
+        "# Startup Autopsy — meals",
+        "## Verdict: Needs validation",
+        "## Appendix: How the Verdict Was Reached",
+    ]
+    assert "".join(parts) == REPORT
+
+
+def test_sections_are_translated_and_put_back_in_order(fake_claude):
+    fake_claude.create_handler = fake_translator()
+    outcome = translate_document(REPORT, "Lithuanian")
+    assert outcome["status"] == "success" and outcome["untranslated_sections"] == 0
+    headings = [line for line in outcome["text"].splitlines() if line.startswith("#")]
+    assert headings == ["# Startup Autopsy — meals (LT)", "## Verdict: Needs validation (LT)",
+                        "## Appendix: How the Verdict Was Reached (LT)"]
+    assert outcome["input_tokens"] == 3 * 3000  # summed over the three calls
+
+
+def test_a_section_returned_in_english_is_retried_once(fake_claude):
+    fake_claude.create_handler = fake_translator(untranslated_first=1)
+    outcome = translate_document(REPORT, "Lithuanian")
+    assert "## Appendix: How the Verdict Was Reached (LT)" in outcome["text"]
+    assert outcome["untranslated_sections"] == 0
+    assert len(text_calls(fake_claude)) == 4  # three sections, one retry
+    assert outcome["output_tokens"] == 4 * 4000  # the rejected answer is billed too
+
+
+def test_a_section_still_english_after_the_retry_is_kept_and_marked(fake_claude):
+    fake_claude.create_handler = fake_translator(untranslated_first=2)
+    outcome = translate_document(REPORT, "Lithuanian")
+    assert outcome["status"] == "success" and outcome["untranslated_sections"] == 1
+    assert UNTRANSLATED_NOTE + "## Appendix: How the Verdict Was Reached" in outcome["text"]
+
+
+def test_one_failed_section_fails_the_whole_translation(fake_claude):
+    def fails_on_appendix(kwargs):
+        if "Appendix" in kwargs["messages"][0]["content"]:
+            raise ConnectionError("Connection error.")
+        return text_response("Išversta dalis.")
+
+    fake_claude.create_handler = fails_on_appendix
+    outcome = translate_document(REPORT, "Lithuanian")
+    assert outcome["status"] == "error" and "Connection error" in outcome["error"]
+
+
+def test_untranslated_text_is_recognised_and_names_alone_are_not():
+    english = "Every lens agreed that willingness to pay is the deciding question. " * 4
+    assert looks_untranslated(english, english)
+    assert not looks_untranslated(english, "Visi vertinimai sutarė, kad mokumas yra lemiamas klausimas. " * 4)
+    assert not looks_untranslated("Reality Auditor", "Reality Auditor")  # too short to judge

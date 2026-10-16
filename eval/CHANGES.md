@@ -13,6 +13,30 @@ can be measured in several variants.
 Entry format: date, commit, what changed, expected effect, how it was checked
 so far, and the eval result once there is one.
 
+## 2026-10-16 — translation section by section, headings translated
+
+- **Why (owner's review of the web UI):** in two real Russian translations every
+  heading and fixed label stayed English (the prompt said "keep the Markdown
+  structure exactly: headings, ..."), and in one of them the whole last section,
+  "Appendix: How the Verdict Was Reached", came back untranslated (0 Cyrillic
+  letters in 5,600 characters) although the call ended normally.
+- **Changed (translation only):** the prompt asks to translate all text, headings,
+  table headers and labels included, and to keep the markup. A report is
+  translated one level-2 section at a time (up to 4 calls in parallel) and put
+  back together. A section whose words mostly come back unchanged (60% or more,
+  sections of 25+ words) is retried once; if it is still English, it is kept with
+  a note saying so instead of losing the whole translation. A failed call still
+  fails the whole translation (the English report stays).
+- **Calibration of the check:** on the two real translations, translated sections
+  kept 4-35% of their words (names, file names, links), the untranslated appendix
+  100%; the check flags exactly that one section.
+- **Expected:** fully translated reports; about 10 small calls instead of one,
+  slightly more input tokens (the prompt per call), shorter wall time. No effect on
+  any verdict or on the eval (`analyze()` never translates).
+- **Checked:** pytest (sections split and rejoined, retry, kept-and-marked section,
+  one failed section fails the translation, the check on texts), ruff. Not yet
+  checked with a live translation.
+
 ## 2026-10-14 — translation on Haiku 5.5
 
 - **Changed (model, translation only):** `TRANSLATION_MODEL` from

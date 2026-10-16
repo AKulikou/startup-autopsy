@@ -1,8 +1,12 @@
-// A small Markdown renderer for the lens analyses: headings, paragraphs,
-// bullet and numbered lists, tables, horizontal rules, quotes, bold, italic and
-// inline code (what the lenses write; links and raw HTML are not rendered).
+// A small Markdown renderer for the lens analyses and the translated report:
+// headings, paragraphs, bullet and numbered lists, tables, horizontal rules,
+// quotes, bold, italic, inline code and links. Raw HTML is never rendered.
 // Every piece of text is HTML-escaped before any markup is added, so model
 // output can never inject HTML into the page.
+//
+// Links: a web address (http or https) opens in a new tab; any other target is a
+// file next to the report on disk (for example lenses/reality_auditor.md), which
+// means nothing on this page, so only the link text is shown.
 
 function escapeHtml(text) {
   return text
@@ -14,16 +18,24 @@ function escapeHtml(text) {
 }
 
 function inline(text) {
-  const codes = [];
-  let html = escapeHtml(text).replace(/`([^`]+)`/g, (_, code) => {
-    codes.push(code);
-    return `\u0000${codes.length - 1}\u0000`;
-  });
+  // Code spans and link targets are set aside first, so emphasis rules never
+  // touch them (an address like a_b_c must not turn into italics).
+  const kept = [];
+  const keep = (html) => {
+    kept.push(html);
+    return `\u0000${kept.length - 1}\u0000`;
+  };
+  let html = escapeHtml(text).replace(/`([^`]+)`/g, (_, code) => keep(`<code>${code}</code>`));
+  html = html.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_, label, target) =>
+    /^https?:\/\//i.test(target)
+      ? `${keep(`<a href="${target}" target="_blank" rel="noopener noreferrer">`)}${label}${keep("</a>")}`
+      : label,
+  );
   html = html
     .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
     .replace(/(^|[^\w*])\*(?!\s)([^*\n]+?)\*(?![\w*])/g, "$1<em>$2</em>")
     .replace(/(^|[^\w])_(?!\s)([^_\n]+?)_(?!\w)/g, "$1<em>$2</em>");
-  return html.replace(/\u0000(\d+)\u0000/g, (_, i) => `<code>${codes[Number(i)]}</code>`);
+  return html.replace(/\u0000(\d+)\u0000/g, (_, i) => kept[Number(i)]);
 }
 
 const PATTERNS = {
