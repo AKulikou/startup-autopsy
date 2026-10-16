@@ -207,9 +207,10 @@ startup if the key is missing or malformed.
 
 **Reports in other languages.** The analysis always runs in English, and the
 English reports are the source of truth. A translated copy can be added in any
-language Claude writes (Lithuanian, German, Japanese, ...) with one extra call to
-Claude Haiku 5.5 (`TRANSLATION_MODEL`, low effort), the cheapest model: about a
-cent per report.
+language Claude writes (Lithuanian, German, Japanese, ...) with Claude Haiku 5.5
+(`TRANSLATION_MODEL`, low effort), the cheapest model: one small call per report
+section, and a section that comes back untranslated or in another language is
+retried once at medium effort (`TRANSLATION_RETRY_EFFORT`); about a cent per report.
 
 - CLI: add `REPORT_TRANSLATION=Lithuanian` to `.env`; each run then writes
   `report.lithuanian.md` next to `report.md`. `TRANSLATE_LENS_REPORTS=true`
@@ -237,7 +238,7 @@ until the pipeline eval shows they help (see [eval/CHANGES.md](eval/CHANGES.md))
 | `THINKING=adaptive` | The lenses and the synthesis think before answering |
 | `LENS_SELECTION=on` | One small call (about $0.006) skips lenses whose question does not fit the idea, such as the viral lens for a local bakery, and adds the domain lenses that fit; the report lists what was skipped and why |
 | `EXTRA_LENSES` | Defined lenses to run after the enabled ones, e.g. `EXTRA_LENSES=unit_economics` |
-| `WEB_SEARCH=on` | The Reality Auditor and Legal Counsel check competitors, laws and prices on the web instead of relying on model memory; about $0.20 more per run |
+| `WEB_SEARCH=on` | The Reality Auditor (and Legal Counsel, which runs only with `LENS_SELECTION=on`) checks competitors, laws and prices on the web instead of relying on model memory; about $0.20 more per run |
 
 ## Project structure
 
@@ -321,7 +322,7 @@ cp -r skills/startup-autopsy ~/.claude/skills/
 
 ```bash
 pip install -r requirements-dev.txt
-pytest                                     # unit tests: no API calls, under a second
+pytest                                     # unit tests: no API calls, a few seconds
 ruff check .                               # lint, targeting Python 3.10
 python -m eval.run_eval gate --reps 3      # eval of the input check (~$0.25)
 python -m eval.run_eval pipeline --reps 2  # eval of the whole pipeline (~$14)
