@@ -1,5 +1,11 @@
 # Startup Autopsy
 
+<p align="center">
+  <img src="docs/images/startup_autopsy_banner.jpg"
+       alt="Startup Autopsy: a doctor examines a dissected light bulb, the idea, on an examination table"
+       width="100%">
+</p>
+
 Brutally honest evaluation of business ideas from several independent analytical
 perspectives, powered by Claude.
 
