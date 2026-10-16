@@ -234,7 +234,7 @@ function liveError(text) {
   box.hidden = false;
 }
 
-// ---------- 3. Result, 4. downloads ----------
+// ---------- 3. Result, 4. saving ----------
 
 function section(title, wide = false) {
   const panel = el("section", wide ? "panel wide" : "panel");
@@ -317,17 +317,100 @@ function lensDetails(lens) {
   return details;
 }
 
+function fileUrl(runId, kind) {
+  return `/api/runs/${runId}/files/${kind}`;
+}
+
+function saveLink(runId, file) {
+  const link = el("a", "download", file.label);
+  link.href = fileUrl(runId, file.kind);
+  link.setAttribute("download", "");
+  return link;
+}
+
+// The translated copy is shown on the page from its Markdown file, loaded on first view.
+async function loadTranslation(runId, pane) {
+  if (pane.dataset.state === "loading" || pane.dataset.state === "loaded") return;
+  pane.dataset.state = "loading";
+  pane.replaceChildren(el("p", "muted", "Loading the translation…"));
+  try {
+    const response = await fetch(fileUrl(runId, "translation"));
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const body = el("div", "markdown translated-report");
+    body.innerHTML = renderMarkdown(await response.text()); // escaped inside renderMarkdown
+    pane.replaceChildren(body);
+    pane.dataset.state = "loaded";
+  } catch {
+    pane.dataset.state = "";
+    pane.replaceChildren(el("div", "notice is-error",
+      "The translation could not be shown here. Use the save button to open the file."));
+  }
+}
+
+function tabButton(text, selected, controls) {
+  const tab = el("button", "tab", text);
+  tab.type = "button";
+  tab.setAttribute("role", "tab");
+  tab.setAttribute("aria-selected", String(selected));
+  tab.setAttribute("aria-controls", controls);
+  return tab;
+}
+
+// Above the report: which copy is shown (when there is a translation) and the button
+// that saves exactly the copy on screen.
+function reportToolbar(runId, files, translation, reportPane, translationPane) {
+  const bar = el("div", "report-toolbar");
+  const save = files.report ? saveLink(runId, files.report) : null;
+  if (translation && files.translation) {
+    const tabs = el("div", "tabs");
+    tabs.setAttribute("role", "tablist");
+    tabs.setAttribute("aria-label", "Report language");
+    const original = tabButton("English report", true, reportPane.id);
+    const translated = tabButton(`${translation.language} translation`, false, translationPane.id);
+    const select = (showTranslation) => {
+      original.setAttribute("aria-selected", String(!showTranslation));
+      translated.setAttribute("aria-selected", String(showTranslation));
+      reportPane.hidden = showTranslation;
+      translationPane.hidden = !showTranslation;
+      const file = showTranslation ? files.translation : files.report;
+      save.textContent = file.label;
+      save.href = fileUrl(runId, file.kind);
+      if (showTranslation) loadTranslation(runId, translationPane);
+    };
+    original.addEventListener("click", () => select(false));
+    translated.addEventListener("click", () => select(true));
+    tabs.append(original, translated);
+    bar.append(tabs);
+  } else {
+    bar.append(el("span", "report-title", "Report"));
+  }
+  if (save) bar.append(save);
+  return bar;
+}
+
 function renderResult(runId, view) {
   const root = $("result");
   root.replaceChildren();
   const s = view.synthesis;
+  const files = Object.fromEntries(view.downloads.map((d) => [d.kind, d]));
+  const translation = view.translation && view.translation.made ? view.translation : null;
+
+  const reportPane = el("div", "report-pane");
+  reportPane.id = "report-pane";
+  reportPane.setAttribute("role", "tabpanel");
+  const translationPane = el("div", "report-pane");
+  translationPane.id = "translation-pane";
+  translationPane.setAttribute("role", "tabpanel");
+  translationPane.hidden = true;
+  root.append(reportToolbar(runId, files, translation, reportPane, translationPane), reportPane);
+  if (translation) root.append(translationPane);
 
   if (s.ok) {
-    root.append(verdictBanner(s));
+    reportPane.append(verdictBanner(s));
   } else {
-    root.append(el("div", "notice is-error", s.text));
+    reportPane.append(el("div", "notice is-error", s.text));
   }
-  if (view.input_note) root.append(el("div", "notice", view.input_note));
+  if (view.input_note) reportPane.append(el("div", "notice", view.input_note));
 
   if (s.ok) {
     const grid = el("div", "result-grid");
@@ -356,29 +439,25 @@ function renderResult(runId, view) {
     const assumptions = section("What would need to be true", true);
     assumptions.append(assumptionsTable(s.key_assumptions));
     grid.append(conflicts, assumptions);
-    root.append(grid);
+    reportPane.append(grid);
   }
 
-  root.append(el("h2", null, "The separate analyses"));
-  for (const lens of view.lenses) root.append(lensDetails(lens));
+  reportPane.append(el("h2", null, "The separate analyses"));
+  for (const lens of view.lenses) reportPane.append(lensDetails(lens));
   for (const skipped of view.skipped_lenses) {
-    root.append(el("p", "muted", `${skipped.lens} was not run: ${skipped.reason}`));
+    reportPane.append(el("p", "muted", `${skipped.lens} was not run: ${skipped.reason}`));
   }
 
-  root.append(el("h2", null, "Downloads"));
-  const downloads = el("div", "downloads");
-  for (const d of view.downloads) {
-    const link = el("a", "download", d.label);
-    link.href = `/api/runs/${runId}/files/${d.kind}`;
-    link.setAttribute("download", "");
-    downloads.append(link);
+  // After the report, whichever copy is shown.
+  const footer = el("div", "result-footer");
+  if (view.translation && !view.translation.made) footer.append(el("p", "muted", view.translation.text));
+  if (files.json) {
+    const data = el("p", "data-file");
+    data.append(el("span", "muted", "The full analysis as data for other programs: "), saveLink(runId, files.json));
+    footer.append(data);
   }
-  root.append(downloads);
-  if (view.translation && !view.translation.made) root.append(el("p", "muted", view.translation.text));
-  if (view.translation && view.translation.made) {
-    root.append(el("p", "muted", `The ${view.translation.language} copy is a machine translation of the English original.`));
-  }
-  root.append(el("p", "muted", `Estimated API cost of this run: $${view.cost_usd.toFixed(2)}.`));
+  footer.append(el("p", "muted", `Estimated API cost of this run: $${view.cost_usd.toFixed(2)}.`));
+  root.append(footer);
 }
 
 // ---------- Start ----------
@@ -397,6 +476,12 @@ async function init() {
     chips.append(chip);
   }
   languagePicker = createLanguagePicker($("language-picker"), data.languages);
+  if (data.web_search) {
+    $("facts-note").textContent =
+      "Two analyses (the reality check and the legal review) may search the web; the rest " +
+      "answer from the model's own knowledge. Check market sizes, prices, competitors and laws " +
+      "before relying on them.";
+  }
   $("analyze").addEventListener("click", () => analyze(false));
   $("again").addEventListener("click", () => {
     inputMessage([]);

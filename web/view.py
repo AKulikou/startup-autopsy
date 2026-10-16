@@ -50,7 +50,10 @@ def run_view(run: Run) -> dict:
     if run.language:
         made = "translation" in download_paths(run)
         view["translation"] = {
-            "language": NATIVE_NAMES.get(run.language, run.language),
+            # English name for sentences in the English page; the language's own name
+            # only where it stands alone, as in the language list.
+            "language": run.language,
+            "native_name": NATIVE_NAMES.get(run.language, run.language),
             "made": made,
             "text": None if made else "The translation failed; the English report is complete.",
         }
@@ -127,15 +130,18 @@ def _lens(result: dict) -> dict:
 
 
 DOWNLOAD_LABELS = {
-    "report": f"Report ({REPORT_FILENAME})",
-    "json": f"Structured data ({JSON_FILENAME})",
+    "report": f"Save report ({REPORT_FILENAME})",
+    "json": f"Save structured data ({JSON_FILENAME})",
 }
 
 
 def _downloads(run: Run) -> list[dict]:
+    """
+    Each file with its own handling on the page: the report and its translation are
+    shown on the page and can be saved; report.json is data for programs, saved only.
+    """
     downloads = []
     for kind, path in download_paths(run).items():
-        label = DOWNLOAD_LABELS.get(kind) or (
-            f"Translation: {NATIVE_NAMES.get(run.language, run.language)} ({path.name})")
+        label = DOWNLOAD_LABELS.get(kind) or f"Save translation ({path.name})"
         downloads.append({"kind": kind, "label": label})
     return downloads

@@ -27,6 +27,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
+from config import WEB_SEARCH
 from core.idea_input import InvalidIdeaError, prepare_idea
 from core.result_writer import run_name
 from gate.idea_gate import NEXT_STEP_HINT
@@ -79,7 +80,9 @@ def create_app(results_dir: Path = ROOT / "results") -> FastAPI:
 
     @app.get("/api/options")
     def options():
-        return {"examples": examples_for_page(), "languages": languages_for_page()}
+        # web_search lets the page say truthfully where the facts in a report come from.
+        return {"examples": examples_for_page(), "languages": languages_for_page(),
+                "web_search": WEB_SEARCH}
 
     @app.post("/api/runs", status_code=202)
     def start_run(body: RunRequest):

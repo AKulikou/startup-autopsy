@@ -18,7 +18,11 @@ One page with four states:
    running. The ~3 minutes of a run become part of the show.
 3. **Result.** The verdict in words and the confidence on top; killer risks, what
    holds up, conflicts between lenses, next steps. Each lens opens in full on click.
-4. **Downloads.** `report.md`, `report.json`, and the translated copy when asked for.
+4. **Saving.** Each file has its own handling (owner's review, 2026-10-16):
+   - the report is what the page shows; a button saves it as `report.md`;
+   - the translated copy, when asked for, opens in its own tab, rendered on the
+     page, with a button that saves it;
+   - `report.json` is data for programs: saved only, from a line under the report.
 
 ## Example ideas
 
@@ -43,6 +47,12 @@ Personal ideas (`ideas/private/`) never appear in the list.
 - Only the checkbox before the run; no "translate" button on the result screen.
 - The interface and the original report stay English. The translated copy is marked
   as a machine translation of the English original; numbers and structure are kept.
+
+## Footer
+
+States what runs where (the page on this computer; the analysis by Anthropic's
+Claude API), where the facts come from (model knowledge, or web search for two
+analyses when `WEB_SEARCH=on`), and that it is not financial or legal advice.
 
 ## Wording
 

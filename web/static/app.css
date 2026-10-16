@@ -19,6 +19,7 @@ main, .page-header, .page-footer {
 .page-header h1 { margin: 0; font-size: 2rem; letter-spacing: -0.01em; }
 .tagline { margin: var(--space-2) 0 0; color: var(--text-muted); max-width: 60ch; }
 .page-footer { padding-top: var(--space-6); padding-bottom: var(--space-6); font-size: 0.85rem; }
+.page-footer p { margin: 0 0 var(--space-1); max-width: 80ch; }
 
 h2 { font-size: 1.25rem; margin: var(--space-6) 0 var(--space-3); }
 h3 { font-size: 1.05rem; margin: 0 0 var(--space-2); }
@@ -72,6 +73,15 @@ select {
   background: var(--surface);
   color: var(--text);
 }
+/* A disabled control must look disabled, not only refuse input. */
+select:disabled {
+  background: var(--surface-muted);
+  color: var(--text-muted);
+  border-color: var(--border);
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.checkbox:has(input:disabled) { opacity: 0.55; cursor: not-allowed; }
 .field-label { display: block; font-weight: 600; margin: var(--space-4) 0 var(--space-2); }
 
 .examples { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
@@ -236,11 +246,39 @@ select {
   text-align: left; vertical-align: top; }
 .markdown th { background: var(--surface-muted); }
 
-.downloads { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-2); }
+/* Report toolbar: which copy is shown, and saving exactly that copy. */
+.report-toolbar {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: var(--space-3); margin-top: var(--space-5);
+}
+.report-title { font-weight: 600; color: var(--text-muted); }
+.tabs {
+  display: inline-flex; border: 1px solid var(--border); border-radius: var(--radius);
+  overflow: hidden; background: var(--surface);
+}
+.tab {
+  border: 0; border-radius: 0; background: transparent; color: var(--text-muted);
+  padding: var(--space-2) var(--space-4);
+}
+.tab + .tab { border-left: 1px solid var(--border); }
+.tab[aria-selected="true"] { background: var(--accent); color: var(--accent-text); font-weight: 600; }
+.translated-report {
+  margin-top: var(--space-4); padding: var(--space-4) var(--space-5);
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  max-width: none;
+}
+.translated-report > :first-child { margin-top: 0; }
+.translated-report blockquote { margin-bottom: var(--space-4); }
+.translated-report h3 { font-size: 1.35rem; margin: var(--space-5) 0 var(--space-2); }
+.translated-report h4 { font-size: 1.15rem; margin: var(--space-5) 0 var(--space-2); }
+.translated-report h5, .translated-report h6 { font-size: 1rem; margin: var(--space-4) 0 var(--space-2); }
+.result-footer { margin-top: var(--space-5); }
+.data-file { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
 .download {
   display: inline-block; padding: var(--space-2) var(--space-4); border-radius: var(--radius);
   border: 1px solid var(--accent); text-decoration: none; font-weight: 600;
 }
+.data-file .download { padding: var(--space-1) var(--space-3); font-weight: 500; }
 
 @media (max-width: 600px) {
   .page-header h1 { font-size: 1.6rem; }
@@ -248,4 +286,5 @@ select {
   .verdict-banner, .panel { padding: var(--space-4); }
   .cards, .result-grid { grid-template-columns: 1fr; }
   .lens-body { padding: 0 var(--space-3) var(--space-3); }
+  .translated-report { padding: var(--space-3); }
 }

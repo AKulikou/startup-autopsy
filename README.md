@@ -155,8 +155,9 @@ python -m web                     # then open http://127.0.0.1:8000
 One local page: type an idea or start from an example, watch each lens card light
 up with its verdict as it finishes, then read the overall verdict, killer risks,
 what holds up, conflicts between lenses and next steps; each lens opens in full on
-click. `report.md`, `report.json` and an optional translated copy can be
-downloaded. If the input check finds the idea too vague, the page says what is
+click. The report and an optional translated copy are shown on the page (one tab
+each) and saved with one button; `report.json`, the analysis as data for other
+programs, has its own save button. If the input check finds the idea too vague, the page says what is
 missing and offers to analyze it anyway. One analysis runs at a time (each one is
 paid for), and the page shows its estimated cost when it ends. The server binds to
 this machine only; design notes are in [docs/web_ui.md](docs/web_ui.md).

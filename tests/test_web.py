@@ -85,6 +85,8 @@ def test_options_offer_the_agreed_examples_and_languages(client):
     assert labels == ["Lietuvių", "Deutsch", "Eesti", "Español", "Français", "Italiano",
                       "Latviešu", "Polski", "Русский", "Українська"]
     assert "English" not in [language["name"] for language in options["languages"]]
+    # The footer says where the facts come from; .env decides (WEB_SEARCH).
+    assert isinstance(options["web_search"], bool)
 
 
 def test_examples_never_come_from_personal_ideas():
@@ -160,10 +162,24 @@ def test_without_the_checkbox_nothing_is_translated_whatever_env_says(client, fa
 def test_a_requested_translation_is_made_marked_and_offered(client, fake_claude):
     run_id, events, result = run_to_end(client, language="Lithuanian")
     assert [e["status"] for e in events if e["stage"] == "translation"] == ["started", "done"]
-    assert result["translation"] == {"language": "Lietuvių", "made": True, "text": None}
-    assert "translation" in [d["kind"] for d in result["downloads"]]
+    assert result["translation"] == {"language": "Lithuanian", "native_name": "Lietuvių",
+                                     "made": True, "text": None}
+    labels = {d["kind"]: d["label"] for d in result["downloads"]}
+    # English page, English words: the language's own name never mixes into a sentence.
+    assert labels == {"report": "Save report (report.md)",
+                      "json": "Save structured data (report.json)",
+                      "translation": "Save translation (report.lithuanian.md)"}
     translated = client.get(f"/api/runs/{run_id}/files/translation").text
     assert translated.startswith("> Machine translation into Lithuanian of the English original")
+
+
+def test_the_page_can_show_the_translation_it_offers(client, fake_claude):
+    """The page loads the translated copy to show it; the same URL also saves it."""
+    run_id, _, _ = run_to_end(client, language="Russian")
+    shown = client.get(f"/api/runs/{run_id}/files/translation")
+    assert shown.status_code == 200
+    assert shown.headers["content-type"].startswith("text/markdown")
+    assert shown.text.startswith("> Machine translation into Russian of the English original")
 
 
 def test_a_failed_translation_is_said_and_the_english_report_stays(client, fake_claude):
@@ -225,7 +241,9 @@ def test_only_one_run_at_a_time(client, fake_claude):
     release.set()
     follow(client, first)
     assert client.get("/api/runs/active").json()["run_id"] is None
-    start(client)  # free again
+    # Free again. Follow the new run to its end: a run left in its thread would outlive
+    # the fake client and reach the real API after the test.
+    follow(client, start(client))
 
 
 def test_requests_from_another_site_are_refused(client, fake_claude):
