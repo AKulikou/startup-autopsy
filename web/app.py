@@ -27,9 +27,10 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
-from config import WEB_SEARCH
+from config import DOMAIN_LENSES, ENABLED_LENSES, EXTRA_LENSES, LENS_SELECTION, WEB_SEARCH, WEB_SEARCH_LENSES
 from core.idea_input import InvalidIdeaError, prepare_idea
 from core.result_writer import run_name
+from evaluators.lenses import select_lenses
 from gate.idea_gate import NEXT_STEP_HINT
 from web.examples import examples_for_page
 from web.languages import NATIVE_NAMES, languages_for_page
@@ -47,6 +48,18 @@ EVENT_POLL_S = 0.3
 
 MEDIA_TYPES = {"report": "text/markdown; charset=utf-8", "json": "application/json",
                "translation": "text/markdown; charset=utf-8"}
+
+
+def web_search_lenses() -> list[str]:
+    """
+    Names of the lenses that may search the web with the current .env settings: a
+    lens searches only with WEB_SEARCH on, if it is a search lens and if it can run
+    at all (a domain lens such as Legal Counsel runs only with LENS_SELECTION on).
+    """
+    if not WEB_SEARCH:
+        return []
+    keys = ENABLED_LENSES + EXTRA_LENSES + (DOMAIN_LENSES if LENS_SELECTION else ())
+    return [lens.name for lens in select_lenses(keys) if lens.key in WEB_SEARCH_LENSES]
 
 
 class RunRequest(BaseModel):
@@ -80,9 +93,10 @@ def create_app(results_dir: Path = ROOT / "results") -> FastAPI:
 
     @app.get("/api/options")
     def options():
-        # web_search lets the page say truthfully where the facts in a report come from.
+        # The lenses that may search the web, so the page says truthfully where the
+        # facts in a report come from.
         return {"examples": examples_for_page(), "languages": languages_for_page(),
-                "web_search": WEB_SEARCH}
+                "web_search_lenses": web_search_lenses()}
 
     @app.post("/api/runs", status_code=202)
     def start_run(body: RunRequest):

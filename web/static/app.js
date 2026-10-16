@@ -476,11 +476,13 @@ async function init() {
     chips.append(chip);
   }
   languagePicker = createLanguagePicker($("language-picker"), data.languages);
-  if (data.web_search) {
+  const searching = data.web_search_lenses || [];
+  if (searching.length) {
+    const names = searching.join(" and ");
+    const kind = searching.length === 1 ? "analysis" : "analyses";
     $("facts-note").textContent =
-      "Two analyses (the reality check and the legal review) may search the web; the rest " +
-      "answer from the model's own knowledge. Check market sizes, prices, competitors and laws " +
-      "before relying on them.";
+      `The ${names} ${kind} may search the web; the others answer from the model's own ` +
+      "knowledge. Check market sizes, prices, competitors and laws before relying on them.";
   }
   $("analyze").addEventListener("click", () => analyze(false));
   $("again").addEventListener("click", () => {

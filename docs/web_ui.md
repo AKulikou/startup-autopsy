@@ -51,8 +51,9 @@ Personal ideas (`ideas/private/`) never appear in the list.
 ## Footer
 
 States what runs where (the page on this computer; the analysis by Anthropic's
-Claude API), where the facts come from (model knowledge, or web search for two
-analyses when `WEB_SEARCH=on`), and that it is not financial or legal advice.
+Claude API), where the facts come from (model knowledge; with `WEB_SEARCH=on`, web
+search for the lenses that can search and actually run: the Reality Auditor, and Legal
+Counsel only with `LENS_SELECTION=on`), and that it is not financial or legal advice.
 
 ## Wording
 

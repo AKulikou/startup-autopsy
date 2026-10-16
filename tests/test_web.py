@@ -85,8 +85,24 @@ def test_options_offer_the_agreed_examples_and_languages(client):
     assert labels == ["Lietuvių", "Deutsch", "Eesti", "Español", "Français", "Italiano",
                       "Latviešu", "Polski", "Русский", "Українська"]
     assert "English" not in [language["name"] for language in options["languages"]]
-    # The footer says where the facts come from; .env decides (WEB_SEARCH).
-    assert isinstance(options["web_search"], bool)
+    # The footer says where the facts come from; .env decides (WEB_SEARCH, LENS_SELECTION).
+    assert isinstance(options["web_search_lenses"], list)
+
+
+@pytest.mark.parametrize(
+    "web_search, lens_selection, expected",
+    [
+        (False, True, []),
+        (True, False, ["Reality Auditor"]),  # Legal Counsel is a domain lens: it does not run
+        (True, True, ["Reality Auditor", "Legal Counsel"]),
+    ],
+)
+def test_the_footer_names_only_the_lenses_that_can_search(monkeypatch, web_search, lens_selection, expected):
+    from web import app as app_module
+    monkeypatch.setattr(app_module, "WEB_SEARCH", web_search)
+    monkeypatch.setattr(app_module, "LENS_SELECTION", lens_selection)
+    monkeypatch.setattr(app_module, "EXTRA_LENSES", ())
+    assert app_module.web_search_lenses() == expected
 
 
 def test_examples_never_come_from_personal_ideas():
