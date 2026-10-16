@@ -13,6 +13,34 @@ can be measured in several variants.
 Entry format: date, commit, what changed, expected effect, how it was checked
 so far, and the eval result once there is one.
 
+## At a glance
+
+Milestones (details in the entries below, newest first):
+
+- **2026-09-25** — baseline of the whole pipeline (six lenses, Sonnet 4.6); switches for
+  model, thinking and lens selection; domain lenses with their own knowledge packs.
+- **2026-09-26** — "What holds up" in the synthesis; web search for the fact-heavy lenses,
+  Opus 5.5 support and an effort switch (all off by default); trigger test for the skill.
+- **2026-09-27** — the eval rebuilt: one primary verdict per case, error costs and paired
+  cases; a judge for planted flaws; a blind second annotation that settled the labels;
+  constant and random baselines and stability in every summary; eval through Message
+  Batches at half price; experiment A on where the instability comes from.
+- **2026-10-07** — a warning when a lens says it searched the web without searching.
+- **2026-10-14** — two prompt changes tried and reverted (no gain in a targeted eval);
+  translation moved to Haiku 5.5.
+- **2026-10-16** — translation section by section, with checks for text left in English
+  or written in another language.
+
+What the measurements showed:
+
+- The reports find the planted flaws (22 of 24), yet the verdict drawn from them barely
+  beats a constant answer: the weak point is the step from findings to a verdict.
+- A large share of the verdict instability comes from the synthesis itself: on identical
+  lens results its verdict still changed in 4 of 6 cases, mostly between "risky" and
+  "needs validation" (experiment A). That is the planned v1.1 fix.
+- Prompt changes that a targeted eval showed to bring no gain were reverted; the input
+  check passed all 93 runs of its eval (31 cases, three runs each).
+
 ## 2026-10-16 — translation: wrong language and English headings caught, stricter retry
 
 - **Why (owner's review of two live runs after the previous change):** in a Russian
