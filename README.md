@@ -93,6 +93,8 @@ ideas/<idea>.txt
   results/<timestamp>_<idea>/        one directory per run, sorted by time
       report.md                      the final report: verdict, reasons,
                                      risks, conflicts, next steps
+      report.<language>.md           optional machine translation of it
+                                     (e.g. report.lithuanian.md)
       report.json                    the same analysis as data for programs
                                      (the MCP server returns its path)
       lenses/<lens>.md               full report of each lens (appendix)
