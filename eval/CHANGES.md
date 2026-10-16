@@ -13,6 +13,39 @@ can be measured in several variants.
 Entry format: date, commit, what changed, expected effect, how it was checked
 so far, and the eval result once there is one.
 
+## 2026-10-16 — translation: wrong language and English headings caught, stricter retry
+
+- **Why (owner's review of two live runs after the previous change):** in a Russian
+  translation the "Next Steps" section came back in Lithuanian (the report is about
+  Vilnius); the overlap check passed it, because Lithuanian shares no words with the
+  English source. In both runs "Why: Deciding Factors" kept its English heading, and
+  in one of them the whole section stayed English after the retry (kept and marked).
+  What the rejected answers looked like is unknown: they were not logged.
+- **Changed (translation only):** the prompt asks to write the whole translation in
+  the target language, even where the text is about another country. A section of
+  25+ words is also rejected when its letters are mostly in another script (Russian,
+  Ukrainian and other Cyrillic languages; Greek, Japanese, Chinese, Korean, Arabic,
+  Hebrew, Hindi; Latin for the Latin-script languages of the web page) or, for the
+  eight Latin-script languages of the web page, when 2% or more of its letters (10
+  or more) are outside the language's alphabet. A level-2 heading of two or more
+  words that comes back unchanged is rejected too. A rejected section is asked once
+  more with a stricter note in the prompt and effort `medium`
+  (`TRANSLATION_RETRY_EFFORT`). If only the heading is still English, the translated
+  section is kept; anything worse keeps the English original with the note, as
+  before. The start of each rejected answer goes to the debug log.
+- **Calibration:** on the four real Russian translations, translated sections have
+  75-100% Cyrillic letters, the Lithuanian and the English sections 0%; one real
+  Lithuanian name added 3 foreign letters in 4,000, the Lithuanian section had 115 in
+  1,300. Run over those four reports, the checks flag exactly the known defects (the
+  Lithuanian section, the English section, the English headings of the two older
+  translations) and nothing else. The Latin-script rule has no real translation to
+  be checked on yet.
+- **Expected:** no section in a wrong language; English headings rare. A retry costs
+  well under a cent (Haiku 5.5, one section). No effect on any verdict or on the eval.
+- **Checked:** pytest (wrong script, foreign letters, names allowed, heading check,
+  stricter retry, kept-in-English fallback, heading-only fallback), ruff. Not yet
+  checked with a live translation.
+
 ## 2026-10-16 — translation section by section, headings translated
 
 - **Why (owner's review of the web UI):** in two real Russian translations every

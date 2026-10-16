@@ -98,6 +98,9 @@ REPORT_TRANSLATION = os.getenv("REPORT_TRANSLATION", "").strip() or None
 # Haiku 5.5 thinks by default (effort medium); low effort keeps thinking short.
 TRANSLATION_MODEL = "claude-haiku-5-5"
 TRANSLATION_EFFORT = "low"
+# A section whose first answer is rejected (left in English, another language) is
+# asked again once, with a stricter prompt and a little more thinking.
+TRANSLATION_RETRY_EFFORT = "medium"
 # Also translate the per-lens reports (about six more calls per run).
 TRANSLATE_LENS_REPORTS = os.getenv("TRANSLATE_LENS_REPORTS", "").strip().lower() in ("1", "true", "yes")
 

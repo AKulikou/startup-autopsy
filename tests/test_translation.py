@@ -10,14 +10,17 @@ from core import analysis_runner
 from core.analysis_runner import AnalysisRunner
 from core.idea_processor import IdeaProcessor
 from core.translator import (
+    RETRY_NOTE,
     TRANSLATION_PROMPT,
     UNTRANSLATED_NOTE,
+    heading_untranslated,
     looks_untranslated,
     split_sections,
     translate_document,
     translate_markdown,
     translate_run,
     translated_path,
+    wrong_language,
 )
 
 IDEA = "Weekly meal-prep delivery for office workers in Vilnius, 60 EUR a week, ordered online."
@@ -220,3 +223,85 @@ def test_untranslated_text_is_recognised_and_names_alone_are_not():
     assert looks_untranslated(english, english)
     assert not looks_untranslated(english, "Visi vertinimai sutarė, kad mokumas yra lemiamas klausimas. " * 4)
     assert not looks_untranslated("Reality Auditor", "Reality Auditor")  # too short to judge
+
+
+# A section in the wrong language, or with its heading left in English.
+
+RUSSIAN = ("Прежде чем тратить деньги на рекламу, письменно запросите у самоуправления "
+           "подтверждение, что площадка для посадки примет деревья в январе. ") * 3
+LITHUANIAN = ("Prieš išleisdami pinigus rinkodarai, raštu kreipkitės į savivaldybę ir "
+              "įsitikinkite, kad sodinimo vieta priims medelius sausį. ") * 3
+GERMAN = ("Bevor Sie Geld für Werbung ausgeben, lassen Sie sich von der Stadtverwaltung "
+          "schriftlich bestätigen, dass die Pflanzfläche die Bäume im Januar annimmt. ") * 3
+
+
+def test_a_section_in_another_language_is_recognised():
+    assert wrong_language(LITHUANIAN, "Russian")  # the case seen in a real run
+    assert wrong_language(REPORT, "Russian")
+    assert wrong_language(RUSSIAN, "Lithuanian")
+    assert wrong_language(LITHUANIAN, "German")  # same script, foreign letters
+    assert wrong_language(RUSSIAN, " russian ") is None
+    assert wrong_language(LITHUANIAN, "Lithuanian") is None
+    assert wrong_language(GERMAN, "German") is None
+    # English names in a translation and a stray foreign name are fine.
+    assert wrong_language(RUSSIAN + " Reality Auditor, Launch Expert, Stripe, Tally.", "Russian") is None
+    assert wrong_language(GERMAN + " Vilniaus savivaldybė.", "German") is None
+    # A language without a known alphabet is not judged this way.
+    assert wrong_language(LITHUANIAN, "Portuguese") is None
+
+
+def test_a_heading_left_in_english_is_recognised():
+    section = "## Why: Deciding Factors\n\n- Text."
+    assert heading_untranslated(section, "## Why: Deciding Factors\n\n- Текст.")
+    assert not heading_untranslated(section, "## Почему: решающие факторы\n\n- Текст.")
+    assert not heading_untranslated("## Conflicts\n\nText.", "## Conflicts\n\nText.")  # one word
+    assert not heading_untranslated("# Startup Autopsy — meals\n", "# Startup Autopsy — meals\n")
+
+
+def russian_translator(first_answer):
+    """The appendix comes back as first_answer the first time; everything else in Russian."""
+    calls = {"appendix": 0}
+
+    def handler(kwargs):
+        source = kwargs["messages"][0]["content"]
+        heading = source.splitlines()[0]
+        if "Appendix" in source:
+            calls["appendix"] += 1
+            if calls["appendix"] == 1:
+                return text_response(first_answer(heading))
+        return text_response(f"{heading} (RU)\n\n{RUSSIAN}")
+
+    return handler
+
+
+def test_a_section_in_another_language_is_asked_again_with_a_stricter_prompt(fake_claude):
+    fake_claude.create_handler = russian_translator(lambda heading: f"## Priedas\n\n{LITHUANIAN}")
+    outcome = translate_document(REPORT, "Russian")
+    assert outcome["untranslated_sections"] == 0
+    assert "## Appendix: How the Verdict Was Reached (RU)" in outcome["text"]
+    assert "Prieš" not in outcome["text"]
+    calls = text_calls(fake_claude)
+    assert len(calls) == 4
+    first, retry = [c for c in calls if "Appendix" in c["messages"][0]["content"]]
+    assert RETRY_NOTE.format(language="Russian") in retry["system"]
+    assert RETRY_NOTE.format(language="Russian") not in first["system"]
+    assert retry["output_config"] == {"effort": "medium"}
+    assert [c["output_config"]["effort"] for c in calls].count("low") == 3
+
+
+def test_a_section_still_in_another_language_after_the_retry_is_kept_in_english(fake_claude):
+    fake_claude.create_handler = lambda kw: text_response(f"## Priedas\n\n{LITHUANIAN}")
+    outcome = translate_document(REPORT, "Russian")
+    # Only the appendix is long enough to judge (25+ words); short parts are not checked.
+    assert outcome["status"] == "success" and outcome["untranslated_sections"] == 1
+    assert UNTRANSLATED_NOTE + "## Appendix: How the Verdict Was Reached" in outcome["text"]
+
+
+def test_a_translation_with_only_its_heading_in_english_is_kept_over_the_english_original(fake_claude):
+    fake_claude.create_handler = lambda kw: text_response(
+        f"{kw['messages'][0]['content'].splitlines()[0]}\n\n{RUSSIAN}")
+    outcome = translate_document(REPORT, "Russian")
+    assert outcome["untranslated_sections"] == 0
+    assert UNTRANSLATED_NOTE not in outcome["text"]
+    assert outcome["text"].count(RUSSIAN.strip()) == 3
+    assert len(text_calls(fake_claude)) == 5  # both headings were asked again once

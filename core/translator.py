@@ -12,10 +12,11 @@ reused rather than paid for twice.
 import logging
 import re
 import time
+import unicodedata
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-from config import MAX_TOKENS, TRANSLATION_EFFORT, TRANSLATION_MODEL
+from config import MAX_TOKENS, TRANSLATION_EFFORT, TRANSLATION_MODEL, TRANSLATION_RETRY_EFFORT
 from core.claude_client import get_client
 from core.result_writer import LENSES_DIR, REPORT_FILENAME
 from core.token_summary import estimate_cost, format_cost
@@ -28,7 +29,16 @@ including headings, table headers, labels and bold lead-ins; keep the Markdown
 markup and structure unchanged (heading levels, lists, tables, emphasis, links).
 Do not translate link targets, numbers, currencies, units, or the names of
 companies, products, laws and regulations. Keep the analyst names (such as
-'Reality Auditor') and file names in English. Output only the translated text.
+'Reality Auditor') and file names in English. Write the whole translation in
+{language}, even where the text is about another country or names its places.
+Output only the translated text.
+"""
+
+# Added to the prompt when a section is asked again after a rejected answer.
+RETRY_NOTE = """
+Your answer must be written entirely in {language}: every heading, sentence, list
+item and table cell. Text left in English or written in any other language is a
+wrong answer.
 """
 
 # A report is translated one level-2 section at a time. In one call over a whole
@@ -44,6 +54,37 @@ UNTRANSLATED_SHARE = 0.6
 MIN_WORDS_TO_CHECK = 25
 UNTRANSLATED_NOTE = "> This section could not be translated; the English original follows.\n\n"
 
+# The overlap check cannot see a section that comes back in a third language: in one
+# Russian translation of a report about Vilnius, "Next Steps" came back in Lithuanian.
+# The script of the letters tells Russian from Lithuanian; for the Latin-script
+# languages of the web page, letters outside the language's alphabet tell one from
+# another. Other languages are not checked this way (the overlap check still runs).
+SCRIPTS = {
+    "russian": {"CYRILLIC"}, "ukrainian": {"CYRILLIC"}, "belarusian": {"CYRILLIC"},
+    "bulgarian": {"CYRILLIC"}, "greek": {"GREEK"}, "japanese": {"CJK", "HIRAGANA", "KATAKANA"},
+    "chinese": {"CJK"}, "korean": {"HANGUL"}, "arabic": {"ARABIC"}, "hebrew": {"HEBREW"},
+    "hindi": {"DEVANAGARI"},
+}
+# The letters beyond a-z that each Latin-script language of the web page uses.
+LATIN_ALPHABETS = {
+    "lithuanian": "ąčęėįšųūž",
+    "latvian": "āčēģīķļņšūž",
+    "estonian": "äõöüšž",
+    "polish": "ąćęłńóśźż",
+    "german": "äöüß",
+    "french": "àâæçéèêëîïôœùûüÿ",
+    "spanish": "áéíñóúü",
+    "italian": "àèéìíîòóù",
+}
+# Measured on four real Russian translations: translated sections have 75-100% of
+# their letters in Cyrillic, the Lithuanian and the English sections 0%. A real name
+# from another language adds a few foreign letters (3 in 4,000 were seen); the
+# Lithuanian section had 115 in 1,300.
+MIN_SCRIPT_SHARE = 0.3
+FOREIGN_LETTER_SHARE = 0.02
+MIN_FOREIGN_LETTERS = 10
+HEADING_LEFT = "heading left in English"
+
 # Put above every translated copy, in English, so a reader of any language sees
 # which file is the source of truth.
 MACHINE_TRANSLATION_NOTE = (
@@ -52,9 +93,9 @@ MACHINE_TRANSLATION_NOTE = (
 )
 
 
-def translate_markdown(markdown: str, language: str) -> dict:
+def translate_markdown(markdown: str, language: str, retry: bool = False) -> dict:
     """
-    Translate a Markdown document. Never raises.
+    Translate a Markdown document. Never raises. A retry adds RETRY_NOTE and thinks more.
 
     Returns:
         {"status": "success", "text": str, "input_tokens", "output_tokens", "duration_s"}
@@ -65,8 +106,8 @@ def translate_markdown(markdown: str, language: str) -> dict:
         response = get_client().messages.create(
             model=TRANSLATION_MODEL,
             max_tokens=MAX_TOKENS,
-            output_config={"effort": TRANSLATION_EFFORT},
-            system=TRANSLATION_PROMPT.format(language=language),
+            output_config={"effort": TRANSLATION_RETRY_EFFORT if retry else TRANSLATION_EFFORT},
+            system=(TRANSLATION_PROMPT + (RETRY_NOTE if retry else "")).format(language=language),
             messages=[{"role": "user", "content": markdown}],
         )
         usage = {
@@ -107,18 +148,89 @@ def looks_untranslated(source: str, translation: str) -> bool:
     return sum(word in kept for word in words) / len(words) >= UNTRANSLATED_SHARE
 
 
+def _script(letter: str) -> str:
+    """The script a letter belongs to: LATIN, CYRILLIC, CJK, ..."""
+    return unicodedata.name(letter, "").split(" ", 1)[0]
+
+
+def wrong_language(text: str, language: str) -> str | None:
+    """Why the text is not in the language, or None (also when it cannot be told)."""
+    key = language.strip().lower()
+    scripts = SCRIPTS.get(key) or ({"LATIN"} if key in LATIN_ALPHABETS else None)
+    letters = [c for c in text if c.isalpha()]
+    if not scripts or not letters:
+        return None
+    if sum(_script(c) in scripts for c in letters) / len(letters) < MIN_SCRIPT_SHARE:
+        return "written in another script"
+    alphabet = LATIN_ALPHABETS.get(key)
+    if alphabet is not None:
+        foreign = [
+            c for c in letters if not c.isascii() and _script(c) == "LATIN" and c.lower() not in alphabet
+        ]
+        if len(foreign) >= MIN_FOREIGN_LETTERS and len(foreign) / len(letters) >= FOREIGN_LETTER_SHARE:
+            return "letters of another language"
+    return None
+
+
+def _heading(text: str) -> str:
+    return text.strip().split("\n", 1)[0].strip()
+
+
+def heading_untranslated(source: str, translation: str) -> bool:
+    """True when a section heading of two or more words comes back unchanged."""
+    heading = _heading(source)
+    return (heading.startswith("## ") and len(_words(heading)) >= 2
+            and _heading(translation).lower() == heading.lower())
+
+
+def section_problem(source: str, translation: str, language: str) -> str | None:
+    """Why a translated section cannot be used as it is, or None."""
+    if looks_untranslated(source, translation):
+        return "left in English"
+    if len(_words(source)) >= MIN_WORDS_TO_CHECK:
+        wrong = wrong_language(translation, language)
+        if wrong:
+            return f"not in {language}: {wrong}"
+    if heading_untranslated(source, translation):
+        return HEADING_LEFT
+    return None
+
+
 def _translate_section(section: str, language: str) -> dict:
-    """One section; retried once if it comes back untranslated. Never raises."""
+    """
+    One section; asked again once, with a stricter prompt, if the answer is rejected.
+    Never raises. A translation whose only fault is an English heading beats the
+    English original; anything worse keeps the English section, marked.
+    """
     first = translate_markdown(section, language)
-    if first["status"] != "success" or not looks_untranslated(section, first["text"]):
+    if first["status"] != "success":
         return {**first, "calls": 1, "untranslated": False}
-    second = translate_markdown(section, language)
+    first_problem = section_problem(section, first["text"], language)
+    if first_problem is None:
+        return {**first, "calls": 1, "untranslated": False}
+    heading = _heading(section)
+    _log_rejected(heading, first_problem, first["text"])
+    second = translate_markdown(section, language, retry=True)
     billed = {key: first.get(key, 0) + second.get(key, 0) for key in ("input_tokens", "output_tokens")}
-    if second["status"] == "success" and not looks_untranslated(section, second["text"]):
-        return {**second, **billed, "calls": 2, "untranslated": False}
-    # Keep the English section, marked, rather than lose the whole translation.
+    attempts = [(first, first_problem)]
+    if second["status"] == "success":
+        second_problem = section_problem(section, second["text"], language)
+        if second_problem is None:
+            return {**second, **billed, "calls": 2, "untranslated": False}
+        _log_rejected(heading, second_problem, second["text"])
+        attempts.append((second, second_problem))
+    for attempt, problem in attempts:
+        if problem == HEADING_LEFT:
+            logger.warning(f"[Translation] '{heading}': the heading stayed English after a retry")
+            return {**attempt, **billed, "calls": 2, "untranslated": False}
+    logger.warning(f"[Translation] '{heading}' kept in English after a retry ({attempts[-1][1]})")
     return {"status": "success", "text": UNTRANSLATED_NOTE + section, "model": TRANSLATION_MODEL,
             **billed, "calls": 2, "untranslated": True}
+
+
+def _log_rejected(heading: str, problem: str, text: str) -> None:
+    """The start of a rejected answer goes to the debug log, to see what came back."""
+    logger.debug(f"[Translation] '{heading}' rejected ({problem}): {text[:300]!r}")
 
 
 def translate_document(markdown: str, language: str) -> dict:
@@ -145,10 +257,6 @@ def translate_document(markdown: str, language: str) -> dict:
     if failed:
         return {"status": "error", "error": failed[0]["error"], **billed}
     untranslated = sum(o["untranslated"] for o in outcomes)
-    if untranslated:
-        logger.warning(
-            f"[Translation] {untranslated} section(s) stayed English after a retry; kept and marked"
-        )
     text = "\n\n".join(o["text"].strip() for o in outcomes) + "\n"
     return {"status": "success", "text": text, "untranslated_sections": untranslated, **billed}
 
