@@ -1,5 +1,6 @@
 """Structured output schemas for evaluator responses."""
 
+import re
 from enum import Enum
 
 from pydantic import BaseModel, Field
@@ -79,6 +80,42 @@ def verdict_meaning(verdict: str) -> str:
 def confidence_label(confidence: str) -> str:
     """Report label for a confidence code, e.g. 'HIGH' -> 'High'."""
     return Confidence(confidence).value.capitalize()
+
+
+# The prompts ask for plain words, yet the models still write codes into their text
+# ("the appropriate verdict is NEEDS_VALIDATION rather than VIABLE_IF", "confidence
+# at MEDIUM"): in all six real reports checked on 2026-10-16, mostly in the synthesis
+# reasoning. Reports and the web page show them as words; report.json keeps the text
+# as the model wrote it.
+_VERDICT_IN_TEXT = re.compile(r"(['\"`]?)\b(NOT_VIABLE|VIABLE_IF|NEEDS_VALIDATION|RISKY|VIABLE)\b\1")
+_CONFIDENCE_IN_TEXT = re.compile(r"\b(HIGH|MEDIUM|LOW)\b")
+# A capitalised HIGH, MEDIUM or LOW counts as a confidence code only near the word.
+_CONFIDENCE_CONTEXT = 40
+
+
+def codes_as_words(text: str) -> str:
+    """Verdict and confidence codes inside a model's text, written as words."""
+    text = _VERDICT_IN_TEXT.sub(_verdict_words, text)
+    return _CONFIDENCE_IN_TEXT.sub(_confidence_words, text)
+
+
+def _verdict_words(match: re.Match) -> str:
+    label = verdict_label(match.group(2))
+    if not _starts_sentence(match.string, match.start()):
+        label = label[0].lower() + label[1:]
+    return f"'{label}'"
+
+
+def _confidence_words(match: re.Match) -> str:
+    around = match.string[max(0, match.start() - _CONFIDENCE_CONTEXT): match.end() + _CONFIDENCE_CONTEXT]
+    if "confidence" not in around.lower():
+        return match.group(0)
+    return confidence_label(match.group(1)).lower()
+
+
+def _starts_sentence(text: str, position: int) -> bool:
+    before = text[:position].rstrip(" \t*_(")
+    return not before or before[-1] in ".!?\n-#|"
 
 
 class Assumption(BaseModel):

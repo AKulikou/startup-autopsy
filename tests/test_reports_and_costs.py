@@ -6,7 +6,7 @@ from conftest import lens_result, synthesis_result
 from core import token_summary
 from core.report_builder import build_report
 from core.result_writer import ResultWriter, lens_report_path
-from evaluators.schemas import confidence_label, verdict_label, verdict_meaning
+from evaluators.schemas import codes_as_words, confidence_label, verdict_label, verdict_meaning
 from gate.schemas import gate_decision_label
 from synthesis.synthesizer import consistency_warnings
 
@@ -122,3 +122,38 @@ def test_a_lens_warning_shows_in_both_reports(tmp_path):
     path = writer.save_result(writer.create_run_dir("idea", started), "idea", started, warned)
     lens_report = path.read_text(encoding="utf-8")
     assert "> **Warning:** this lens says it searched the web but made no search." in lens_report
+
+
+# Seen in every real report checked on 2026-10-16, despite the prompts asking for words.
+REASONING_WITH_CODES = (
+    "This is not a NOT_VIABLE situation. The appropriate verdict is NEEDS_VALIDATION rather "
+    "than VIABLE_IF. RISKY would imply a blocker. No-Code Stack Master gave a HIGH confidence "
+    "VIABLE verdict. I'd place confidence at MEDIUM because demand is untested. "
+)
+
+
+def test_codes_in_the_models_text_become_words():
+    assert codes_as_words(REASONING_WITH_CODES) == (
+        "This is not a 'not viable' situation. The appropriate verdict is 'needs validation' rather "
+        "than 'viable if conditions hold'. 'Risky' would imply a blocker. No-Code Stack Master gave a "
+        "high confidence 'viable' verdict. I'd place confidence at medium because demand is untested. "
+    )
+    assert codes_as_words("- `VIABLE_IF` holds") == "- 'Viable if conditions hold' holds"
+    # Capitals far from the word 'confidence' are left alone.
+    assert codes_as_words("Rent is LOW in the suburbs.") == "Rent is LOW in the suburbs."
+
+
+def test_both_reports_show_codes_from_the_models_text_as_words(tmp_path):
+    synthesis = synthesis_row(reasoning=REASONING_WITH_CODES * 2,
+                              summary="Needs validation, not NOT_VIABLE: demand is untested so far.")
+    lens = {**lens_row("Reality Auditor", summary="A HIGH confidence VIABLE verdict within this lens."),
+            "tokens_used": 1, "input_tokens": 1, "output_tokens": 0}
+    started = datetime(2026, 9, 25)
+    report = build_report("idea", started, synthesis, [lens])
+    writer = ResultWriter(str(tmp_path))
+    path = writer.save_result(writer.create_run_dir("idea", started), "idea", started, lens)
+    lens_report = path.read_text(encoding="utf-8")
+    for text in (report, lens_report):
+        assert not any(code in text for code in ("NOT_VIABLE", "VIABLE_IF", "NEEDS_VALIDATION", "VIABLE "))
+    assert "'needs validation' rather than 'viable if conditions hold'" in report
+    assert "A high confidence 'viable' verdict" in lens_report

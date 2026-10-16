@@ -3,19 +3,22 @@ The result of a web run as the page shows it: meanings in words, never codes.
 
 Verdict and decision codes are kept only where the page needs them for logic
 or colour (`verdict`, `decision`); every text a person reads comes from the
-*_text fields. report.json keeps the full analysis with its codes.
+*_text fields. Codes the models wrote into their own text are shown as words too.
+report.json keeps the full analysis with its codes.
 """
 
 from core.result_writer import JSON_FILENAME, REPORT_FILENAME
 from core.translator import translated_path
 from evaluators.lenses import LENSES
-from evaluators.schemas import confidence_label, verdict_label, verdict_meaning
+from evaluators.schemas import codes_as_words, confidence_label, verdict_label, verdict_meaning
 from gate.idea_gate import NEXT_STEP_HINT
 from gate.schemas import GateDecision, gate_decision_label
 from web.languages import NATIVE_NAMES
 from web.runs import Run
 
 FOCUS = {lens.key: lens.focus for lens in LENSES}
+# Fields that hold codes for the page's logic and styling; everything else is text.
+CODE_FIELDS = {"verdict", "decision", "key", "kind"}
 
 
 def download_paths(run: Run) -> dict:
@@ -43,7 +46,7 @@ def run_view(run: Run) -> dict:
         "translation": None,
     }
     if not view["analyzed"]:
-        return view
+        return _in_words(view)
     view["synthesis"] = _synthesis(analysis["synthesis"])
     view["lenses"] = [_lens(result) for result in analysis["lenses"]]
     view["downloads"] = _downloads(run)
@@ -57,7 +60,18 @@ def run_view(run: Run) -> dict:
             "made": made,
             "text": None if made else "The translation failed; the English report is complete.",
         }
-    return view
+    return _in_words(view)
+
+
+def _in_words(value, field: str | None = None):
+    """The view with every text field passed through codes_as_words."""
+    if isinstance(value, dict):
+        return {key: _in_words(item, key) for key, item in value.items()}
+    if isinstance(value, list):
+        return [_in_words(item, field) for item in value]
+    if isinstance(value, str) and field not in CODE_FIELDS:
+        return codes_as_words(value)
+    return value
 
 
 def _input_check(gate: dict) -> dict:

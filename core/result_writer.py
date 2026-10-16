@@ -15,7 +15,7 @@ import re
 from datetime import datetime
 from pathlib import Path
 
-from evaluators.schemas import confidence_label, verdict_label, verdict_meaning
+from evaluators.schemas import codes_as_words, confidence_label, verdict_label, verdict_meaning
 
 REPORT_FILENAME = "report.md"
 JSON_FILENAME = "report.json"
@@ -90,7 +90,7 @@ class ResultWriter:
         return filepath
 
     def _format_markdown(self, idea_name: str, started_at: datetime, result: dict) -> str:
-        """Render the structured fields first, then the full analysis."""
+        """Render the structured fields first, then the full analysis; codes in the text as words."""
         timestamp = started_at.strftime("%Y-%m-%d %H:%M:%S")
 
         assumption_rows = "\n".join(
@@ -106,7 +106,7 @@ class ResultWriter:
             f"\n> **Warning:** this lens {warning}.\n" for warning in result.get("warnings", ())
         )
 
-        return f"""# Startup Autopsy — {result['evaluator_display']}
+        return codes_as_words(f"""# Startup Autopsy — {result['evaluator_display']}
 
 - **Idea:** {idea_name}
 - **Analyzed:** {timestamp}
@@ -145,7 +145,7 @@ class ResultWriter:
 ## Full Analysis
 
 {result['analysis']}
-"""
+""")
 
     def save_report(self, run_dir: Path, report: str) -> Path:
         """Save the final report and return its path."""

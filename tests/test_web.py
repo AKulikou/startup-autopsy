@@ -4,13 +4,14 @@ import json
 import threading
 
 import pytest
-from conftest import gate_result, lens_result, response
+from conftest import gate_result, lens_result, response, synthesis_result
 from fastapi.testclient import TestClient
 
 from config import ENABLED_LENSES
 from evaluators.lenses import select_lenses
 from evaluators.schemas import EvaluatorResult, Verdict
 from gate.schemas import GateDecision, GateResult
+from synthesis.schemas import SynthesisResult
 from web import examples as examples_module
 from web.app import create_app
 
@@ -278,3 +279,21 @@ def test_only_local_host_names_are_served(results_dir):
 def test_an_unknown_run_is_not_found(client):
     assert client.get("/api/runs/nope/result").status_code == 404
     assert client.get("/api/runs/nope/events").status_code == 404
+
+
+def test_codes_the_models_write_into_their_text_are_shown_as_words(client, fake_claude, results_dir):
+    fake_claude.handlers[SynthesisResult] = lambda kw: response(synthesis_result(
+        summary="This is clearly VIABLE_IF, not NOT_VIABLE: the deciding question is still open.",
+        confidence_reason="Confidence is MEDIUM because demand is untested.",
+    ))
+    fake_claude.handlers[EvaluatorResult] = lambda kw: response(lens_result(
+        summary="A HIGH confidence VIABLE verdict: the build is simple and the tools are proven.",
+    ))
+    _, _, result = run_to_end(client)
+    leaked = [text for text in shown_texts(result) if any(code in text for code in CODES)]
+    assert leaked == []
+    assert result["synthesis"]["summary"].startswith(
+        "This is clearly 'viable if conditions hold', not 'not viable'")
+    assert result["synthesis"]["verdict"] == "NEEDS_VALIDATION"  # codes stay for the page's logic
+    report = (next(results_dir.iterdir()) / "report.md").read_text(encoding="utf-8")
+    assert "VIABLE_IF" not in report and "'not viable'" in report

@@ -59,6 +59,9 @@ Counsel only with `LENS_SELECTION=on`), and that it is not financial or legal ad
 
 Everything a person reads shows meanings in words, never internal codes (verdict
 enums, lens keys, field names). `report.json` keeps the codes for programs.
+The prompts ask the models for words too, yet they still write codes into their text
+now and then ("the verdict is NEEDS_VALIDATION rather than VIABLE_IF"); the reports and
+the page show those as words (`codes_as_words` in `evaluators/schemas.py`).
 
 ## Running and showing
 

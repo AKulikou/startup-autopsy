@@ -7,7 +7,7 @@ from datetime import datetime
 
 from config import MODEL
 from core.result_writer import lens_report_path, table_cell
-from evaluators.schemas import confidence_label, verdict_label, verdict_meaning
+from evaluators.schemas import codes_as_words, confidence_label, verdict_label, verdict_meaning
 
 
 def build_report(
@@ -20,7 +20,8 @@ def build_report(
 ) -> str:
     """
     Render the final report. If the synthesis failed, say so and show only the
-    lens results instead of inventing an overall verdict.
+    lens results instead of inventing an overall verdict. Codes the models wrote
+    into their text are shown as words.
     """
     succeeded = sum(r["status"] == "success" for r in lens_results)
     header = (
@@ -42,7 +43,8 @@ def build_report(
             "The lens results below answer only their own questions; read their reports "
             "for details."
         )
-        return "\n\n".join([header, body, _lens_appendix(lens_results, skipped_lenses)]) + "\n"
+        parts = [header, body, _lens_appendix(lens_results, skipped_lenses)]
+        return codes_as_words("\n\n".join(parts) + "\n")
 
     sections = [
         header,
@@ -61,7 +63,7 @@ def build_report(
         _lens_appendix(lens_results, skipped_lenses),
         f"## Appendix: How the Verdict Was Reached\n\n{synthesis['reasoning']}",
     ]
-    return "\n\n".join(sections) + "\n"
+    return codes_as_words("\n\n".join(sections) + "\n")
 
 
 def _findings(findings: list[dict]) -> str:
