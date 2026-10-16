@@ -451,11 +451,6 @@ function renderResult(runId, view) {
   // After the report, whichever copy is shown.
   const footer = el("div", "result-footer");
   if (view.translation && !view.translation.made) footer.append(el("p", "muted", view.translation.text));
-  if (files.json) {
-    const data = el("p", "data-file");
-    data.append(el("span", "muted", "The full analysis as data for other programs: "), saveLink(runId, files.json));
-    footer.append(data);
-  }
   footer.append(el("p", "muted", `Estimated API cost of this run: $${view.cost_usd.toFixed(2)}.`));
   root.append(footer);
 }

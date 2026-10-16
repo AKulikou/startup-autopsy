@@ -4,10 +4,9 @@ The result of a web run as the page shows it: meanings in words, never codes.
 Verdict and decision codes are kept only where the page needs them for logic
 or colour (`verdict`, `decision`); every text a person reads comes from the
 *_text fields. Codes the models wrote into their own text are shown as words too.
-report.json keeps the full analysis with its codes.
 """
 
-from core.result_writer import JSON_FILENAME, REPORT_FILENAME
+from core.result_writer import REPORT_FILENAME
 from core.translator import translated_path
 from evaluators.lenses import LENSES
 from evaluators.schemas import codes_as_words, confidence_label, verdict_label, verdict_meaning
@@ -25,7 +24,7 @@ def download_paths(run: Run) -> dict:
     """Files a finished run offers, by the kind the page asks for; only files that exist."""
     if run.report_path is None:
         return {}
-    paths = {"report": run.report_path, "json": run.report_path.with_name(JSON_FILENAME)}
+    paths = {"report": run.report_path}
     if run.language:
         paths["translation"] = translated_path(run.report_path, run.language)
     return {kind: path for kind, path in paths.items() if path.exists()}
@@ -143,16 +142,13 @@ def _lens(result: dict) -> dict:
     }
 
 
-DOWNLOAD_LABELS = {
-    "report": f"Save report ({REPORT_FILENAME})",
-    "json": f"Save structured data ({JSON_FILENAME})",
-}
+DOWNLOAD_LABELS = {"report": f"Save report ({REPORT_FILENAME})"}
 
 
 def _downloads(run: Run) -> list[dict]:
     """
-    Each file with its own handling on the page: the report and its translation are
-    shown on the page and can be saved; report.json is data for programs, saved only.
+    The report and its translation: both are shown on the page and can be saved.
+    report.json (data for programs such as MCP clients) is not offered on the page.
     """
     downloads = []
     for kind, path in download_paths(run).items():

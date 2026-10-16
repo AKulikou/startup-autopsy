@@ -21,8 +21,9 @@ One page with four states:
 4. **Saving.** Each file has its own handling (owner's review, 2026-10-16):
    - the report is what the page shows; a button saves it as `report.md`;
    - the translated copy, when asked for, opens in its own tab, rendered on the
-     page, with a button that saves it;
-   - `report.json` is data for programs: saved only, from a line under the report.
+     page, with a button that saves it.
+   `report.json` is still written to `results/` for programs (the MCP server returns
+   its path), but the page does not offer it: it is not for the reader.
 
 ## Example ideas
 

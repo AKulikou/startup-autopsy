@@ -46,8 +46,7 @@ MAX_IDEA_CHARS = 20_000
 # How often the event stream looks for new events; a run takes minutes.
 EVENT_POLL_S = 0.3
 
-MEDIA_TYPES = {"report": "text/markdown; charset=utf-8", "json": "application/json",
-               "translation": "text/markdown; charset=utf-8"}
+MEDIA_TYPES = {"report": "text/markdown; charset=utf-8", "translation": "text/markdown; charset=utf-8"}
 
 
 def web_search_lenses() -> list[str]:

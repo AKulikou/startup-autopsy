@@ -158,12 +158,12 @@ def test_the_run_cost_is_the_sum_of_its_calls(client, fake_claude):
 
 def test_reports_can_be_downloaded(client, fake_claude):
     run_id, _, result = run_to_end(client)
-    assert [d["kind"] for d in result["downloads"]] == ["report", "json"]
+    assert [d["kind"] for d in result["downloads"]] == ["report"]
     report = client.get(f"/api/runs/{run_id}/files/report")
     assert report.status_code == 200 and "## Verdict: Needs validation" in report.text
     assert "attachment" in report.headers["content-disposition"]
-    data = client.get(f"/api/runs/{run_id}/files/json").json()
-    assert data["synthesis"]["verdict"] == "NEEDS_VALIDATION"  # report.json keeps the codes
+    # report.json is still written for programs (MCP), but the page does not offer it.
+    assert client.get(f"/api/runs/{run_id}/files/json").status_code == 404
     assert client.get(f"/api/runs/{run_id}/files/translation").status_code == 404
     assert client.get(f"/api/runs/{run_id}/files/..%2F..%2Fconfig.py").status_code == 404
 
@@ -184,7 +184,6 @@ def test_a_requested_translation_is_made_marked_and_offered(client, fake_claude)
     labels = {d["kind"]: d["label"] for d in result["downloads"]}
     # English page, English words: the language's own name never mixes into a sentence.
     assert labels == {"report": "Save report (report.md)",
-                      "json": "Save structured data (report.json)",
                       "translation": "Save translation (report.lithuanian.md)"}
     translated = client.get(f"/api/runs/{run_id}/files/translation").text
     assert translated.startswith("> Machine translation into Lithuanian of the English original")
@@ -207,7 +206,7 @@ def test_a_failed_translation_is_said_and_the_english_report_stays(client, fake_
     _, events, result = run_to_end(client, language="German")
     assert [e["status"] for e in events if e["stage"] == "translation"] == ["started", "failed"]
     assert result["translation"]["made"] is False
-    assert [d["kind"] for d in result["downloads"]] == ["report", "json"]
+    assert [d["kind"] for d in result["downloads"]] == ["report"]
 
 
 def test_a_vague_idea_comes_back_with_what_is_missing(client, fake_claude):
