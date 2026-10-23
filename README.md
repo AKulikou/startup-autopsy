@@ -9,6 +9,8 @@
 Brutally honest evaluation of business ideas from several independent analytical
 perspectives, powered by Claude.
 
+Part of the Autopsy series: [Stock Autopsy](https://github.com/AKulikou/stock-autopsy)
+
 Startup Autopsy runs a business idea through a set of evaluators, called *lenses*.
 Each lens looks at the idea from one angle only (revenue, buildability, risk, and
 so on) and returns a structured verdict. The reports name the one risk most likely
